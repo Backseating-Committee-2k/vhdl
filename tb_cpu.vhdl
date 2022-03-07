@@ -79,7 +79,8 @@ begin
 				a := a(55 downto 0) & std_logic_vector(to_unsigned(character'pos(t), 8));
 			end loop;
 			i(x) <= a;
-			x := x + 1;
+			-- increment by eight, because instructions are 64 bit
+			x := x + 8;
 		end loop;
 		wait;
 	end process;

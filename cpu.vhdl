@@ -78,7 +78,8 @@ begin
 	process(reset, clk) is
 		procedure done is
 		begin
-			r(ip) <= word(unsigned(r(ip)) + 1);
+			-- increment by eight, because instructions are 64 bit
+			r(ip) <= word(unsigned(r(ip)) + 8);
 			s <= ifetch;
 		end procedure;
 
