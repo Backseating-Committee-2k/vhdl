@@ -8,5 +8,6 @@ output_files/
 tb_cpu.ghw
 tb_cpu.log
 tb_cpu.vcd
+tb_mem_arbiter.ghw
 work-obj08.cf
 work/
