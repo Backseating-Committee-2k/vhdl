@@ -38,7 +38,7 @@ architecture simple of cpu is
 
 	subtype word is std_logic_vector(31 downto 0);
 
-	type state is (ifetch, ifetch2, decode, load, load2, store, store2, halt);
+	type state is (ifetch, decode, load, load2, store, store2, halt);
 
 	signal s : state;
 
@@ -65,9 +65,6 @@ architecture simple of cpu is
 
 	subtype insn is std_logic_vector(63 downto 0);
 
-	-- current instruction
-	signal i : insn;
-
 	-- address for memory operation
 	signal m_addr : address;
 	-- register for memory operation
@@ -84,6 +81,9 @@ begin
 		end procedure;
 
 		procedure execute_insn is
+			-- instruction is on i_rddata in this cycle
+			alias i : insn is i_rddata;
+
 			alias opcode : std_logic_vector(15 downto 0) is i(63 downto 48);
 			alias reg1 : std_logic_vector(7 downto 0) is i(47 downto 40);
 			alias reg2 : std_logic_vector(7 downto 0) is i(39 downto 32);
@@ -268,24 +268,21 @@ begin
 				when ifetch =>
 					i_addr <= r(ip);
 					i_rdreq <= '1';
-					s <= ifetch2;
-				when ifetch2 =>
-					i_addr <= r(ip);
-					i_rdreq <= '1';
 					if(i_waitrequest = '0') then
-						i <= i_rddata;
 						s <= decode;
 					end if;
 				when decode =>
-					-- defined above because long
-					execute_insn;
+					if(i_waitrequest = '0') then
+						-- defined above because long
+						execute_insn;
+					end if;
 				when load =>
 					d_addr <= m_addr;
 					d_rdreq <= '1';
-					s <= load2;
+					if(d_waitrequest = '0') then
+						s <= load2;
+					end if;
 				when load2 =>
-					d_addr <= m_addr;
-					d_rdreq <= '1';
 					if(d_waitrequest = '0') then
 						r(m_reg) <= d_rddata;
 						done;
@@ -294,11 +291,10 @@ begin
 					d_addr <= m_addr;
 					d_wrdata <= r(m_reg);
 					d_wrreq <= '1';
-					s <= store2;
+					if(d_waitrequest = '0') then
+						s <= store2;
+					end if;
 				when store2 =>
-					d_addr <= m_addr;
-					d_wrdata <= r(m_reg);
-					d_wrreq <= '1';
 					if(d_waitrequest = '0') then
 						done;
 					end if;
