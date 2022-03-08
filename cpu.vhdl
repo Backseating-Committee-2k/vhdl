@@ -385,8 +385,11 @@ begin
 		end procedure;
 	begin
 		if(reset = '1') then
-			s <= execute;
-			i_buffer <= x"0000ff00" & reset_ip;
+			s <= writeback;
+			wb_active1 <= '1';
+			wb_reg1 <= ip;
+			wb_value1 <= reset_ip;
+			wb_active2 <= '0';
 			i_rdreq <= '0';
 			d_rdreq <= '0';
 			d_wrreq <= '0';
