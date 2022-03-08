@@ -49,7 +49,7 @@ begin
 	-- sim timeout
 	process is
 	begin
-		wait for 30 us;
+		wait for 40 us;
 		report "sim timeout" severity error;
 		finish;
 	end process;
