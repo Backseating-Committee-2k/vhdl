@@ -74,8 +74,10 @@ architecture simple of cpu is
 
 	-- address for memory operation
 	signal m_addr : address;
-	-- register for memory operation
+	-- register for memory load operation
 	signal m_reg : reg;
+	-- value for memory store operation
+	signal m_value : word;
 
 	-- whether writeback path is active
 	signal wb_active1, wb_active2 : std_logic;
@@ -137,13 +139,14 @@ begin
 					r_address_a <= r2;
 				when x"0003" =>
 					-- ST abs
-					null;
+					r_address_a <= r1;
 				when x"0004" =>
 					-- LD [r]
 					r_address_a <= r2;
 				when x"0005" =>
 					-- ST [r]
 					r_address_a <= r1;
+					r_address_b <= r2;
 				when x"0006" =>
 					-- HCF
 					null;
@@ -253,7 +256,7 @@ begin
 				when x"0003" =>
 					-- ST abs
 					m_addr <= c;
-					m_reg <= r1;
+					m_value <= r_q_a;
 					s <= store;
 				when x"0004" =>
 					-- LD [r]
@@ -263,7 +266,7 @@ begin
 				when x"0005" =>
 					-- ST [r]
 					m_addr <= r_q_a;
-					m_reg <= r2;
+					m_value <= r_q_b;
 					s <= store;
 				when x"0006" =>
 					-- HCF
@@ -457,7 +460,7 @@ begin
 					end if;
 				when store =>
 					d_addr <= m_addr;
-					d_wrdata <= r(m_reg);
+					d_wrdata <= m_value;
 					d_wrreq <= '1';
 					if(d_waitrequest = '0') then
 						s <= store2;
