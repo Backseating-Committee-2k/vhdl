@@ -361,6 +361,7 @@ begin
 					f.z <= not or_reduce(tmp33(31 downto 0));
 					done;
 				when x"0014" =>
+					-- CMP
 					if(r_q_a = r_q_b) then
 						writeback1(r1, x"00000000");
 						f.c <= '0';
