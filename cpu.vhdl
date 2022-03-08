@@ -68,8 +68,6 @@ architecture simple of cpu is
 
 	constant reset_ip : address := x"00000000";
 
-	signal current_ip : address;
-
 	subtype insn is std_logic_vector(63 downto 0);
 
 	signal i_buffer : insn;
@@ -424,13 +422,13 @@ begin
 					-- defined above because long
 					execute_insn;
 				when advance1 =>
-					current_ip <= r(ip);
+					r_address_a <= ip;
 					s <= advance2;
 				when advance2 =>
 					r_address_a <= ip;
 					r_wren_a <= '1';
 					-- increment by eight, because instructions are 64 bit
-					r_data_a <= word(unsigned(current_ip) + 8);
+					r_data_a <= word(unsigned(r_q_a) + 8);
 					s <= writeback;
 				when writeback =>
 					if(wb_active1 = '1') then
