@@ -424,13 +424,13 @@ begin
 					-- defined above because long
 					execute_insn;
 				when advance1 =>
-					-- increment by eight, because instructions are 64 bit
-					current_ip <= word(unsigned(r(ip)) + 8);
+					current_ip <= r(ip);
 					s <= advance2;
 				when advance2 =>
 					r_address_a <= ip;
 					r_wren_a <= '1';
-					r_data_a <= current_ip;
+					-- increment by eight, because instructions are 64 bit
+					r_data_a <= word(unsigned(current_ip) + 8);
 					s <= writeback;
 				when writeback =>
 					if(wb_active1 = '1') then
