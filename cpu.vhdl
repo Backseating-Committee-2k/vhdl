@@ -38,7 +38,7 @@ architecture simple of cpu is
 
 	subtype word is std_logic_vector(31 downto 0);
 
-	type state is (ifetch, decode, writeback, load, load2, store, store2, halt);
+	type state is (ifetch, decode, writeback, advance, load, load2, store, store2, halt);
 
 	signal s : state;
 
@@ -82,8 +82,6 @@ begin
 	process(reset, clk) is
 		procedure done is
 		begin
-			-- increment by eight, because instructions are 64 bit
-			r(ip) <= word(unsigned(r(ip)) + 8);
 			s <= writeback;
 		end procedure;
 
@@ -310,9 +308,13 @@ begin
 						wb_value1 <= wb_value2;
 					else
 						wb_active1 <= '0';
-						s <= ifetch;
+						s <= advance;
 					end if;
 					wb_active2 <= '0';
+				when advance =>
+					-- increment by eight, because instructions are 64 bit
+					r(ip) <= word(unsigned(r(ip)) + 8);
+					s <= ifetch;
 				when load =>
 					d_addr <= m_addr;
 					d_rdreq <= '1';
