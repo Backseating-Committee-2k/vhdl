@@ -385,8 +385,8 @@ begin
 		end procedure;
 	begin
 		if(reset = '1') then
-			s <= ifetch;
-			r(ip) <= reset_ip;
+			s <= execute;
+			i_buffer <= x"0000ff00" & reset_ip;
 			i_rdreq <= '0';
 			d_rdreq <= '0';
 			d_wrreq <= '0';
