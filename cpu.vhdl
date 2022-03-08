@@ -56,6 +56,8 @@ architecture simple of cpu is
 	signal r : reg_file;
 
 	signal r_address_a, r_address_b : reg;
+	signal r_data_a, r_data_b : word;
+	signal r_wren_a, r_wren_b : std_logic;
 	signal r_q_a, r_q_b : word;
 
 	type flags is record
@@ -393,10 +395,14 @@ begin
 			i_rdreq <= '0';
 			d_rdreq <= '0';
 			d_wrreq <= '0';
+			r_wren_a <= '0';
+			r_wren_b <= '0';
 		elsif(rising_edge(clk)) then
 			i_rdreq <= '0';
 			d_rdreq <= '0';
 			d_wrreq <= '0';
+			r_wren_a <= '0';
+			r_wren_b <= '0';
 			case s is
 				when ifetch1 =>
 					r_address_a <= ip;
@@ -422,11 +428,15 @@ begin
 					current_ip <= word(unsigned(r(ip)) + 8);
 					s <= advance2;
 				when advance2 =>
-					r(ip) <= current_ip;
+					r_address_a <= ip;
+					r_wren_a <= '1';
+					r_data_a <= current_ip;
 					s <= writeback;
 				when writeback =>
 					if(wb_active1 = '1') then
-						r(wb_reg1) <= wb_value1;
+						r_address_a <= wb_reg1;
+						r_wren_a <= '1';
+						r_data_a <= wb_value1;
 					end if;
 					if(wb_active2 = '1') then
 						wb_reg1 <= wb_reg2;
@@ -466,4 +476,16 @@ begin
 
 	r_q_a <= r(r_address_a);
 	r_q_b <= r(r_address_b);
+
+	process(clk) is
+	begin
+		if(rising_edge(clk)) then
+			if(r_wren_a = '1') then
+				r(r_address_a) <= r_data_a;
+			end if;
+			if(r_wren_b = '1') then
+				r(r_address_b) <= r_data_b;
+			end if;
+		end if;
+	end process;
 end architecture;
