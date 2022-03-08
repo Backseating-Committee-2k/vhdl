@@ -89,7 +89,7 @@ begin
 	process(reset, clk) is
 		procedure done is
 		begin
-			s <= writeback;
+			s <= advance1;
 		end procedure;
 
 		procedure writeback1(constant reg1 : in reg; constant value1 : in word) is
@@ -411,6 +411,13 @@ begin
 				when execute =>
 					-- defined above because long
 					execute_insn;
+				when advance1 =>
+					-- increment by eight, because instructions are 64 bit
+					current_ip <= word(unsigned(r(ip)) + 8);
+					s <= advance2;
+				when advance2 =>
+					r(ip) <= current_ip;
+					s <= writeback;
 				when writeback =>
 					if(wb_active1 = '1') then
 						r(wb_reg1) <= wb_value1;
@@ -420,16 +427,9 @@ begin
 						wb_value1 <= wb_value2;
 					else
 						wb_active1 <= '0';
-						s <= advance1;
+						s <= ifetch;
 					end if;
 					wb_active2 <= '0';
-				when advance1 =>
-					-- increment by eight, because instructions are 64 bit
-					current_ip <= word(unsigned(r(ip)) + 8);
-					s <= advance2;
-				when advance2 =>
-					r(ip) <= current_ip;
-					s <= ifetch;
 				when load =>
 					d_addr <= m_addr;
 					d_rdreq <= '1';
