@@ -38,7 +38,7 @@ architecture simple of cpu is
 
 	subtype word is std_logic_vector(31 downto 0);
 
-	type state is (ifetch, decode, execute, writeback, advance1, advance2, load, load2, store, store2, halt);
+	type state is (ifetch1, ifetch2, decode, execute, writeback, advance1, advance2, load, load2, store, store2, halt);
 
 	signal s : state;
 
@@ -398,8 +398,11 @@ begin
 			d_rdreq <= '0';
 			d_wrreq <= '0';
 			case s is
-				when ifetch =>
-					i_addr <= r(ip);
+				when ifetch1 =>
+					r_address_a <= ip;
+					s <= ifetch2;
+				when ifetch2 =>
+					i_addr <= r_q_a;
 					i_rdreq <= '1';
 					if(i_waitrequest = '0') then
 						s <= decode;
@@ -430,7 +433,7 @@ begin
 						wb_value1 <= wb_value2;
 					else
 						wb_active1 <= '0';
-						s <= ifetch;
+						s <= ifetch1;
 					end if;
 					wb_active2 <= '0';
 				when load =>
