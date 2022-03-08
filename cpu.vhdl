@@ -64,7 +64,7 @@ architecture simple of cpu is
 	end record;
 	signal f : flags;
 
-	constant reset_ip : word := x"00000000";
+	constant reset_ip : address := x"00000000";
 
 	subtype insn is std_logic_vector(63 downto 0);
 
