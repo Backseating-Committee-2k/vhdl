@@ -58,6 +58,7 @@ begin
 	process is
 	begin
 		wait until halted = '1';
+		wait for 400 ns;
 		finish;
 	end process;
 
