@@ -38,7 +38,7 @@ architecture simple of cpu is
 
 	subtype word is std_logic_vector(31 downto 0);
 
-	type state is (ifetch, decode, load, load2, store, store2, halt);
+	type state is (ifetch, decode, writeback, load, load2, store, store2, halt);
 
 	signal s : state;
 
@@ -69,6 +69,13 @@ architecture simple of cpu is
 	signal m_addr : address;
 	-- register for memory operation
 	signal m_reg : reg;
+
+	-- whether writeback path is active
+	signal wb_active1, wb_active2 : std_logic;
+	-- register for writeback
+	signal wb_reg1, wb_reg2 : reg;
+	-- value for writeback
+	signal wb_value1, wb_value2 : word;
 begin
 	halted <= '1' when s = halt else '0';
 
@@ -77,7 +84,21 @@ begin
 		begin
 			-- increment by eight, because instructions are 64 bit
 			r(ip) <= word(unsigned(r(ip)) + 8);
-			s <= ifetch;
+			s <= writeback;
+		end procedure;
+
+		procedure writeback1(constant reg1 : in reg; constant value1 : in word) is
+		begin
+			wb_active1 <= '1';
+			wb_reg1 <= reg1;
+			wb_value1 <= value1;
+		end procedure;
+
+		procedure writeback2(constant reg2 : in reg; constant value2 : in word) is
+		begin
+			wb_active2 <= '1';
+			wb_reg2 <= reg2;
+			wb_value2 <= value2;
 		end procedure;
 
 		procedure execute_insn is
@@ -107,10 +128,14 @@ begin
 			r3 := to_index(reg3);
 			r4 := to_index(reg4);
 
+			-- defaults
+			wb_active1 <= '0';
+			wb_active2 <= '0';
+
 			case opcode is
 				when x"0000" =>
 					-- LI
-					r(r1) <= c;
+					writeback1(r1, c);
 					done;
 				when x"0001" =>
 					-- LD abs
@@ -119,7 +144,7 @@ begin
 					s <= load;
 				when x"0002" =>
 					-- MOV
-					r(r1) <= r(r2);
+					writeback1(r1, r(r2));
 					done;
 				when x"0003" =>
 					-- ST abs
@@ -142,108 +167,108 @@ begin
 				when x"0007" =>
 					-- ADD
 					tmp33 := std_logic_vector(unsigned('0' & r(r2)) + unsigned('0' & r(r3)));
-					r(r1) <= tmp33(31 downto 0);
+					writeback1(r1, tmp33(31 downto 0));
 					f.c <= tmp33(32);
 					f.z <= not or_reduce(tmp33(31 downto 0));
 					done;
 				when x"0008" =>
 					-- SUB
 					tmp33 := std_logic_vector(unsigned('0' & r(r2)) - unsigned('0' & r(r3)));
-					r(r1) <= tmp33(31 downto 0);
+					writeback1(r1, tmp33(31 downto 0));
 					f.c <= tmp33(32);
 					f.z <= not or_reduce(tmp33(31 downto 0));
 					done;
 				when x"0009" =>
 					-- SBC
 					tmp33 := std_logic_vector(unsigned('0' & r(r2)) - unsigned('0' & r(r3)) - unsigned'("" & f.c));
-					r(r1) <= tmp33(31 downto 0);
+					writeback1(r1, tmp33(31 downto 0));
 					f.c <= tmp33(32);
 					f.z <= not or_reduce(tmp33(31 downto 0));
 					done;
 				when x"000a" =>
 					-- MUL
 					tmp64 := std_logic_vector(unsigned(r(r3)) * unsigned(r(r4)));
-					r(r1) <= tmp64(63 downto 32);
-					r(r2) <= tmp64(31 downto 0);
+					writeback1(r1, tmp64(63 downto 32));
+					writeback2(r2, tmp64(31 downto 0));
 					f.c <= '0';
 					f.z <= not or_reduce(tmp64);
 					done;
 				when x"000b" =>
 					-- DIVMOD
 					tmp32 := std_logic_vector(unsigned(r(r3)) / unsigned(r(r4)));
-					r(r1) <= tmp32;
+					writeback1(r1, tmp32);
 					f.c <= not or_reduce(r(r4));
 					f.z <= not or_reduce(tmp32);
 					tmp32 := std_logic_vector(unsigned(r(r3)) mod unsigned(r(r4)));
-					r(r2) <= tmp32;
+					writeback2(r2, tmp32);
 					done;
 				when x"000c" =>
 					-- AND
 					tmp32 := r(r2) and r(r3);
-					r(r1) <= tmp32;
+					writeback1(r1, tmp32);
 					f.c <= '0';
 					f.z <= not or_reduce(tmp32);
 					done;
 				when x"000d" =>
 					-- OR
 					tmp32 := r(r2) or r(r3);
-					r(r1) <= tmp32;
+					writeback1(r1, tmp32);
 					f.c <= '0';
 					f.z <= not or_reduce(tmp32);
 					done;
 				when x"000e" =>
 					-- XOR
 					tmp32 := r(r2) xor r(r3);
-					r(r1) <= tmp32;
+					writeback1(r1, tmp32);
 					f.c <= '0';
 					f.z <= not or_reduce(tmp32);
 					done;
 				when x"000f" =>
 					-- NOT
 					tmp32 := not r(r2);
-					r(r1) <= tmp32;
+					writeback1(r1, tmp32);
 					f.c <= '0';
 					f.z <= not or_reduce(tmp32);
 					done;
 				when x"0010" =>
 					-- SHL
 					tmp33 := std_logic_vector(unsigned('0' & r(r2)) sll to_integer(unsigned(r(r3))));
-					r(r1) <= tmp33(31 downto 0);
+					writeback1(r1, tmp33(31 downto 0));
 					f.c <= tmp33(32);
 					f.z <= not or_reduce(tmp33(31 downto 0));
 					done;
 				when x"0011" =>
 					-- SHR
 					tmp33 := std_logic_vector(unsigned(r(r2) & '0') srl to_integer(unsigned(r(r3))));
-					r(r1) <= tmp33(32 downto 1);
+					writeback1(r1, tmp33(32 downto 1));
 					f.c <= tmp33(0);
 					f.z <= not or_reduce(tmp33(32 downto 1));
 					done;
 				when x"0012" =>
 					-- ADDI
 					tmp33 := std_logic_vector(unsigned('0' & r(r2)) + unsigned('0' & c));
-					r(r1) <= tmp33(31 downto 0);
+					writeback1(r1, tmp33(31 downto 0));
 					f.c <= tmp33(32);
 					f.z <= not or_reduce(tmp33(31 downto 0));
 					done;
 				when x"0013" =>
 					-- SUBI
 					tmp33 := std_logic_vector(unsigned('0' & r(r2)) - unsigned('0' & c));
-					r(r1) <= tmp33(31 downto 0);
+					writeback1(r1, tmp33(31 downto 0));
 					f.c <= tmp33(32);
 					f.z <= not or_reduce(tmp33(31 downto 0));
 					done;
 				when x"0014" =>
 					if(r(r2) = r(r3)) then
-						r(r1) <= x"00000000";
+						writeback1(r1, x"00000000");
 						f.c <= '0';
 						f.z <= '1';
 					elsif(unsigned(r(r2)) > unsigned(r(r3))) then
-						r(r1) <= x"00000001";
+						writeback1(r1, x"00000001");
 						f.c <= '0';
 						f.z <= '0';
 					else
-						r(r1) <= x"ffffffff";
+						writeback1(r1, x"ffffffff");
 						f.c <= '1';
 						f.z <= '0';
 					end if;
@@ -276,6 +301,18 @@ begin
 						-- defined above because long
 						execute_insn;
 					end if;
+				when writeback =>
+					if(wb_active1 = '1') then
+						r(wb_reg1) <= wb_value1;
+					end if;
+					if(wb_active2 = '1') then
+						wb_reg1 <= wb_reg2;
+						wb_value1 <= wb_value2;
+					else
+						wb_active1 <= '0';
+						s <= ifetch;
+					end if;
+					wb_active2 <= '0';
 				when load =>
 					d_addr <= m_addr;
 					d_rdreq <= '1';
@@ -284,7 +321,7 @@ begin
 					end if;
 				when load2 =>
 					if(d_waitrequest = '0') then
-						r(m_reg) <= d_rddata;
+						writeback1(m_reg, d_rddata);
 						done;
 					end if;
 				when store =>
