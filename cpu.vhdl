@@ -38,7 +38,7 @@ architecture simple of cpu is
 
 	subtype word is std_logic_vector(31 downto 0);
 
-	type state is (ifetch, decode, execute, writeback, advance, load, load2, store, store2, halt);
+	type state is (ifetch, decode, execute, writeback, advance1, advance2, load, load2, store, store2, halt);
 
 	signal s : state;
 
@@ -65,6 +65,8 @@ architecture simple of cpu is
 	signal f : flags;
 
 	constant reset_ip : address := x"00000000";
+
+	signal current_ip : address;
 
 	subtype insn is std_logic_vector(63 downto 0);
 
@@ -418,12 +420,15 @@ begin
 						wb_value1 <= wb_value2;
 					else
 						wb_active1 <= '0';
-						s <= advance;
+						s <= advance1;
 					end if;
 					wb_active2 <= '0';
-				when advance =>
+				when advance1 =>
 					-- increment by eight, because instructions are 64 bit
-					r(ip) <= word(unsigned(r(ip)) + 8);
+					current_ip <= word(unsigned(r(ip)) + 8);
+					s <= advance2;
+				when advance2 =>
+					r(ip) <= current_ip;
 					s <= ifetch;
 				when load =>
 					d_addr <= m_addr;
