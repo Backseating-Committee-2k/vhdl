@@ -38,7 +38,7 @@ architecture simple of cpu is
 
 	subtype word is std_logic_vector(31 downto 0);
 
-	type state is (ifetch, decode, writeback, advance, load, load2, store, store2, halt);
+	type state is (ifetch, decode, execute, writeback, advance, load, load2, store, store2, halt);
 
 	signal s : state;
 
@@ -55,6 +55,9 @@ architecture simple of cpu is
 
 	signal r : reg_file;
 
+	signal r_address_a, r_address_b : reg;
+	signal r_q_a, r_q_b : word;
+
 	type flags is record
 		c : std_logic;
 		z : std_logic;
@@ -64,6 +67,8 @@ architecture simple of cpu is
 	constant reset_ip : word := x"00000000";
 
 	subtype insn is std_logic_vector(63 downto 0);
+
+	signal i_buffer : insn;
 
 	-- address for memory operation
 	signal m_addr : address;
@@ -99,9 +104,108 @@ begin
 			wb_value2 <= value2;
 		end procedure;
 
-		procedure execute_insn is
+		procedure decode_insn is
 			-- instruction is on i_rddata in this cycle
 			alias i : insn is i_rddata;
+
+			alias opcode : std_logic_vector(15 downto 0) is i(63 downto 48);
+			alias reg1 : std_logic_vector(7 downto 0) is i(47 downto 40);
+			alias reg2 : std_logic_vector(7 downto 0) is i(39 downto 32);
+			alias reg3 : std_logic_vector(7 downto 0) is i(31 downto 24);
+			alias reg4 : std_logic_vector(7 downto 0) is i(23 downto 16);
+			alias c : std_logic_vector(31 downto 0) is i(31 downto 0);
+
+			variable r1, r2, r3, r4 : reg;
+		begin
+			r1 := to_index(reg1);
+			r2 := to_index(reg2);
+			r3 := to_index(reg3);
+			r4 := to_index(reg4);
+
+			-- map register slots in opcode to register file accesses
+			case opcode is
+				when x"0000" =>
+					-- LI
+					null;
+				when x"0001" =>
+					-- LD abs
+					null;
+				when x"0002" =>
+					-- MOV
+					r_address_a <= r2;
+				when x"0003" =>
+					-- ST abs
+					null;
+				when x"0004" =>
+					-- LD [r]
+					r_address_a <= r2;
+				when x"0005" =>
+					-- ST [r]
+					r_address_a <= r1;
+				when x"0006" =>
+					-- HCF
+					null;
+				when x"0007" =>
+					-- ADD
+					r_address_a <= r2;
+					r_address_b <= r3;
+				when x"0008" =>
+					-- SUB
+					r_address_a <= r2;
+					r_address_b <= r3;
+				when x"0009" =>
+					-- SBC
+					r_address_a <= r2;
+					r_address_b <= r3;
+				when x"000a" =>
+					-- MUL
+					r_address_a <= r3;
+					r_address_b <= r4;
+				when x"000b" =>
+					-- DIVMOD
+					r_address_a <= r3;
+					r_address_b <= r4;
+				when x"000c" =>
+					-- AND
+					r_address_a <= r2;
+					r_address_b <= r3;
+				when x"000d" =>
+					-- OR
+					r_address_a <= r2;
+					r_address_b <= r3;
+				when x"000e" =>
+					-- XOR
+					r_address_a <= r2;
+					r_address_b <= r3;
+				when x"000f" =>
+					-- NOT
+					r_address_a <= r2;
+				when x"0010" =>
+					-- SHL
+					r_address_a <= r2;
+					r_address_b <= r3;
+				when x"0011" =>
+					-- SHR
+					r_address_a <= r2;
+					r_address_b <= r3;
+				when x"0012" =>
+					-- ADDI
+					r_address_a <= r2;
+				when x"0013" =>
+					-- SUBI
+					r_address_a <= r2;
+				when x"0014" =>
+					-- CMP
+					r_address_a <= r2;
+					r_address_b <= r3;
+				when others =>
+					report "invalid opcode encountered" severity error;
+			end case;
+		end procedure;
+
+		procedure execute_insn is
+			-- instruction is on i_buffer in this cycle
+			alias i : insn is i_buffer;
 
 			alias opcode : std_logic_vector(15 downto 0) is i(63 downto 48);
 			alias reg1 : std_logic_vector(7 downto 0) is i(47 downto 40);
@@ -142,7 +246,7 @@ begin
 					s <= load;
 				when x"0002" =>
 					-- MOV
-					writeback1(r1, r(r2));
+					writeback1(r1, r_q_a);
 					done;
 				when x"0003" =>
 					-- ST abs
@@ -151,12 +255,12 @@ begin
 					s <= store;
 				when x"0004" =>
 					-- LD [r]
-					m_addr <= r(r2);
+					m_addr <= r_q_a;
 					m_reg <= r1;
 					s <= load;
 				when x"0005" =>
 					-- ST [r]
-					m_addr <= r(r1);
+					m_addr <= r_q_a;
 					m_reg <= r2;
 					s <= store;
 				when x"0006" =>
@@ -164,28 +268,28 @@ begin
 					s <= halt;
 				when x"0007" =>
 					-- ADD
-					tmp33 := std_logic_vector(unsigned('0' & r(r2)) + unsigned('0' & r(r3)));
+					tmp33 := std_logic_vector(unsigned('0' & r_q_a) + unsigned('0' & r_q_b));
 					writeback1(r1, tmp33(31 downto 0));
 					f.c <= tmp33(32);
 					f.z <= not or_reduce(tmp33(31 downto 0));
 					done;
 				when x"0008" =>
 					-- SUB
-					tmp33 := std_logic_vector(unsigned('0' & r(r2)) - unsigned('0' & r(r3)));
+					tmp33 := std_logic_vector(unsigned('0' & r_q_a) - unsigned('0' & r_q_b));
 					writeback1(r1, tmp33(31 downto 0));
 					f.c <= tmp33(32);
 					f.z <= not or_reduce(tmp33(31 downto 0));
 					done;
 				when x"0009" =>
 					-- SBC
-					tmp33 := std_logic_vector(unsigned('0' & r(r2)) - unsigned('0' & r(r3)) - unsigned'("" & f.c));
+					tmp33 := std_logic_vector(unsigned('0' & r_q_a) - unsigned('0' & r_q_b) - unsigned'("" & f.c));
 					writeback1(r1, tmp33(31 downto 0));
 					f.c <= tmp33(32);
 					f.z <= not or_reduce(tmp33(31 downto 0));
 					done;
 				when x"000a" =>
 					-- MUL
-					tmp64 := std_logic_vector(unsigned(r(r3)) * unsigned(r(r4)));
+					tmp64 := std_logic_vector(unsigned(r_q_a) * unsigned(r_q_b));
 					writeback1(r1, tmp64(63 downto 32));
 					writeback2(r2, tmp64(31 downto 0));
 					f.c <= '0';
@@ -193,75 +297,75 @@ begin
 					done;
 				when x"000b" =>
 					-- DIVMOD
-					tmp32 := std_logic_vector(unsigned(r(r3)) / unsigned(r(r4)));
+					tmp32 := std_logic_vector(unsigned(r_q_a) / unsigned(r_q_b));
 					writeback1(r1, tmp32);
-					f.c <= not or_reduce(r(r4));
+					f.c <= not or_reduce(r_q_b);
 					f.z <= not or_reduce(tmp32);
-					tmp32 := std_logic_vector(unsigned(r(r3)) mod unsigned(r(r4)));
+					tmp32 := std_logic_vector(unsigned(r_q_a) mod unsigned(r_q_b));
 					writeback2(r2, tmp32);
 					done;
 				when x"000c" =>
 					-- AND
-					tmp32 := r(r2) and r(r3);
+					tmp32 := r_q_a and r_q_b;
 					writeback1(r1, tmp32);
 					f.c <= '0';
 					f.z <= not or_reduce(tmp32);
 					done;
 				when x"000d" =>
 					-- OR
-					tmp32 := r(r2) or r(r3);
+					tmp32 := r_q_a or r_q_b;
 					writeback1(r1, tmp32);
 					f.c <= '0';
 					f.z <= not or_reduce(tmp32);
 					done;
 				when x"000e" =>
 					-- XOR
-					tmp32 := r(r2) xor r(r3);
+					tmp32 := r_q_a xor r_q_b;
 					writeback1(r1, tmp32);
 					f.c <= '0';
 					f.z <= not or_reduce(tmp32);
 					done;
 				when x"000f" =>
 					-- NOT
-					tmp32 := not r(r2);
+					tmp32 := not r_q_a;
 					writeback1(r1, tmp32);
 					f.c <= '0';
 					f.z <= not or_reduce(tmp32);
 					done;
 				when x"0010" =>
 					-- SHL
-					tmp33 := std_logic_vector(unsigned('0' & r(r2)) sll to_integer(unsigned(r(r3))));
+					tmp33 := std_logic_vector(unsigned('0' & r_q_a) sll to_integer(unsigned(r_q_b)));
 					writeback1(r1, tmp33(31 downto 0));
 					f.c <= tmp33(32);
 					f.z <= not or_reduce(tmp33(31 downto 0));
 					done;
 				when x"0011" =>
 					-- SHR
-					tmp33 := std_logic_vector(unsigned(r(r2) & '0') srl to_integer(unsigned(r(r3))));
+					tmp33 := std_logic_vector(unsigned(r_q_a & '0') srl to_integer(unsigned(r_q_b)));
 					writeback1(r1, tmp33(32 downto 1));
 					f.c <= tmp33(0);
 					f.z <= not or_reduce(tmp33(32 downto 1));
 					done;
 				when x"0012" =>
 					-- ADDI
-					tmp33 := std_logic_vector(unsigned('0' & r(r2)) + unsigned('0' & c));
+					tmp33 := std_logic_vector(unsigned('0' & r_q_a) + unsigned('0' & c));
 					writeback1(r1, tmp33(31 downto 0));
 					f.c <= tmp33(32);
 					f.z <= not or_reduce(tmp33(31 downto 0));
 					done;
 				when x"0013" =>
 					-- SUBI
-					tmp33 := std_logic_vector(unsigned('0' & r(r2)) - unsigned('0' & c));
+					tmp33 := std_logic_vector(unsigned('0' & r_q_a) - unsigned('0' & c));
 					writeback1(r1, tmp33(31 downto 0));
 					f.c <= tmp33(32);
 					f.z <= not or_reduce(tmp33(31 downto 0));
 					done;
 				when x"0014" =>
-					if(r(r2) = r(r3)) then
+					if(r_q_a = r_q_b) then
 						writeback1(r1, x"00000000");
 						f.c <= '0';
 						f.z <= '1';
-					elsif(unsigned(r(r2)) > unsigned(r(r3))) then
+					elsif(unsigned(r_q_a) > unsigned(r_q_b)) then
 						writeback1(r1, x"00000001");
 						f.c <= '0';
 						f.z <= '0';
@@ -296,9 +400,14 @@ begin
 					end if;
 				when decode =>
 					if(i_waitrequest = '0') then
+						i_buffer <= i_rddata;
 						-- defined above because long
-						execute_insn;
+						decode_insn;
 					end if;
+					s <= execute;
+				when execute =>
+					-- defined above because long
+					execute_insn;
 				when writeback =>
 					if(wb_active1 = '1') then
 						r(wb_reg1) <= wb_value1;
@@ -342,4 +451,7 @@ begin
 			end case;
 		end if;
 	end process;
+
+	r_q_a <= r(r_address_a);
+	r_q_b <= r(r_address_b);
 end architecture;
