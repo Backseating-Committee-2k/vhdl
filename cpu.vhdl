@@ -42,16 +42,16 @@ architecture sequential of cpu is
 
 	signal s : state;
 
-	subtype reg is integer range 16#00# to 16#ff#;
-	constant sp : reg := 16#fe#;
-	constant ip : reg := 16#ff#;
+	subtype reg is std_logic_vector(7 downto 0);
+	constant sp : reg := x"fe";
+	constant ip : reg := x"ff";
 
 	function to_index(rn : in std_logic_vector(7 downto 0)) return reg is
 	begin
-		return to_integer(unsigned(rn));
+		return rn;
 	end function;
 
-	type reg_file is array(reg) of word;
+	type reg_file is array(0 to 255) of word;
 
 	signal r : reg_file;
 
@@ -475,17 +475,17 @@ begin
 		end if;
 	end process;
 
-	r_q_a <= r(r_address_a);
-	r_q_b <= r(r_address_b);
+	r_q_a <= r(to_integer(unsigned(r_address_a)));
+	r_q_b <= r(to_integer(unsigned(r_address_b)));
 
 	process(clk) is
 	begin
 		if(rising_edge(clk)) then
 			if(r_wren_a = '1') then
-				r(r_address_a) <= r_data_a;
+				r(to_integer(unsigned(r_address_a))) <= r_data_a;
 			end if;
 			if(r_wren_b = '1') then
-				r(r_address_b) <= r_data_b;
+				r(to_integer(unsigned(r_address_b))) <= r_data_b;
 			end if;
 		end if;
 	end process;
