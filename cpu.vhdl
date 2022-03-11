@@ -55,7 +55,7 @@ architecture sequential of cpu is
 
 	signal r : reg_file;
 
-	signal r_address_a, r_address_b : reg;
+	signal r_address_a, r_address_b : reg := (others => '0');
 	signal r_data_a, r_data_b : word;
 	signal r_wren_a, r_wren_b : std_logic;
 	signal r_q_a, r_q_b : word;
@@ -396,6 +396,8 @@ begin
 			i_rdreq <= '0';
 			d_rdreq <= '0';
 			d_wrreq <= '0';
+			r_address_a <= (others => '0');
+			r_address_b <= (others => '0');
 			r_wren_a <= '0';
 			r_wren_b <= '0';
 		elsif(rising_edge(clk)) then
