@@ -34,7 +34,7 @@ architecture sim of tb_cpu is
 
 	signal halted : std_logic;
 
-	type insn_mem is array(16#0000# to 16#00ff#) of insn;
+	type insn_mem is array(16#100000# to 16#1000ff#) of insn;
 	signal i : insn_mem;
 
 	type data_mem is array(16#0000# to 16#ffff#) of word;
@@ -72,7 +72,7 @@ begin
 		variable x : integer;
 	begin
 		file_open(fstatus, rom, "hello_world.backseat", read_mode);
-		x := 0;
+		x := i'low;
 		while not endfile(rom) loop
 			a := (others => '0');
 			for y in 0 to 7 loop
