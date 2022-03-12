@@ -43,8 +43,8 @@ architecture sequential of cpu is
 	signal s : state;
 
 	subtype reg is std_logic_vector(7 downto 0);
-	constant sp : reg := x"fe";
-	constant ip : reg := x"ff";
+	constant ip : reg := x"fe";
+	constant sp : reg := x"ff";
 
 	type reg_file is array(0 to 255) of word;
 
