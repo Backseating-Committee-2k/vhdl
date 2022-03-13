@@ -62,6 +62,7 @@ architecture sequential of cpu is
 	signal f : flags;
 
 	constant reset_ip : address := x"00100000";
+	constant reset_sp : address := x"000000fc";
 
 	subtype insn is std_logic_vector(63 downto 0);
 
@@ -373,7 +374,9 @@ begin
 			wb_active1 <= '1';
 			wb_reg1 <= ip;
 			wb_value1 <= reset_ip;
-			wb_active2 <= '0';
+			wb_active2 <= '1';
+			wb_reg2 <= sp;
+			wb_value2 <= reset_sp;
 			i_rdreq <= '0';
 			d_rdreq <= '0';
 			d_wrreq <= '0';
