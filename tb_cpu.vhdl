@@ -10,6 +10,36 @@ begin
 end entity;
 
 architecture sim of tb_cpu is
+	component cpu is
+		generic(
+			address_width : integer range 1 to 32 := 32
+		);
+		port(
+			-- async reset
+			reset : in std_logic;
+
+			-- clock
+			clk : in std_logic;
+
+			-- instruction bus (Avalon-MM)
+			i_addr : out std_logic_vector(address_width - 1 downto 0);
+			i_rddata : in std_logic_vector(63 downto 0);
+			i_rdreq : out std_logic;
+			i_waitrequest : in std_logic;
+
+			-- data bus (Avalon-MM)
+			d_addr : out std_logic_vector(address_width - 1 downto 0);
+			d_rddata : in std_logic_vector(31 downto 0);
+			d_rdreq : out std_logic;
+			d_wrdata : out std_logic_vector(31 downto 0);
+			d_wrreq : out std_logic;
+			d_waitrequest : in std_logic;
+
+			-- status
+			halted : out std_logic
+		);
+	end component;
+
 	signal reset : std_logic;
 	signal clk : std_logic := '0';
 
@@ -96,7 +126,7 @@ begin
 	d_waitrequest <= '0';
 
 	-- dut
-	dut : entity work.cpu
+	dut : cpu
 		port map(
 			reset => reset,
 			clk => clk,

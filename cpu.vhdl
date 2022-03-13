@@ -34,6 +34,21 @@ entity cpu is
 end entity;
 
 architecture sequential of cpu is
+	component registers is
+		port
+		(
+			address_a : in std_logic_vector (7 downto 0);
+			address_b : in std_logic_vector (7 downto 0);
+			clock : in std_logic;
+			data_a : in std_logic_vector (31 downto 0);
+			data_b : in std_logic_vector (31 downto 0);
+			wren_a : in std_logic;
+			wren_b : in std_logic;
+			q_a : out std_logic_vector (31 downto 0);
+			q_b : out std_logic_vector (31 downto 0)
+		);
+	end component;
+
 	subtype address is std_logic_vector(address_width - 1 downto 0);
 
 	subtype word is std_logic_vector(31 downto 0);
@@ -45,10 +60,6 @@ architecture sequential of cpu is
 	subtype reg is std_logic_vector(7 downto 0);
 	constant ip : reg := x"fe";
 	constant sp : reg := x"ff";
-
-	type reg_file is array(0 to 255) of word;
-
-	signal r : reg_file;
 
 	signal r_address_a, r_address_b : reg := (others => '0');
 	signal r_data_a, r_data_b : word;
@@ -467,18 +478,16 @@ begin
 		end if;
 	end process;
 
-	r_q_a <= r(to_integer(unsigned(r_address_a)));
-	r_q_b <= r(to_integer(unsigned(r_address_b)));
-
-	process(clk) is
-	begin
-		if(rising_edge(clk)) then
-			if(r_wren_a = '1') then
-				r(to_integer(unsigned(r_address_a))) <= r_data_a;
-			end if;
-			if(r_wren_b = '1') then
-				r(to_integer(unsigned(r_address_b))) <= r_data_b;
-			end if;
-		end if;
-	end process;
+	r : registers
+		port map(
+			address_a => r_address_a,
+			address_b => r_address_b,
+			clock => clk,
+			data_a => r_data_a,
+			data_b => r_data_b,
+			wren_a => r_wren_a,
+			wren_b => r_wren_b,
+			q_a => r_q_a,
+			q_b => r_q_b
+		);
 end architecture;
