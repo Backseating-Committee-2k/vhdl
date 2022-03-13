@@ -203,6 +203,20 @@ begin
 					-- CMP
 					r_address_a <= reg2;
 					r_address_b <= reg3;
+				when x"0015" =>
+					-- PUSH
+					r_address_a <= sp;
+					r_address_b <= reg1;
+				when x"0016" =>
+					-- POP
+					r_address_a <= sp;
+				when x"0017" =>
+					-- CALL abs
+					r_address_a <= sp;
+					r_address_b <= ip;
+				when x"0018" =>
+					-- RET
+					r_address_a <= sp;
 				when others =>
 					report "invalid opcode encountered" severity error;
 			end case;
@@ -374,6 +388,36 @@ begin
 						f.z <= '0';
 					end if;
 					done;
+				when x"0015" =>
+					-- PUSH
+					tmp32 := std_logic_vector(unsigned(r_q_a) - 4);
+					writeback1(sp, tmp32);
+					m_addr <= r_q_a;
+					m_value <= r_q_b;
+					s <= store;
+				when x"0016" =>
+					-- POP
+					tmp32 := std_logic_vector(unsigned(r_q_a) + 4);
+					writeback2(sp, tmp32);
+					m_addr <= tmp32;
+					m_reg <= reg1;
+					s <= load;
+				when x"0017" =>
+					-- CALL
+					tmp32 := std_logic_vector(unsigned(r_q_a) - 4);
+					writeback1(sp, tmp32);
+					tmp32 := std_logic_vector(unsigned(r_q_b) + 8);
+					writeback2(ip, c);
+					m_addr <= r_q_a;
+					m_value <= tmp32;
+					s <= store;
+				when x"0018" =>
+					-- RET
+					tmp32 := std_logic_vector(unsigned(r_q_a) + 4);
+					writeback2(sp, tmp32);
+					m_addr <= tmp32;
+					m_reg <= ip;
+					s <= load;
 				when others =>
 					report "invalid opcode encountered" severity error;
 					s <= halt;
