@@ -33,7 +33,7 @@ entity cpu is
 	);
 end entity;
 
-architecture simple of cpu is
+architecture sequential of cpu is
 	subtype address is std_logic_vector(address_width - 1 downto 0);
 
 	subtype word is std_logic_vector(31 downto 0);
