@@ -1,2 +1,8 @@
+altera_registers.qip
+bss2k.qws
+db/
+greybox_tmp/
+incremental_db/
+output_files/
 tb_cpu.ghw
 work-obj08.cf
