@@ -28,12 +28,12 @@ architecture sim of registers is
 	type storage_type is array(index) of word;
 	signal storage : storage_type;
 begin
-	q_a <= storage(to_integer(unsigned(address_a)));
-	q_b <= storage(to_integer(unsigned(address_b)));
-
 	process(clock) is
 	begin
 		if(rising_edge(clock)) then
+			q_a <= storage(to_integer(unsigned(address_a)));
+			q_b <= storage(to_integer(unsigned(address_b)));
+
 			if(wren_a = '1') then
 				storage(to_integer(unsigned(address_a))) <= data_a;
 			end if;
