@@ -435,9 +435,9 @@ begin
 						wb_reg1 <= wb_reg2;
 						wb_value1 <= wb_value2;
 					else
-						wb_active1 <= '0';
 						s <= ifetch1;
 					end if;
+					wb_active1 <= wb_active2;
 					wb_active2 <= '0';
 				when load =>
 					d_addr <= m_addr;
