@@ -38,7 +38,7 @@ architecture sequential of cpu is
 
 	subtype word is std_logic_vector(31 downto 0);
 
-	type state is (ifetch1, ifetch2, decode, execute, writeback, advance1, advance2, load, load2, store, store2, halt);
+	type state is (ifetch1, ifetch15, ifetch2, decode, execute, writeback, advance1, advance2, load, load2, store, store2, halt);
 
 	signal s : state;
 
@@ -393,6 +393,8 @@ begin
 			case s is
 				when ifetch1 =>
 					r_address_a <= ip;
+					s <= ifetch15;
+				when ifetch15 =>
 					s <= ifetch2;
 				when ifetch2 =>
 					i_addr <= r_q_a;
