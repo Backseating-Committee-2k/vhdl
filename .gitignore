@@ -3,6 +3,10 @@ bss2k.qws
 db/
 greybox_tmp/
 incremental_db/
+modelsim.ini
 output_files/
 tb_cpu.ghw
+tb_cpu.log
+tb_cpu.vcd
 work-obj08.cf
+work/
