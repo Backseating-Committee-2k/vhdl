@@ -487,12 +487,12 @@ begin
 						r_data_a <= wb_value1;
 					end if;
 					if(wb_active2 = '1') then
-						wb_reg1 <= wb_reg2;
-						wb_value1 <= wb_value2;
-					else
-						s <= ifetch1;
+						r_address_b <= wb_reg2;
+						r_wren_b <= '1';
+						r_data_b <= wb_value2;
 					end if;
-					wb_active1 <= wb_active2;
+					s <= ifetch1;
+					wb_active1 <= '0';
 					wb_active2 <= '0';
 				when load =>
 					d_addr <= m_addr;
