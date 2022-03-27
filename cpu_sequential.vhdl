@@ -50,16 +50,19 @@ architecture rtl of cpu_sequential is
 	end component;
 
 	subtype address is std_logic_vector(address_width - 1 downto 0);
-
+	subtype insn is std_logic_vector(63 downto 0);
 	subtype word is std_logic_vector(31 downto 0);
+	subtype reg is std_logic_vector(7 downto 0);
+
+	constant ip : reg := x"fe";
+	constant reset_ip : address := x"00100000";
+
+	constant sp : reg := x"ff";
+	constant reset_sp : address := x"000000fc";
 
 	type state is (ifetch1, ifetch15, ifetch2, decode, decode2, execute, writeback, advance1, advance15, advance2, load, load2, store, store2, halt);
 
 	signal s : state;
-
-	subtype reg is std_logic_vector(7 downto 0);
-	constant ip : reg := x"fe";
-	constant sp : reg := x"ff";
 
 	signal r_address_a, r_address_b : reg := (others => '0');
 	signal r_data_a, r_data_b : word;
@@ -71,11 +74,6 @@ architecture rtl of cpu_sequential is
 		z : std_logic;
 	end record;
 	signal f : flags;
-
-	constant reset_ip : address := x"00100000";
-	constant reset_sp : address := x"000000fc";
-
-	subtype insn is std_logic_vector(63 downto 0);
 
 	signal i_buffer : insn;
 
