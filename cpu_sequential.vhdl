@@ -3,7 +3,7 @@ use ieee.std_logic_1164.ALL;
 use ieee.numeric_std.ALL;
 use ieee.std_logic_misc.or_reduce;
 
-entity cpu is
+entity cpu_sequential is
 	generic(
 		address_width : integer range 1 to 32 := 32
 	);
@@ -33,7 +33,7 @@ entity cpu is
 	);
 end entity;
 
-architecture sequential of cpu is
+architecture rtl of cpu_sequential is
 	component registers is
 		port
 		(

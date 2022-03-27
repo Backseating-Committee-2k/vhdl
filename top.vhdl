@@ -80,7 +80,7 @@ use work.ALL;
 configuration rtl of top is
 	for rtl
 		for c : cpu
-			use entity work.cpu(sequential);
+			use entity work.cpu_sequential;
 			for rtl
 				for r : registers
 					use entity work.altera_registers;

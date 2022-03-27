@@ -1,8 +1,8 @@
-configuration tb_cpu_sim of tb_cpu is
+configuration tb_cpu_sim_seq of tb_cpu is
 	for sim
 		for dut : cpu
-			use entity work.cpu(sequential);
-			for sequential
+			use entity work.cpu_sequential(rtl);
+			for rtl
 				for r : registers
 					use entity work.registers(sim);
 				end for;
