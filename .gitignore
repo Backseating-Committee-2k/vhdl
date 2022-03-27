@@ -5,6 +5,9 @@ greybox_tmp/
 incremental_db/
 modelsim.ini
 output_files/
+tb_cpu_pipe.ghw
+tb_cpu_pipe.log
+tb_cpu_pipe.vcd
 tb_cpu_seq.ghw
 tb_cpu_seq.log
 tb_cpu_seq.vcd
