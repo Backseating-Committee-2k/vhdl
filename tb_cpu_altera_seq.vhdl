@@ -3,7 +3,7 @@ configuration tb_cpu_altera_seq of tb_cpu is
 		for dut : cpu
 			use entity work.cpu_sequential;
 			for rtl
-				for r : registers
+				for register_file : registers
 					use entity work.altera_registers(SYN);
 				end for;
 			end for;

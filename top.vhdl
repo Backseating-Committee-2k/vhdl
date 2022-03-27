@@ -82,7 +82,7 @@ configuration rtl of top is
 		for c : cpu
 			use entity work.cpu_sequential;
 			for rtl
-				for r : registers
+				for register_file : registers
 					use entity work.altera_registers;
 				end for;
 			end for;

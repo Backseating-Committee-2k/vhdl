@@ -520,7 +520,7 @@ begin
 		end if;
 	end process;
 
-	r : registers
+	register_file : registers
 		port map(
 			address_a => r_address_a,
 			address_b => r_address_b,
