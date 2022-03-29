@@ -328,8 +328,9 @@ begin
 		data <= i.op(l).value;
 		wren <= i.op(l).writeback_active and i.op(l).valid;
 
-		read_selected_register <= (others => '0') when reset = '1' else
-					  i.op(l).r_num when i.op(l).source = r_field;
+		read_selected_register <= (others => '0') when reset = '1' else			-- reset
+					  i.op(l).r_num when i.op(l).source = r_field else	-- active
+					  unaffected;						-- inactive
 
 		rrfb(l) <= (active => wren, number => write_selected_register, value => data) when rising_edge(clk);
 
