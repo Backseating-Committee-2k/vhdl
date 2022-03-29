@@ -275,8 +275,8 @@ begin
 		alias i_f : decoded_insn_f is decode_to_register_f;
 		alias i_r : decoded_insn_r is decode_to_register_r;
 
-		type slot is (unused, reg1, reg2, reg3, reg4, const);
-		subtype writeback_slot is slot range unused to reg4;
+		type slot is (unused, reg1, reg2, reg3, reg4, spr, link, const);
+		subtype writeback_slot is slot range unused to link;
 		type mem_op is (nop, load, store);
 
 		type slot_per_lane is array(lane) of slot;
@@ -412,24 +412,28 @@ begin
 			with m.src(l) select i_f.op(l).source <=
 				unused when unused,
 				c_field when const,
-				r_field when reg1|reg2|reg3|reg4;
+				r_field when reg1|reg2|reg3|reg4|spr|link;
 			i_f.op(l).c_value <= c;
 			with m.src(l) select i_f.op(l).r_num <=
 				(others => 'U') when unused|const,
 				r1 when reg1,
 				r2 when reg2,
 				r3 when reg3,
-				r4 when reg4;
+				r4 when reg4,
+				sp when spr,
+				ip when link;
 
 			with m.dst(l) select i_f.op(l).writeback_active <=
 				'0' when unused,
-				'1' when reg1|reg2|reg3|reg4;
+				'1' when reg1|reg2|reg3|reg4|spr|link;
 			with m.dst(l) select i_f.op(l).writeback_target <=
 				(others => 'U') when unused,
 				r1 when reg1,
 				r2 when reg2,
 				r3 when reg3,
-				r4 when reg4;
+				r4 when reg4,
+				sp when spr,
+				ip when link;
 		end generate;
 
 		i_f.cond <= m.cond;
