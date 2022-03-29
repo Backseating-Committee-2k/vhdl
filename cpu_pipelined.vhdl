@@ -213,7 +213,7 @@ begin
 					when halt =>
 						null;
 				end case;
-				if(i.jmp = halt) then
+				if(i.strobe = '1' and i.jmp = halt) then
 					s <= halt;
 				end if;
 			end if;
