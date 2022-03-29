@@ -232,9 +232,11 @@ begin
 		type slot is (unused, const, reg1, reg2, reg3, reg4);
 		type mem_op is (nop, load, store);
 
+		type slot_per_lane is array(lane) of slot;
+
 		type mapping is record
 			jmp : jmp_op;
-			src1, src2, dst1, dst2 : slot;
+			src, dst : slot_per_lane;
 			mem : mem_op;
 		end record;
 
@@ -251,15 +253,15 @@ begin
 		decode_waitrequest <= i.op(1).busy or i.op(2).busy or i.store_busy;
 
 		with o select m <=
-		--	jmp	src1	src2	dst1	dst2	mem
-		(	nop,	const,	unused,	reg1,	unused,	nop	)	when x"0000",	-- LI
-		(	nop,	const,	unused, reg1,	unused,	load	)	when x"0001",	-- LD abs
-		(	nop,	reg2,	unused,	reg1,	unused,	nop	)	when x"0002",	-- MOV
-		(	nop,	const,	reg1,	unused,	unused,	store	)	when x"0003",	-- ST abs
-		(	nop,	reg2,	unused,	reg1,	unused,	load	)	when x"0004",	-- LD [r]
-		(	nop,	reg1,	reg2,	unused,	unused,	store	)	when x"0005",	-- ST [r]
-		(	halt,	unused,	unused,	unused,	unused,	nop	)	when x"0006",	-- HCF
-		(	nop,	unused,	unused,	unused,	unused,	nop	)	when others;
+		-- jmp     (1) src (2)         (1) dst (2)       mem
+		(  nop,  ( const,  unused ), ( reg1,   unused ), nop     ) when x"0000",	-- LI
+		(  nop,  ( const,  unused ), ( unused, reg1   ), load    ) when x"0001",	-- LD abs
+		(  nop,  ( reg2,   unused ), ( reg1,   unused ), nop     ) when x"0002",	-- MOV
+		(  nop,  ( const,  reg1   ), ( unused, unused ), store   ) when x"0003",	-- ST abs
+		(  nop,  ( reg2,   unused ), ( unused, reg1   ), load    ) when x"0004",	-- LD [r]
+		(  nop,  ( reg1,   reg2   ), ( unused, unused ), store   ) when x"0005",	-- ST [r]
+		(  halt, ( unused, unused ), ( unused, unused ), nop     ) when x"0006",	-- HCF
+		(  nop,  ( unused, unused ), ( unused, unused ), nop     ) when others;
 
 		i.strobe <= decode_strobe and not skip;
 
@@ -267,49 +269,30 @@ begin
 
 		i.jmp <= m.jmp;
 
-		with m.src1 select i.op(1).source <=
-			unused when unused,
-			c_field when const,
-			r_field when reg1|reg2|reg3|reg4;
-		i.op(1).c_value <= c;
-		with m.src1 select i.op(1).r_num <=
-			(others => 'U') when unused|const,
-			r1 when reg1,
-			r2 when reg2,
-			r3 when reg3,
-			r4 when reg4;
+		lanes : for l in lane generate
+		begin
+			with m.src(l) select i.op(l).source <=
+				unused when unused,
+				c_field when const,
+				r_field when reg1|reg2|reg3|reg4;
+			i.op(l).c_value <= c;
+			with m.src(l) select i.op(l).r_num <=
+				(others => 'U') when unused|const,
+				r1 when reg1,
+				r2 when reg2,
+				r3 when reg3,
+				r4 when reg4;
 
-		with m.src2 select i.op(2).source <=
-			unused when unused,
-			c_field when const,
-			r_field when reg1|reg2|reg3|reg4;
-		i.op(2).c_value <= c;
-		with m.src2 select i.op(2).r_num <=
-			(others => 'U') when unused|const,
-			r1 when reg1,
-			r2 when reg2,
-			r3 when reg3,
-			r4 when reg4;
-
-		with m.dst1 select i.op(1).writeback_active <=
-			'0' when unused|const,
-			'1' when reg1|reg2|reg3|reg4;
-		with m.dst1 select i.op(1).writeback_target <=
-			(others => 'U') when unused|const,
-			r1 when reg1,
-			r2 when reg2,
-			r3 when reg3,
-			r4 when reg4;
-
-		with m.dst2 select i.op(2).writeback_active <=
-			'0' when unused|const,
-			'1' when reg1|reg2|reg3|reg4;
-		with m.dst2 select i.op(2).writeback_target <=
-			(others => 'U') when unused|const,
-			r1 when reg1,
-			r2 when reg2,
-			r3 when reg3,
-			r4 when reg4;
+			with m.dst(l) select i.op(l).writeback_active <=
+				'0' when unused|const,
+				'1' when reg1|reg2|reg3|reg4;
+			with m.dst(l) select i.op(l).writeback_target <=
+				(others => 'U') when unused|const,
+				r1 when reg1,
+				r2 when reg2,
+				r3 when reg3,
+				r4 when reg4;
+		end generate;
 
 		with m.mem select i.store <=
 			nop when nop|load,
