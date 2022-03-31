@@ -231,7 +231,7 @@ begin
 		alias r4 : reg is instruction(23 downto 16);
 		alias c : word is instruction(31 downto 0);
 
-		type slot is (unused, const, reg1, reg2, reg3, reg4);
+		type slot is (unused, reg1, reg2, reg3, reg4, const);
 		type mem_op is (nop, load, store);
 
 		type slot_per_lane is array(lane) of slot;
