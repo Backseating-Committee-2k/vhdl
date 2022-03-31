@@ -106,6 +106,7 @@ architecture rtl of cpu_pipelined is
 	type data_lanes is array(lane) of data_lane;
 
 	type jmp_op is (nop, halt);
+	type alu_op is (nop);
 	type store_op is (nop, store);
 
 	type decoded_insn is record
@@ -114,6 +115,7 @@ architecture rtl of cpu_pipelined is
 		jmp : jmp_op;		-- opcode for fetch engine
 		op : data_lanes;	-- operands
 		store : store_op;	-- store value from lane 2 to address from lane 1
+		alu : alu_op;		-- opcode for ALU
 
 		store_busy : std_logic;
 	end record;
@@ -237,6 +239,7 @@ begin
 		type mapping is record
 			jmp : jmp_op;
 			src, dst : slot_per_lane;
+			alu : alu_op;
 			mem : mem_op;
 		end record;
 
@@ -253,15 +256,15 @@ begin
 		decode_waitrequest <= i.op(1).busy or i.op(2).busy or i.store_busy;
 
 		with o select m <=
-		-- jmp     (1) src (2)         (1) dst (2)       mem
-		(  nop,  ( const,  unused ), ( reg1,   unused ), nop     ) when x"0000",	-- LI
-		(  nop,  ( const,  unused ), ( unused, reg1   ), load    ) when x"0001",	-- LD abs
-		(  nop,  ( reg2,   unused ), ( reg1,   unused ), nop     ) when x"0002",	-- MOV
-		(  nop,  ( const,  reg1   ), ( unused, unused ), store   ) when x"0003",	-- ST abs
-		(  nop,  ( reg2,   unused ), ( unused, reg1   ), load    ) when x"0004",	-- LD [r]
-		(  nop,  ( reg1,   reg2   ), ( unused, unused ), store   ) when x"0005",	-- ST [r]
-		(  halt, ( unused, unused ), ( unused, unused ), nop     ) when x"0006",	-- HCF
-		(  nop,  ( unused, unused ), ( unused, unused ), nop     ) when others;
+		-- jmp     (1) src (2)         (1) dst (2)       alu    mem
+		(  nop,  ( const,  unused ), ( reg1,   unused ), nop,   nop     ) when x"0000",	-- LI
+		(  nop,  ( const,  unused ), ( unused, reg1   ), nop,   load    ) when x"0001",	-- LD abs
+		(  nop,  ( reg2,   unused ), ( reg1,   unused ), nop,   nop     ) when x"0002",	-- MOV
+		(  nop,  ( const,  reg1   ), ( unused, unused ), nop,   store   ) when x"0003",	-- ST abs
+		(  nop,  ( reg2,   unused ), ( unused, reg1   ), nop,   load    ) when x"0004",	-- LD [r]
+		(  nop,  ( reg1,   reg2   ), ( unused, unused ), nop,   store   ) when x"0005",	-- ST [r]
+		(  halt, ( unused, unused ), ( unused, unused ), nop,   nop     ) when x"0006",	-- HCF
+		(  nop,  ( unused, unused ), ( unused, unused ), nop,   nop     ) when others;
 
 		i.strobe <= decode_strobe and not skip;
 
@@ -297,6 +300,8 @@ begin
 		with m.mem select i.store <=
 			nop when nop|load,
 			store when store;
+
+		i.alu <= m.alu;
 	end block;
 
 	reg_access : for l in lane generate
