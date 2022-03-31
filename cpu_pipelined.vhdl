@@ -232,13 +232,16 @@ begin
 		alias c : word is instruction(31 downto 0);
 
 		type slot is (unused, reg1, reg2, reg3, reg4, const);
+		subtype writeback_slot is slot range unused to reg4;
 		type mem_op is (nop, load, store);
 
 		type slot_per_lane is array(lane) of slot;
+		type writeback_slot_per_lane is array(lane) of writeback_slot;
 
 		type mapping is record
 			jmp : jmp_op;
-			src, dst : slot_per_lane;
+			src : slot_per_lane;
+			dst : writeback_slot_per_lane;
 			alu : alu_op;
 			mem : mem_op;
 		end record;
@@ -287,10 +290,10 @@ begin
 				r4 when reg4;
 
 			with m.dst(l) select i.op(l).writeback_active <=
-				'0' when unused|const,
+				'0' when unused,
 				'1' when reg1|reg2|reg3|reg4;
 			with m.dst(l) select i.op(l).writeback_target <=
-				(others => 'U') when unused|const,
+				(others => 'U') when unused,
 				r1 when reg1,
 				r2 when reg2,
 				r3 when reg3,
