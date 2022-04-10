@@ -38,6 +38,70 @@ The main CPU core (`cpu`) has separate 64 bit instruction and 32 bit data
 buses that are fully synchronous and assumes that any memory interface or
 peripherals are external.
 
+### Sequential Implementation
+
+To Be Documented
+
+### Pipelined Implementation
+
+The pipeline should move one step per cycle (ideally), with each stage
+working on a different instruction. When a dependency requires the pipeline
+to stall, NOPs are inserted until it can proceed.
+
+#### Fetch Stage
+
+This stage fetches the next instruction, and sends it to the decode stage
+if the decode stage is ready. The instruction pointer is also kept here
+instead of the register map, because it is updated on every instruction,
+and the register map only has two ports.
+
+#### Decode Stage
+
+This stage takes the high-level opcode and generates low-level opcodes for
+all the following stages, from a table.
+
+#### Register Lookup Stage
+
+This stage fetches values from the register file or one of the feedback
+paths.
+
+#### Condition Stage
+
+This evaluates the condition field and sets the "skip" flag if the
+instruction should not be executed, and inserts NOPs if evaluation needs to
+be delayed.
+
+#### Swap Stage
+
+This stage optionally exchanges lane 2 with the (next) instruction pointer,
+to implement jump and call instructions near the beginning of the pipeline.
+
+#### Store Stage
+
+This is a side branch, storing the word in lane 2 to the address in lane 1.
+
+#### ALU Stage
+
+Performs Calculations.
+
+#### Load Stage
+
+Loads lane 2 from the address in lane 1, and notifies the Writeback and
+Feedback stages when the result is ready
+
+#### Writeback Stage
+
+Writes values into the register map once they are ready
+
+#### Feedback Path
+
+Implicitly, any register written is made available to following
+instructions bypassing the register map, because otherwise we'd incur a
+delay of two cycles.
+
+Explicitly, lane 2 can be passed back into the register lookup stage as a
+separate source. This is only needed for indirect call instructions.
+
 ## Testbench
 
 Testbenches can be run automatically using the `sim.sh` script, and require
