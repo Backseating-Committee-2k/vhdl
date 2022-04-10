@@ -172,8 +172,13 @@ begin
 		process(reset, clk) is
 			procedure start_fetch is
 			begin
-				i_addr <= current_ip;
-				i_rdreq <= '1';
+				if(should_halt = '0') then
+					i_addr <= current_ip;
+					i_rdreq <= '1';
+				else
+					i_addr <= (others => 'U');
+					i_rdreq <= '0';
+				end if;
 			end procedure;
 
 			procedure increment is
