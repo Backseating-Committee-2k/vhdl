@@ -82,7 +82,7 @@ architecture rtl of cpu_pipelined is
 
 	type data_lane_source is (unused, c_field, r_field);
 
-	type data_lane is record
+	type data_lane_f is record
 		source : data_lane_source;
 
 		c_value : word;
@@ -96,14 +96,17 @@ architecture rtl of cpu_pipelined is
 
 		writeback_active : std_logic;
 		writeback_target : reg;
+	end record;
 
+	type data_lane_r is record
 		reg_lookup_busy : std_logic;
 		reg_writeback_busy : std_logic;
 
 		busy : std_logic;
 	end record;
 
-	type data_lanes is array(lane) of data_lane;
+	type data_lanes_f is array(lane) of data_lane_f;
+	type data_lanes_r is array(lane) of data_lane_r;
 
 	type condition is (
 		always,			-- obvious
@@ -115,19 +118,23 @@ architecture rtl of cpu_pipelined is
 	type alu_op is (nop);
 	type store_op is (nop, store);
 
-	type decoded_insn is record
+	type decoded_insn_f is record
 		strobe : std_logic;	-- strobe when a new instruction is fed
 		skip : std_logic;	-- skip instruction (conditional or branch delay)
 		cond : condition;	-- skip instruction if condition not met
 		jmp : jmp_op;		-- opcode for fetch engine
-		op : data_lanes;	-- operands
+		op : data_lanes_f;	-- operands
 		store : store_op;	-- store value from lane 2 to address from lane 1
 		alu : alu_op;		-- opcode for ALU
+	end record;
 
+	type decoded_insn_r is record
+		op : data_lanes_r;	-- operands
 		store_busy : std_logic;
 	end record;
 
-	signal i : decoded_insn;
+	signal i_f : decoded_insn_f;
+	signal i_r : decoded_insn_r;
 
 	-- feedback for register read after register write
 	type register_register_feedback is record
@@ -222,7 +229,7 @@ begin
 					when halt =>
 						null;
 				end case;
-				if(i.strobe = '1' and i.jmp = halt) then
+				if(i_f.strobe = '1' and i_f.jmp = halt) then
 					s <= halt;
 				end if;
 			end if;
@@ -264,7 +271,7 @@ begin
 			'0' when decode_restart = '1' else
 			'1' when m.jmp /= nop and rising_edge(clk);
 
-		decode_waitrequest <= i.op(1).busy or i.op(2).busy or i.store_busy;
+		decode_waitrequest <= i_r.op(1).busy or i_r.op(2).busy or i_r.store_busy;
 
 		with o select m <=
 		-- jmp   cond      (1) src (2)         (1) dst (2)       alu    mem
@@ -277,30 +284,30 @@ begin
 		(  halt, always, ( unused, unused ), ( unused, unused ), nop,   nop     ) when x"0006",	-- HCF
 		(  nop,  always, ( unused, unused ), ( unused, unused ), nop,   nop     ) when others;
 
-		i.strobe <= decode_strobe and not skip;
+		i_f.strobe <= decode_strobe and not skip;
 
-		i.skip <= skip;
+		i_f.skip <= skip;
 
-		i.jmp <= m.jmp;
+		i_f.jmp <= m.jmp;
 
 		lanes : for l in lane generate
 		begin
-			with m.src(l) select i.op(l).source <=
+			with m.src(l) select i_f.op(l).source <=
 				unused when unused,
 				c_field when const,
 				r_field when reg1|reg2|reg3|reg4;
-			i.op(l).c_value <= c;
-			with m.src(l) select i.op(l).r_num <=
+			i_f.op(l).c_value <= c;
+			with m.src(l) select i_f.op(l).r_num <=
 				(others => 'U') when unused|const,
 				r1 when reg1,
 				r2 when reg2,
 				r3 when reg3,
 				r4 when reg4;
 
-			with m.dst(l) select i.op(l).writeback_active <=
+			with m.dst(l) select i_f.op(l).writeback_active <=
 				'0' when unused,
 				'1' when reg1|reg2|reg3|reg4;
-			with m.dst(l) select i.op(l).writeback_target <=
+			with m.dst(l) select i_f.op(l).writeback_target <=
 				(others => 'U') when unused,
 				r1 when reg1,
 				r2 when reg2,
@@ -308,13 +315,13 @@ begin
 				r4 when reg4;
 		end generate;
 
-		i.cond <= m.cond;
+		i_f.cond <= m.cond;
 
-		with m.mem select i.store <=
+		with m.mem select i_f.store <=
 			nop when nop|load,
 			store when store;
 
-		i.alu <= m.alu;
+		i_f.alu <= m.alu;
 	end block;
 
 	reg_access : for l in lane generate
@@ -343,17 +350,17 @@ begin
 		r(l).data <= data;
 		r(l).wren <= wren;
 
-		data <= i.op(l).value;
-		wren <= i.op(l).writeback_active and i.op(l).valid;
+		data <= i_f.op(l).value;
+		wren <= i_f.op(l).writeback_active and i_f.op(l).valid;
 
 		read_selected_register <= (others => '0') when reset = '1' else			-- reset
-					  i.op(l).r_num when i.op(l).source = r_field else	-- active
+					  i_f.op(l).r_num when i_f.op(l).source = r_field else	-- active
 					  unaffected;						-- inactive
 
 		rrfb(l) <= (active => wren, number => write_selected_register, value => data) when rising_edge(clk);
 
 		write_selected_register <= (others => '0') when reset = '1' else
-					   i.op(l).writeback_target when i.op(l).writeback_active = '1';
+					   i_f.op(l).writeback_target when i_f.op(l).writeback_active = '1';
 
 		selected_register <= write_selected_register when wren = '1' else
 				     read_selected_register;
@@ -401,40 +408,40 @@ begin
 			q_in(lane'high) <= r_q;
 		end block;
 
-		i.op(l).r_valid <= valid;
-		i.op(l).r_value <= q;
+		i_f.op(l).r_valid <= valid;
+		i_f.op(l).r_value <= q;
 
-		with i.op(l).source select i.op(l).reg_lookup_busy <=
+		with i_f.op(l).source select i_r.op(l).reg_lookup_busy <=
 			'0' when unused|c_field,
-			not i.op(l).r_valid when r_field;
+			not i_f.op(l).r_valid when r_field;
 
-		with i.op(l).source select i.op(l).valid <=
+		with i_f.op(l).source select i_f.op(l).valid <=
 			'0' when unused,
 			'1' when c_field,
-			i.op(l).r_valid when r_field;
-		with i.op(l).source select i.op(l).value <=
+			i_f.op(l).r_valid when r_field;
+		with i_f.op(l).source select i_f.op(l).value <=
 			(others => 'U') when unused,
-			i.op(l).c_value when c_field,
-			i.op(l).r_value when r_field;
+			i_f.op(l).c_value when c_field,
+			i_f.op(l).r_value when r_field;
 
-		i.op(l).reg_writeback_busy <= not i.op(l).valid when i.op(l).writeback_active = '1' else
-					      '0';
+		i_r.op(l).reg_writeback_busy <= not i_f.op(l).valid when i_f.op(l).writeback_active = '1' else
+					       '0';
 
-		i.op(l).busy <= i.op(l).reg_lookup_busy or i.op(l).reg_writeback_busy;
+		i_r.op(l).busy <= i_r.op(l).reg_lookup_busy or i_r.op(l).reg_writeback_busy;
 	end generate;
 
 	mem_access : block
 		signal store_active : std_logic;
 		signal store_ready : std_logic;
 	begin
-		with i.store select store_active <=
+		with i_f.store select store_active <=
 			'1' when store,
 			'0' when nop;
-		store_ready <= i.op(1).valid and i.op(2).valid;
+		store_ready <= i_f.op(1).valid and i_f.op(2).valid;
 
 		-- store value from lane 2 to address from lane 1
 
-		i.store_busy <= store_active and not store_ready;
+		i_r.store_busy <= store_active and not store_ready;
 
 		process(reset, clk) is
 		begin
@@ -447,8 +454,8 @@ begin
 				d_rdreq <= '0';
 				d_wrreq <= '0';
 				if(store_active = '1' and store_ready = '1') then
-					d_addr <= i.op(1).value;
-					d_wrdata <= i.op(2).value;
+					d_addr <= i_f.op(1).value;
+					d_wrdata <= i_f.op(2).value;
 					d_wrreq <= '1';
 				end if;
 			end if;
