@@ -299,7 +299,7 @@ begin
 		-- FIXME: latches
 		skip <= '1' when reset = '1' else
 			'0' when decode_restart = '1' else
-			'1' when m.jmp /= nop and rising_edge(clk);
+			'1' when rising_edge(clk);
 
 		decode_waitrequest <= i_r.op(1).busy or i_r.op(2).busy or i_r.store_busy;
 
