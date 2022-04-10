@@ -170,6 +170,7 @@ begin
 	-- address can be presented right away
 	fetch : block is
 		signal current_ip : address;
+		signal incremented_ip : address;
 		signal next_ip : address;
 		signal incrementing : std_logic;
 
@@ -191,7 +192,9 @@ begin
 			      unaffected when incrementing = '0' else	-- enable
 			      next_ip when rising_edge(clk);		-- clock
 
-		next_ip <= address(unsigned(current_ip) + 8);
+		incremented_ip <= address(unsigned(current_ip) + 8);
+
+		next_ip <= incremented_ip;
 
 		with s select i_addr <=
 			(others => 'U') when resetting,
