@@ -114,7 +114,7 @@ architecture rtl of cpu_pipelined is
 		z, nz,			-- check zero flag
 		c, nc,			-- check carry flag
 		div0, ndiv0);		-- check divide-by-zero flag
-	type jmp_op is (nop, halt);
+	type jmp_op is (nop, jmp, halt);
 	type alu_op is (nop);
 	type store_op is (nop, store);
 
@@ -147,8 +147,11 @@ architecture rtl of cpu_pipelined is
 	signal swap_to_alu_store_r : decoded_insn_r;
 	signal alu_to_writeback_load_r : decoded_insn_r;
 
-	-- decoder -> fetch: should halt
+	-- fetch<->swap connection
 	signal should_halt : std_logic;
+	signal should_swap : std_logic;
+	signal address_swap_to_fetch : address;
+	signal address_fetch_to_swap : address;
 
 	-- feedback for register read after register write
 	type register_register_feedback is record
@@ -194,7 +197,10 @@ begin
 
 		incremented_ip <= address(unsigned(current_ip) + 8);
 
-		next_ip <= incremented_ip;
+		-- correspondence with swap block
+		next_ip <= incremented_ip when should_swap = '0' else
+			   address_swap_to_fetch;
+		address_fetch_to_swap <= incremented_ip;
 
 		with s select i_addr <=
 			(others => 'U') when resetting,
@@ -356,18 +362,51 @@ begin
 	condition_to_swap_f <= register_to_condition_f;
 	register_to_condition_r <= condition_to_swap_r;
 
-	-- swap block (stop only)
+	-- swap block
 	swap : block is
 		alias sw_f : decoded_insn_f is condition_to_swap_f;
 		alias sw_r : decoded_insn_r is condition_to_swap_r;
+
+		alias alu_f : decoded_insn_f is swap_to_alu_store_f;
+		alias alu_r : decoded_insn_r is swap_to_alu_store_r;
+
+		signal lane2_after_swap : word;
 	begin
 		should_halt <= '1' when sw_f.skip = '0' and sw_f.jmp = halt else
 			       '0';
-	end block;
+		should_swap <= '1' when sw_f.skip = '0' and sw_f.jmp = jmp else
+			       '0';
 
-	-- swap block bypass
-	swap_to_alu_store_f <= condition_to_swap_f;
-	condition_to_swap_r <= swap_to_alu_store_r;
+		address_swap_to_fetch <= sw_f.op(2).value;
+
+		lane2_after_swap <= address_fetch_to_swap when should_swap = '1' else
+				    sw_f.op(2).value;
+
+		alu_f <= (
+			strobe => sw_f.strobe,
+			jmp => sw_f.jmp,
+			cond => sw_f.cond,
+			skip => sw_f.skip,
+			op => (
+				1 => sw_f.op(1),
+				2 => (
+					source => sw_f.op(2).source,
+					c_value => sw_f.op(2).c_value,
+					r_num => sw_f.op(2).r_num,
+					r_value => sw_f.op(2).r_value,
+					r_valid => sw_f.op(2).r_valid,
+					value => lane2_after_swap,
+					valid => sw_f.op(2).valid,
+					writeback_active => sw_f.op(2).writeback_active,
+					writeback_target => sw_f.op(2).writeback_target
+				)
+			),
+			store => sw_f.store,
+			alu => sw_f.alu
+		);
+
+		sw_r <= alu_r;
+	end block;
 
 	-- alu block bypass
 	alu_to_writeback_load_f <= swap_to_alu_store_f;
