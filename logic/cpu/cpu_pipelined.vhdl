@@ -324,7 +324,14 @@ begin
 		i_f.alu <= m.alu;
 	end block;
 
+	-- both register lookup and writeback stage for now
+	-- TODO: separate
 	reg_access : for l in lane generate
+		alias rl_f : decoded_insn_f is i_f;
+		alias rl_r : decoded_insn_r is i_r;
+		alias wb_f : decoded_insn_f is i_f;
+		alias wb_r : decoded_insn_r is i_r;
+
 		signal read_selected_register : reg;
 		signal write_selected_register : reg;
 
@@ -350,17 +357,17 @@ begin
 		r(l).data <= data;
 		r(l).wren <= wren;
 
-		data <= i_f.op(l).value;
-		wren <= i_f.op(l).writeback_active and i_f.op(l).valid;
+		data <= wb_f.op(l).value;
+		wren <= wb_f.op(l).writeback_active and wb_f.op(l).valid;
 
 		read_selected_register <= (others => '0') when reset = '1' else			-- reset
-					  i_f.op(l).r_num when i_f.op(l).source = r_field else	-- active
+					  rl_f.op(l).r_num when rl_f.op(l).source = r_field else	-- active
 					  unaffected;						-- inactive
 
 		rrfb(l) <= (active => wren, number => write_selected_register, value => data) when rising_edge(clk);
 
 		write_selected_register <= (others => '0') when reset = '1' else
-					   i_f.op(l).writeback_target when i_f.op(l).writeback_active = '1';
+					   wb_f.op(l).writeback_target when wb_f.op(l).writeback_active = '1';
 
 		selected_register <= write_selected_register when wren = '1' else
 				     read_selected_register;
@@ -408,26 +415,26 @@ begin
 			q_in(lane'high) <= r_q;
 		end block;
 
-		i_f.op(l).r_valid <= valid;
-		i_f.op(l).r_value <= q;
+		rl_f.op(l).r_valid <= valid;
+		rl_f.op(l).r_value <= q;
 
-		with i_f.op(l).source select i_r.op(l).reg_lookup_busy <=
+		with rl_f.op(l).source select rl_r.op(l).reg_lookup_busy <=
 			'0' when unused|c_field,
-			not i_f.op(l).r_valid when r_field;
+			not rl_f.op(l).r_valid when r_field;
 
-		with i_f.op(l).source select i_f.op(l).valid <=
+		with rl_f.op(l).source select rl_f.op(l).valid <=
 			'0' when unused,
 			'1' when c_field,
-			i_f.op(l).r_valid when r_field;
-		with i_f.op(l).source select i_f.op(l).value <=
+			rl_f.op(l).r_valid when r_field;
+		with rl_f.op(l).source select rl_f.op(l).value <=
 			(others => 'U') when unused,
-			i_f.op(l).c_value when c_field,
-			i_f.op(l).r_value when r_field;
+			rl_f.op(l).c_value when c_field,
+			rl_f.op(l).r_value when r_field;
 
-		i_r.op(l).reg_writeback_busy <= not i_f.op(l).valid when i_f.op(l).writeback_active = '1' else
+		wb_r.op(l).reg_writeback_busy <= not wb_f.op(l).valid when wb_f.op(l).writeback_active = '1' else
 					       '0';
 
-		i_r.op(l).busy <= i_r.op(l).reg_lookup_busy or i_r.op(l).reg_writeback_busy;
+		rl_r.op(l).busy <= rl_r.op(l).reg_lookup_busy or wb_r.op(l).reg_writeback_busy;
 	end generate;
 
 	mem_access : block
