@@ -105,6 +105,12 @@ architecture rtl of cpu_pipelined is
 
 	type data_lanes is array(lane) of data_lane;
 
+	type condition is (
+		always,			-- obvious
+		eq, gt, ge, lt, le,	-- check lane 1
+		z, nz,			-- check zero flag
+		c, nc,			-- check carry flag
+		div0, ndiv0);		-- check divide-by-zero flag
 	type jmp_op is (nop, halt);
 	type alu_op is (nop);
 	type store_op is (nop, store);
@@ -112,6 +118,7 @@ architecture rtl of cpu_pipelined is
 	type decoded_insn is record
 		strobe : std_logic;	-- strobe when a new instruction is fed
 		skip : std_logic;	-- skip instruction (conditional or branch delay)
+		cond : condition;	-- skip instruction if condition not met
 		jmp : jmp_op;		-- opcode for fetch engine
 		op : data_lanes;	-- operands
 		store : store_op;	-- store value from lane 2 to address from lane 1
@@ -240,6 +247,7 @@ begin
 
 		type mapping is record
 			jmp : jmp_op;
+			cond : condition;
 			src : slot_per_lane;
 			dst : writeback_slot_per_lane;
 			alu : alu_op;
@@ -259,15 +267,15 @@ begin
 		decode_waitrequest <= i.op(1).busy or i.op(2).busy or i.store_busy;
 
 		with o select m <=
-		-- jmp     (1) src (2)         (1) dst (2)       alu    mem
-		(  nop,  ( const,  unused ), ( reg1,   unused ), nop,   nop     ) when x"0000",	-- LI
-		(  nop,  ( const,  unused ), ( unused, reg1   ), nop,   load    ) when x"0001",	-- LD abs
-		(  nop,  ( reg2,   unused ), ( reg1,   unused ), nop,   nop     ) when x"0002",	-- MOV
-		(  nop,  ( const,  reg1   ), ( unused, unused ), nop,   store   ) when x"0003",	-- ST abs
-		(  nop,  ( reg2,   unused ), ( unused, reg1   ), nop,   load    ) when x"0004",	-- LD [r]
-		(  nop,  ( reg1,   reg2   ), ( unused, unused ), nop,   store   ) when x"0005",	-- ST [r]
-		(  halt, ( unused, unused ), ( unused, unused ), nop,   nop     ) when x"0006",	-- HCF
-		(  nop,  ( unused, unused ), ( unused, unused ), nop,   nop     ) when others;
+		-- jmp   cond      (1) src (2)         (1) dst (2)       alu    mem
+		(  nop,  always, ( const,  unused ), ( reg1,   unused ), nop,   nop     ) when x"0000",	-- LI
+		(  nop,  always, ( const,  unused ), ( unused, reg1   ), nop,   load    ) when x"0001",	-- LD abs
+		(  nop,  always, ( reg2,   unused ), ( reg1,   unused ), nop,   nop     ) when x"0002",	-- MOV
+		(  nop,  always, ( const,  reg1   ), ( unused, unused ), nop,   store   ) when x"0003",	-- ST abs
+		(  nop,  always, ( reg2,   unused ), ( unused, reg1   ), nop,   load    ) when x"0004",	-- LD [r]
+		(  nop,  always, ( reg1,   reg2   ), ( unused, unused ), nop,   store   ) when x"0005",	-- ST [r]
+		(  halt, always, ( unused, unused ), ( unused, unused ), nop,   nop     ) when x"0006",	-- HCF
+		(  nop,  always, ( unused, unused ), ( unused, unused ), nop,   nop     ) when others;
 
 		i.strobe <= decode_strobe and not skip;
 
@@ -299,6 +307,8 @@ begin
 				r3 when reg3,
 				r4 when reg4;
 		end generate;
+
+		i.cond <= m.cond;
 
 		with m.mem select i.store <=
 			nop when nop|load,
