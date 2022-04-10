@@ -438,17 +438,20 @@ begin
 	end generate;
 
 	mem_access : block
+		alias st_f : decoded_insn_f is i_f;
+		alias st_r : decoded_insn_r is i_r;
+
 		signal store_active : std_logic;
 		signal store_ready : std_logic;
 	begin
-		with i_f.store select store_active <=
+		with st_f.store select store_active <=
 			'1' when store,
 			'0' when nop;
-		store_ready <= i_f.op(1).valid and i_f.op(2).valid;
+		store_ready <= st_f.op(1).valid and st_f.op(2).valid;
 
 		-- store value from lane 2 to address from lane 1
 
-		i_r.store_busy <= store_active and not store_ready;
+		st_r.store_busy <= store_active and not store_ready;
 
 		process(reset, clk) is
 		begin
@@ -461,8 +464,8 @@ begin
 				d_rdreq <= '0';
 				d_wrreq <= '0';
 				if(store_active = '1' and store_ready = '1') then
-					d_addr <= i_f.op(1).value;
-					d_wrdata <= i_f.op(2).value;
+					d_addr <= st_f.op(1).value;
+					d_wrdata <= st_f.op(2).value;
 					d_wrreq <= '1';
 				end if;
 			end if;
