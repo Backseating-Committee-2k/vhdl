@@ -392,9 +392,9 @@ begin
 
 		with o select m <=
 		-- jmp   cond      (1) src (2)         (1) dst (2)       alu    mem
-		(  nop,  always, ( const,  unused ), ( reg1,   unused ), nop,   nop     ) when x"0000",	-- LI
+		(  nop,  always, ( unused, const  ), ( unused, reg1   ), nop,   nop     ) when x"0000",	-- LI
 		(  nop,  always, ( const,  unused ), ( unused, reg1   ), nop,   load    ) when x"0001",	-- LD abs
-		(  nop,  always, ( reg2,   unused ), ( reg1,   unused ), nop,   nop     ) when x"0002",	-- MOV
+		(  nop,  always, ( unused, reg2   ), ( unused, reg1   ), nop,   nop     ) when x"0002",	-- MOV
 		(  nop,  always, ( const,  reg1   ), ( unused, unused ), nop,   store   ) when x"0003",	-- ST abs
 		(  nop,  always, ( reg2,   unused ), ( unused, reg1   ), nop,   load    ) when x"0004",	-- LD [r]
 		(  nop,  always, ( reg1,   reg2   ), ( unused, unused ), nop,   store   ) when x"0005",	-- ST [r]
