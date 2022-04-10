@@ -159,64 +159,70 @@ begin
 	-- address can be presented right away
 	fetch : block is
 		signal current_ip : address;
+		signal next_ip : address;
+		signal incrementing : std_logic;
 
 		signal stash : insn;
 
-		type state is (start, normal, overflow, halt);
+		type state is (resetting, start, normal, overflow, halt);
 
 		signal s : state;
 	begin
 		halted <= '1' when s = halt else
 			  '0';
 
-		process(reset, clk) is
-			procedure start_fetch is
-			begin
-				if(should_halt = '0') then
-					i_addr <= current_ip;
-					i_rdreq <= '1';
-				else
-					i_addr <= (others => 'U');
-					i_rdreq <= '0';
-				end if;
-			end procedure;
+		with s select incrementing <=
+			'0' when resetting,
+			'1' when start|normal,
+			'0' when overflow|halt;
 
-			procedure increment is
-			begin
-				current_ip <= address(unsigned(current_ip) + 8);
-			end procedure;
+		current_ip <= reset_ip when reset = '1' else		-- async reset
+			      unaffected when incrementing = '0' else	-- enable
+			      next_ip when rising_edge(clk);		-- clock
+
+		next_ip <= address(unsigned(current_ip) + 8);
+
+		with s select i_addr <=
+			(others => 'U') when resetting,
+			current_ip when start|normal,
+			(others => 'U') when overflow|halt;
+		with s select i_rdreq <=
+			'0' when resetting,
+			'1' when start|normal,
+			'0' when overflow|halt;
+
+		with s select decode_restart <=
+			'0' when resetting,
+			'1' when start,
+			'0' when normal|overflow|halt;
+
+		with s select decode_strobe <=
+			'0' when resetting,
+			not i_waitrequest when start|normal,
+			'1' when overflow,
+			'0' when halt;
+
+		with s select decode_insn <=
+			(others => 'U') when resetting,
+			i_rddata when start|normal,
+			stash when overflow,
+			(others => 'U') when halt;
+
+		process(reset, clk) is
 		begin
 			if(reset = '1') then
-				s <= start;
-				current_ip <= reset_ip;
-				i_addr <= (others => 'U');
-				i_rdreq <= '0';
-				decode_insn <= (others => 'U');
-				decode_strobe <= '0';
-				decode_restart <= '0';
+				s <= resetting;
 			elsif(rising_edge(clk)) then
-				i_addr <= (others => 'U');
-				i_rdreq <= '0';
-				decode_strobe <= '0';
-				decode_restart <= '0';
 				case s is
+					when resetting =>
+						s <= start;
 					when start =>
 						-- no read in progress, pipeline has space
-						start_fetch;
-						increment;
 						s <= normal;
-						decode_restart <= '1';
 					when normal =>
 						-- read in progress, pipeline might have space
 						if(i_waitrequest = '0') then
-							if(decode_waitrequest = '0') then
-								-- directly copy
-								decode_insn <= i_rddata;
-								decode_strobe <= '1';
-								-- proceed
-								start_fetch;
-								increment;
-							else
+							if(decode_waitrequest = '1') then
 								-- stash
 								stash <= i_rddata;
 								s <= overflow;
@@ -224,14 +230,7 @@ begin
 						end if;
 					when overflow =>
 						-- no read in progress, pipeline was busy
-
-						-- feed from stash (always)
-						decode_insn <= stash;
-						decode_strobe <= '1';
-
 						if(decode_waitrequest = '0') then
-							start_fetch;
-							increment;
 							s <= normal;
 						end if;
 					when halt =>
