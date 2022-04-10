@@ -136,6 +136,9 @@ architecture rtl of cpu_pipelined is
 	signal i_f : decoded_insn_f;
 	signal i_r : decoded_insn_r;
 
+	-- decoder -> fetch: should halt
+	signal should_halt : std_logic;
+
 	-- feedback for register read after register write
 	type register_register_feedback is record
 		active : std_logic;
@@ -229,7 +232,7 @@ begin
 					when halt =>
 						null;
 				end case;
-				if(i_f.strobe = '1' and i_f.jmp = halt) then
+				if(should_halt = '1') then
 					s <= halt;
 				end if;
 			end if;
@@ -322,6 +325,15 @@ begin
 			store when store;
 
 		i_f.alu <= m.alu;
+	end block;
+
+	-- swap block (stop only)
+	swap : block is
+		alias sw_f : decoded_insn_f is i_f;
+		alias sw_r : decoded_insn_r is i_r;
+	begin
+		should_halt <= '1' when sw_f.skip = '0' and sw_f.jmp = halt else
+			       '0';
 	end block;
 
 	-- both register lookup and writeback stage for now
