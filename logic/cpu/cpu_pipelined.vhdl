@@ -303,6 +303,93 @@ begin
 
 		decode_waitrequest <= i_r.op(1).busy or i_r.op(2).busy or i_r.store_busy;
 
+		-- there are two data lanes, each can be loaded from the constant field,
+		-- a register mentioned in a slot, or the stack pointer, and each can be
+		-- written into a register mentioned in a slot.
+		--
+		-- The load/store engine uses lane 1 for the address and lane 2 for the
+		-- value.
+		--
+		-- Data flow during complex instructions:
+		--
+		-- PUSH:
+		--                        4 (into lane 2)
+		--                         \
+		-- fetch -> decode -> reg -> alu -> writeback
+		--                        \_______> store
+		--
+		-- CALL:
+		--  _____________________ 4 (into lane 2)
+		-- <                     > \
+		-- fetch -> decode -> reg -> alu -> writeback
+		--       \________________________> store
+		--
+		--
+		-- PUSH+CALL combined:
+		--
+		--    ___________<>___________   4 (into lane 2)
+		--   /                        \   \
+		-- fetch -> decode -> reg -> swap -> alu -> writeback
+		--                                \_______> store
+		--
+		-- POP:
+		--
+		--                               4 (into lane 2)
+		--                                \
+		-- fetch -> decode -> reg -> swap -> alu -> load -> writeback
+		--
+		-- RET:
+		--   ________________________________________________
+		--  /                            4 (into lane 2)     \
+		--  \                             \                  /
+		-- fetch -> decode -> reg -> swap -> alu -> load -> writeback
+		--
+		-- ST:
+		--		lane1	lane2
+		-- decode	c/reg:a	reg:v
+		-- reg		address	value
+		-- swap		address	value
+		-- store	address	value
+		-- alu (nop)	address value
+		-- writeback	-	-
+		--
+		-- CALL:				PUSH:
+		--		lane1	lane2			lane1	lane2
+		-- decode	reg:sp	c/reg:a			reg:sp	c/reg:v
+		-- reg		sp	address			sp	value
+		-- swap		sp	return			sp	value
+		-- store	sp	return			sp	value
+		-- alu (add)	sp	4			sp	4
+		-- writeback	sp+4	-			sp+4	-
+		--
+		-- CALL [rX], CALL [rX+o], CALL [rX+rY] are two internal instructions!
+		--
+		--		lane1	lane2			lane1	lane2
+		-- decode	reg:a	-			reg:a	c/reg:o
+		-- reg		address	-			address	offset
+		-- swap		address	-			address	offset
+		-- store	-	-			-	-
+		-- alu (nop)	address -		(add)	address	offset
+		-- load		address	-			a+o	-
+		-- writeback	-	-			-	-
+		-- feedback	-	(load)			-	(load)
+		--			  V				  V
+		-- decode	reg:sp	fback			reg:sp	fback
+		-- reg		sp	fback			sp	fback
+		-- swap		sp	return			sp	return
+		-- store	sp	return			sp	return
+		-- alu (add)	sp	4			sp	4
+		-- writeback	sp+4	-			sp+4	-
+		--
+		-- RET:					POP:
+		--		lane1	lane2			lane1	lane2
+		-- decode	reg:sp	-			reg:sp	-
+		-- reg		sp	-			sp
+		-- swap		sp	-	stop		sp	-
+		-- alu (sub)	sp	4			sp	4
+		-- load		sp-4	-			sp-4	-
+		-- writeback	sp-4	(load)	restart		sp-4	(load)
+
 		with o select m <=
 		-- jmp   cond      (1) src (2)         (1) dst (2)       alu    mem
 		(  nop,  always, ( const,  unused ), ( reg1,   unused ), nop,   nop     ) when x"0000",	-- LI
