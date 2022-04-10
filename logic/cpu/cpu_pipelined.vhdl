@@ -293,13 +293,22 @@ begin
 
 		signal m : mapping;
 
+		-- explicit jump or halt instruction
+		signal explicit_jump : std_logic;
+
+		-- implicit jump through register write
+		signal implicit_jump : std_logic;
+
+		-- any jump instruction
+		signal jump : std_logic;
+
 		-- pipeline broken, skip until restart
 		signal skip : std_logic;
 	begin
 		-- FIXME: latches
 		skip <= '1' when reset = '1' else
 			'0' when decode_restart = '1' else
-			'1' when rising_edge(clk);
+			'1' when jump = '1' and rising_edge(clk);
 
 		decode_waitrequest <= i_r.op(1).busy or i_r.op(2).busy or i_r.store_busy;
 
@@ -404,6 +413,13 @@ begin
 		i_f.strobe <= decode_strobe and not skip;
 
 		i_f.skip <= skip;
+
+		explicit_jump <= '1' when m.jmp = jmp else
+				 '0';
+		implicit_jump <= '1' when (i_f.op(1).writeback_active = '1' and i_f.op(1).writeback_target = ip) or (i_f.op(2).writeback_active = '1' and i_f.op(2).writeback_target = ip) else
+				 '0';
+
+		jump <= explicit_jump or implicit_jump;
 
 		i_f.jmp <= m.jmp;
 
