@@ -108,14 +108,14 @@ architecture rtl of cpu_pipelined is
 	type data_lanes_f is array(lane) of data_lane_f;
 	type data_lanes_r is array(lane) of data_lane_r;
 
+	type jmp_op is (nop, jmp, halt);
 	type condition is (
 		always,			-- obvious
 		eq, gt, ge, lt, le,	-- check lane 1
 		z, nz,			-- check zero flag
 		c, nc,			-- check carry flag
 		div0, ndiv0);		-- check divide-by-zero flag
-	type jmp_op is (nop, jmp, halt);
-	type alu_op is (nop);
+	type alu_op is (nop, add, sub);
 	type store_op is (nop, store);
 
 	type decoded_insn_f is record
