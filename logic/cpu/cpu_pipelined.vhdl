@@ -408,6 +408,19 @@ begin
 		(  nop,  always, ( reg2,   unused ), ( unused, reg1   ), nop,   load    ) when x"0004",	-- LD [r]
 		(  nop,  always, ( reg1,   reg2   ), ( unused, unused ), nop,   store   ) when x"0005",	-- ST [r]
 		(  halt, always, ( unused, unused ), ( unused, unused ), nop,   nop     ) when x"0006",	-- HCF
+		(  nop,  always, ( spr,    reg1   ), ( spr,    unused ), add,   store   ) when x"0015",	-- PUSH
+		(  nop,  always, ( spr,    unused ), ( spr,    reg1   ), sub,   load    ) when x"0016",	-- POP
+		(  jmp,  always, ( spr,    const  ), ( spr,    unused ), add,   store   ) when x"0017",	-- CALL
+		(  jmp,  always, ( spr,    unused ), ( spr,    unused ), sub,   load    ) when x"0018",	-- RET
+		(  jmp,  always, ( spr,    reg1   ), ( spr,    unused ), add,   store   ) when x"ffd0",	-- CALL r
+		(  jmp,  always, ( const,  unused ), ( unused, link   ), nop,   nop     ) when x"ffe0",	-- CALL (with lr)
+		(  jmp,  always, ( link,   unused ), ( unused, unused ), nop,   nop     ) when x"ffe1",	-- RET (with lr)
+		(  nop,  always, ( reg2,   unused ), ( reg2,   reg1   ), sub,   load    ) when x"fff0",	-- LD -[r]
+		(  nop,  always, ( reg1,   reg2   ), ( reg1,   unused ), add,   store   ) when x"fff1",	-- ST [r]+
+		(  nop,  always, ( reg2,   const  ), ( unused, reg1   ), nop,   load    ) when x"fff2",	-- LD d[r]
+		(  nop,  always, ( reg2,   reg3   ), ( reg2,   reg1   ), nop,   load    ) when x"fff3",	-- LD [r+r]
+		(  nop,  always, ( reg2,   const  ), ( reg2,   reg1   ), nop,   load    ) when x"fff4",	-- LD d[r]  wb
+		(  nop,  always, ( reg2,   reg3   ), ( reg2,   reg1   ), nop,   load    ) when x"fff5",	-- LD [r+r] wb
 		(  nop,  always, ( unused, unused ), ( unused, unused ), nop,   nop     ) when others;
 
 		i_f.strobe <= decode_strobe and not skip;
