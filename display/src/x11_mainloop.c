@@ -13,6 +13,27 @@
 
 #include <stddef.h>
 
+static void handle_configure_event(struct global *g, XConfigureEvent *event)
+{
+	g->canvas.x = event->x;
+	g->canvas.y = event->y;
+	g->canvas.w = event->width;
+	g->canvas.h = event->height;
+}
+
+static void handle_event(struct global *g, XEvent *event)
+{
+	switch(event->type)
+	{
+	case ReparentNotify:
+		/* nothing to do here */
+		break;
+	case ConfigureNotify:
+		handle_configure_event(g, (XConfigureEvent *)event);
+		break;
+	}
+}
+
 bool x11_mainloop(struct global *g)
 {
 	XFlush(g->x11.display);
@@ -52,7 +73,7 @@ bool x11_mainloop(struct global *g)
 		unsigned long const events = StructureNotifyMask|VisibilityChangeMask;
 
 		while(XCheckMaskEvent(g->x11.display, events, &event))
-			{ /* ignore event */ }
+			handle_event(g, &event);
 	}
 	return true;
 }

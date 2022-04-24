@@ -15,6 +15,12 @@ bool x11_setup(struct global *g)
 	int const tex_width = 480;
 	int const tex_height = 360;
 
+	/* sensible defaults */
+	g->canvas.x = 0;
+	g->canvas.y = 0;
+	g->canvas.w = tex_width;
+	g->canvas.h = tex_height;
+
 	g->x11.display = XOpenDisplay(NULL);
 
 	if(g->x11.display == NULL)

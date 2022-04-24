@@ -21,4 +21,10 @@ struct global
 	VkAllocationCallbacks *allocation_callbacks;
 
 	VkInstance instance;
+
+	/* current canvas size */
+	struct
+	{
+		int x, y, w, h;
+	} canvas;
 };
