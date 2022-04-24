@@ -3,6 +3,7 @@
 #endif
 
 #include "x11_setup.h"
+#include "x11_mainloop.h"
 #include "vulkan_setup.h"
 
 #include "bss2kdpy.h"
@@ -23,6 +24,9 @@ int main(int argc, char **argv)
 		goto fail;
 
 	if(!vulkan_setup(&g))
+		goto fail_x11;
+
+	if(!x11_mainloop(&g))
 		goto fail_x11;
 
 	// success starts here
