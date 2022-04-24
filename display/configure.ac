@@ -11,8 +11,17 @@ AC_CONFIG_FILES([Makefile src/Makefile])
 AC_PROG_CC
 
 # Checks for libraries.
+AC_CHECK_LIB(
+	[vulkan],
+	[vkCreateInstance],
+	,
+	[AC_MSG_ERROR([Cannot find Vulkan library])])
 
 # Checks for header files.
+AC_CHECK_HEADER(
+	[vulkan/vulkan.h],
+	,
+	[AC_MSG_ERROR([Cannot find Vulkan headers])])
 
 # Checks for typedefs, structures, and compiler characteristics.
 
