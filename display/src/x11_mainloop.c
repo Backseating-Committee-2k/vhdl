@@ -13,6 +13,47 @@
 
 #include <stddef.h>
 
+static void handle_visibility_event(struct global *g, XVisibilityEvent *event)
+{
+	switch(event->state)
+	{
+	case VisibilityUnobscured:
+	case VisibilityPartiallyObscured:
+		g->visible = true;
+		break;
+	case VisibilityFullyObscured:
+		g->visible = false;
+		break;
+	}
+}
+
+static bool handle_destroy_event(struct global *g, XDestroyWindowEvent *event)
+{
+	if(event->window == g->x11.window)
+	{
+		g->x11.window = None;
+		return false;
+	}
+
+	return true;
+}
+
+static void handle_unmap_event(struct global *g, XUnmapEvent *event)
+{
+	(void)event;
+
+	g->mapped = false;
+
+	XDestroyWindow(g->x11.display, g->x11.window);
+}
+
+static void handle_map_event(struct global *g, XMapEvent *event)
+{
+	(void)event;
+
+	g->mapped = true;
+}
+
 static void handle_configure_event(struct global *g, XConfigureEvent *event)
 {
 	g->canvas.x = event->x;
@@ -21,10 +62,21 @@ static void handle_configure_event(struct global *g, XConfigureEvent *event)
 	g->canvas.h = event->height;
 }
 
-static void handle_event(struct global *g, XEvent *event)
+static bool handle_event(struct global *g, XEvent *event)
 {
 	switch(event->type)
 	{
+	case VisibilityNotify:
+		handle_visibility_event(g, (XVisibilityEvent *)event);
+		break;
+	case DestroyNotify:
+		return handle_destroy_event(g, (XDestroyWindowEvent *)event);
+	case UnmapNotify:
+		handle_unmap_event(g, (XUnmapEvent *)event);
+		break;
+	case MapNotify:
+		handle_map_event(g, (XMapEvent *)event);
+		break;
 	case ReparentNotify:
 		/* nothing to do here */
 		break;
@@ -32,6 +84,8 @@ static void handle_event(struct global *g, XEvent *event)
 		handle_configure_event(g, (XConfigureEvent *)event);
 		break;
 	}
+
+	return true;
 }
 
 bool x11_mainloop(struct global *g)
@@ -66,14 +120,26 @@ bool x11_mainloop(struct global *g)
 				NULL);
 
 		if(rc == 0)
-			break;
+		{
+			XUnmapWindow(
+					g->x11.display,
+					g->x11.window);
+		}
 
 		XEvent event;
 
 		unsigned long const events = StructureNotifyMask|VisibilityChangeMask;
 
+		bool stop = false;
+
 		while(XCheckMaskEvent(g->x11.display, events, &event))
-			handle_event(g, &event);
+		{
+			if(!handle_event(g, &event))
+				stop = true;
+		}
+
+		if(stop)
+			break;
 	}
 	return true;
 }

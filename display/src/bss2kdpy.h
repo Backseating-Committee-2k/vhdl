@@ -22,6 +22,10 @@ struct global
 
 	VkInstance instance;
 
+	bool mapped;
+
+	bool visible;
+
 	/* current canvas size */
 	struct
 	{

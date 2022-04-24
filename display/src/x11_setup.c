@@ -15,6 +15,9 @@ bool x11_setup(struct global *g)
 	int const tex_width = 480;
 	int const tex_height = 360;
 
+	g->mapped = false;
+	g->visible = false;
+
 	/* sensible defaults */
 	g->canvas.x = 0;
 	g->canvas.y = 0;
