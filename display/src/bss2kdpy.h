@@ -6,6 +6,9 @@
 
 struct global
 {
+	int argc;
+	char **argv;
+
 	union
 	{
 		struct
