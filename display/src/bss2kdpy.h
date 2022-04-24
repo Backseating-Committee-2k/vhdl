@@ -11,6 +11,7 @@ struct global
 		struct
 		{
 			Display *display;
+			Window window;
 		} x11;
 	};
 
