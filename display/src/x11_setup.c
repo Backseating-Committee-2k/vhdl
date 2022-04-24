@@ -29,6 +29,11 @@ bool x11_setup(struct global *g)
 		Visual *const visual = DefaultVisual(
 				g->x11.display, screen_number);
 
+		XSetWindowAttributes attr =
+		{
+			.event_mask = StructureNotifyMask|VisibilityChangeMask
+		};
+
 		g->x11.window = XCreateWindow(
 				/* display */	g->x11.display,
 				/* parent */	root,
@@ -38,8 +43,8 @@ bool x11_setup(struct global *g)
 				/* depth */	CopyFromParent,
 				/* class */	InputOutput,
 				/* visual */	visual,
-				/* valuemask */	0,
-				/* attrib */	NULL);
+				/* valuemask */	CWEventMask,
+				/* attrib */	&attr);
 
 		if(g->x11.window == None)
 			goto fail;
