@@ -12,12 +12,21 @@ AC_PROG_CC
 
 # Checks for libraries.
 AC_CHECK_LIB(
+	[X11],
+	[XOpenDisplay],
+	,
+	[AC_MSG_ERROR([Cannot find X11 library])])
+AC_CHECK_LIB(
 	[vulkan],
 	[vkCreateInstance],
 	,
 	[AC_MSG_ERROR([Cannot find Vulkan library])])
 
 # Checks for header files.
+AC_CHECK_HEADER(
+	[X11/X.h],
+	,
+	[AC_MSG_ERROR([Cannot find X11 headers])])
 AC_CHECK_HEADER(
 	[vulkan/vulkan.h],
 	,
