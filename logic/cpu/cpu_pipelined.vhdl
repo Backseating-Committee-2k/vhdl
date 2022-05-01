@@ -138,14 +138,16 @@ architecture rtl of cpu_pipelined is
 	signal register_to_condition_f : decoded_insn_f;
 	signal condition_to_swap_f : decoded_insn_f;
 	signal swap_to_alu_store_f : decoded_insn_f;
-	signal alu_to_writeback_load_f : decoded_insn_f;
+	signal alu_to_load_f : decoded_insn_f;
+	signal load_to_writeback_f : decoded_insn_f;
 
 	-- reverse pipeline
 	signal decode_to_register_r : decoded_insn_r;
 	signal register_to_condition_r : decoded_insn_r;
 	signal condition_to_swap_r : decoded_insn_r;
 	signal swap_to_alu_store_r : decoded_insn_r;
-	signal alu_to_writeback_load_r : decoded_insn_r;
+	signal alu_to_load_r : decoded_insn_r;
+	signal load_to_writeback_r : decoded_insn_r;
 
 	-- fetch<->swap connection
 	signal should_halt : std_logic;
@@ -529,19 +531,23 @@ begin
 	end block;
 
 	-- alu block bypass
-	alu_to_writeback_load_f <= swap_to_alu_store_f;
-	swap_to_alu_store_r <= alu_to_writeback_load_r;
+	alu_to_load_f <= swap_to_alu_store_f;
+	swap_to_alu_store_r <= alu_to_load_r;
+
+	-- load block bypass
+	load_to_writeback_f <= alu_to_load_f;
+	alu_to_load_r <= load_to_writeback_r;
 
 	-- TODO remove HACK HACK HACK
-	alu_to_writeback_load_r <= (op => (others => (others => 'Z')), store_busy => 'Z');
+	load_to_writeback_r <= (op => (others => (others => 'Z')), store_busy => 'Z');
 
 	-- both register lookup and writeback stage for now
 	-- TODO: separate
 	reg_access : for l in lane generate
 		alias rl_f : decoded_insn_f is decode_to_register_f;
 		alias rl_r : decoded_insn_r is decode_to_register_r;
-		alias wb_f : decoded_insn_f is alu_to_writeback_load_f;
-		alias wb_r : decoded_insn_r is alu_to_writeback_load_r;
+		alias wb_f : decoded_insn_f is load_to_writeback_f;
+		alias wb_r : decoded_insn_r is load_to_writeback_r;
 
 		signal read_selected_register : reg;
 		signal write_selected_register : reg;
