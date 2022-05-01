@@ -534,10 +534,6 @@ begin
 	alu_to_load_f <= swap_to_alu_store_f;
 	swap_to_alu_store_r <= alu_to_load_r;
 
-	-- load block bypass
-	load_to_writeback_f <= alu_to_load_f;
-	alu_to_load_r <= load_to_writeback_r;
-
 	-- TODO remove HACK HACK HACK
 	load_to_writeback_r <= (op => (others => (others => 'Z')), store_busy => 'Z');
 
@@ -655,6 +651,11 @@ begin
 	end generate;
 
 	mem_access : block
+		alias ld_f : decoded_insn_f is alu_to_load_f;
+		alias ld_r : decoded_insn_r is alu_to_load_r;
+		alias wb_r : decoded_insn_r is load_to_writeback_r;
+		alias wb_f : decoded_insn_f is load_to_writeback_f;
+
 		alias st_f : decoded_insn_f is swap_to_alu_store_f;
 		alias st_r : decoded_insn_r is swap_to_alu_store_r;
 
@@ -666,6 +667,10 @@ begin
 		signal store_wrdata : word;
 		signal store_waitrequest : std_logic;
 	begin
+		-- internal bypass
+		wb_f <= ld_f;
+		ld_r <= wb_r;
+
 		with st_f.store select store_active <=
 			'1' when store,
 			'0' when nop;
