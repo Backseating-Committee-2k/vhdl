@@ -11,6 +11,9 @@ tb_cpu_pipe.vcd
 tb_cpu_seq.ghw
 tb_cpu_seq.log
 tb_cpu_seq.vcd
+tb_data_arbiter.ghw
+tb_data_arbiter.log
+tb_data_arbiter.vcd
 tb_mem_arbiter.ghw
 work-obj08.cf
 work/

@@ -1,5 +1,9 @@
 #! /bin/sh -x
 set -e
+ghdl -a --std=08 cpu/data_arbiter.vhdl cpu/tb_data_arbiter.vhdl
+ghdl -e --std=08 tb_data_arbiter
+ghdl -r --std=08 tb_data_arbiter --wave=tb_data_arbiter.ghw
+
 ghdl -a --std=08 cpu/mem_arbiter.vhdl cpu/tb_mem_arbiter.vhdl
 ghdl -e --std=08 tb_mem_arbiter
 ghdl -r --std=08 tb_mem_arbiter --wave=tb_mem_arbiter.ghw
