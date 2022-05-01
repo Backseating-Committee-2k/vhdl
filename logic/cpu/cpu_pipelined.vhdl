@@ -685,9 +685,11 @@ begin
 			if(reset = '1') then
 				store_addr <= (others => 'U');
 				store_wrreq <= '0';
+				store_wrdata <= (others => 'U');
 			elsif(rising_edge(clk)) then
 				store_addr <= (others => 'U');
 				store_wrreq <= '0';
+				store_wrdata <= (others => 'U');
 				if(store_active = '1' and store_ready = '1') then
 					store_addr <= st_f.op(1).value;
 					store_wrdata <= st_f.op(2).value;
