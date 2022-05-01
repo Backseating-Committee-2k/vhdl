@@ -654,6 +654,11 @@ begin
 
 		signal store_active : std_logic;
 		signal store_ready : std_logic;
+
+		signal store_addr : address;
+		signal store_wrreq : std_logic;
+		signal store_wrdata : word;
+		signal store_waitrequest : std_logic;
 	begin
 		with st_f.store select store_active <=
 			'1' when store,
@@ -667,20 +672,42 @@ begin
 		process(reset, clk) is
 		begin
 			if(reset = '1') then
-				d_addr <= (others => 'U');
-				d_rdreq <= '0';
-				d_wrreq <= '0';
+				store_addr <= (others => 'U');
+				store_wrreq <= '0';
 			elsif(rising_edge(clk)) then
-				d_addr <= (others => 'U');
-				d_rdreq <= '0';
-				d_wrreq <= '0';
+				store_addr <= (others => 'U');
+				store_wrreq <= '0';
 				if(store_active = '1' and store_ready = '1') then
-					d_addr <= st_f.op(1).value;
-					d_wrdata <= st_f.op(2).value;
-					d_wrreq <= '1';
+					store_addr <= st_f.op(1).value;
+					store_wrdata <= st_f.op(2).value;
+					store_wrreq <= '1';
 				end if;
 			end if;
 		end process;
+
+		arbiter : entity work.data_arbiter
+			generic map(
+				address_width => address_width
+			)
+			port map(
+				comb_addr => d_addr,
+				comb_rdreq => d_rdreq,
+				comb_rddata => d_rddata,
+				comb_wrreq => d_wrreq,
+				comb_wrdata => d_wrdata,
+				comb_waitrequest => d_waitrequest,
+
+				load_addr => (others => 'U'),
+				load_rdreq => '0',
+				load_rddata => open,
+				load_waitrequest => open,
+
+				store_addr => store_addr,
+				store_wrreq => store_wrreq,
+				store_wrdata => store_wrdata,
+				store_waitrequest => store_waitrequest
+			);
+
 	end block;
 
 	register_file : registers
