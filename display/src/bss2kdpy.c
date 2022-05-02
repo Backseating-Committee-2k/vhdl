@@ -27,11 +27,12 @@ int main(int argc, char **argv)
 		goto fail_x11;
 
 	if(!x11_mainloop(&g))
-		goto fail_x11;
+		goto fail_vulkan;
 
 	// success starts here
 	rc = 0;
 
+fail_vulkan:
 	vulkan_teardown(&g);
 
 fail_x11:
