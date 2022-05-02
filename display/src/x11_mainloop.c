@@ -4,6 +4,8 @@
 
 #include "x11_mainloop.h"
 
+#include "x11_vulkan.h"
+
 #include "bss2kdpy.h"
 
 #include <X11/Xlib.h>
@@ -43,6 +45,8 @@ static void handle_unmap_event(struct global *g, XUnmapEvent *event)
 	(void)event;
 
 	g->mapped = false;
+
+	x11_vulkan_teardown(g);
 
 	XDestroyWindow(g->x11.display, g->x11.window);
 }

@@ -11,6 +11,8 @@ bool vulkan_setup(struct global *g)
 	/* if you want a custom allocator, here is where you set it up. */
 	g->allocation_callbacks = NULL;
 
+	g->surface = VK_NULL_HANDLE;
+
 	VkApplicationInfo const app_info =
 	{
 		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -31,6 +33,8 @@ bool vulkan_setup(struct global *g)
 
 	char const *const extensions[] =
 	{
+		"VK_KHR_surface",
+		"VK_KHR_xlib_surface"
 	};
 
 	VkInstanceCreateInfo const info =

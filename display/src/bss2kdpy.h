@@ -23,6 +23,7 @@ struct global
 	VkAllocationCallbacks *allocation_callbacks;
 
 	VkInstance instance;
+	VkSurfaceKHR surface;
 
 	bool mapped;
 

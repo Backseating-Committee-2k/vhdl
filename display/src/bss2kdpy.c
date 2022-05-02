@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include "x11_vulkan.h"
 #include "x11_setup.h"
 #include "x11_mainloop.h"
 #include "vulkan_setup.h"
@@ -26,11 +27,17 @@ int main(int argc, char **argv)
 	if(!vulkan_setup(&g))
 		goto fail_x11;
 
-	if(!x11_mainloop(&g))
+	if(!x11_vulkan_setup(&g))
 		goto fail_vulkan;
+
+	if(!x11_mainloop(&g))
+		goto fail_x11_vulkan;
 
 	// success starts here
 	rc = 0;
+
+fail_x11_vulkan:
+	x11_vulkan_teardown(&g);
 
 fail_vulkan:
 	vulkan_teardown(&g);
