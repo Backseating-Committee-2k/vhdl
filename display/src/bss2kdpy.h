@@ -4,6 +4,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include <stdbool.h>
+
 struct global
 {
 	int argc;
