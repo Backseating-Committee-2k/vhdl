@@ -24,6 +24,7 @@ struct global
 
 	VkInstance instance;
 	VkSurfaceKHR surface;
+	VkDevice device;
 
 	bool mapped;
 

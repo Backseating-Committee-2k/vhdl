@@ -6,3 +6,6 @@ struct global;
 
 bool vulkan_setup(struct global *);
 void vulkan_teardown(struct global *);
+
+bool vulkan_device_setup(struct global *);
+void vulkan_device_teardown(struct global *);

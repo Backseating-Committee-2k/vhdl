@@ -30,11 +30,17 @@ int main(int argc, char **argv)
 	if(!x11_vulkan_setup(&g))
 		goto fail_vulkan;
 
-	if(!x11_mainloop(&g))
+	if(!vulkan_device_setup(&g))
 		goto fail_x11_vulkan;
+
+	if(!x11_mainloop(&g))
+		goto fail_vulkan_device;
 
 	// success starts here
 	rc = 0;
+
+fail_vulkan_device:
+	vulkan_device_teardown(&g);
 
 fail_x11_vulkan:
 	x11_vulkan_teardown(&g);
