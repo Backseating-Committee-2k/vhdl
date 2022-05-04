@@ -7,7 +7,6 @@ AM_INIT_AUTOMAKE([1.10 foreign])
 
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile src/Makefile])
 
 # Checks for programs.
 AC_PROG_CC
@@ -41,4 +40,6 @@ AC_TYPE_UINT32_T
 
 # Checks for library functions.
 
+AC_CONFIG_FILES([Makefile
+                 src/Makefile])
 AC_OUTPUT
