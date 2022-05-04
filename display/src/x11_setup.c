@@ -40,19 +40,20 @@ bool x11_setup(struct global *g)
 
 		XSetWindowAttributes attr =
 		{
-			.event_mask = StructureNotifyMask|VisibilityChangeMask
+			.event_mask = StructureNotifyMask|VisibilityChangeMask,
+			.override_redirect = True
 		};
 
 		g->x11.window = XCreateWindow(
 				/* display */	g->x11.display,
 				/* parent */	root,
-				/* x, y */	0, 0,
+				/* x, y */	3460 - tex_width - 20, 20,
 				/* w, h */	tex_width, tex_height,
 				/* border w */	0,
 				/* depth */	CopyFromParent,
 				/* class */	InputOutput,
 				/* visual */	visual,
-				/* valuemask */	CWEventMask,
+				/* valuemask */	CWEventMask|CWOverrideRedirect,
 				/* attrib */	&attr);
 
 		if(g->x11.window == None)
