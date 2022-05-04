@@ -26,6 +26,8 @@ struct global
 	VkSurfaceKHR surface;
 	VkDevice device;
 
+	VkSurfaceFormatKHR surface_format;
+
 	bool mapped;
 
 	bool visible;

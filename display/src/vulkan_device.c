@@ -13,6 +13,7 @@ bool vulkan_device_setup(struct global *g)
 	VkPhysicalDevice selected_physical_device;
 	uint32_t graphics_queue_family_index;
 	uint32_t present_queue_family_index;
+	VkSurfaceFormatKHR surface_format;
 
 	bool have_selected_physical_device = false;
 
@@ -147,6 +148,67 @@ bool vulkan_device_setup(struct global *g)
 		if(!have_present_queue_family_index)
 			continue;
 
+		uint32_t surface_format_count = 0;
+
+		vkGetPhysicalDeviceSurfaceFormatsKHR(
+				physical_device,
+				g->surface,
+				&surface_format_count,
+				NULL);
+
+		if(surface_format_count == 0)
+			continue;
+
+		VkSurfaceFormatKHR surface_formats[surface_format_count];
+
+		vkGetPhysicalDeviceSurfaceFormatsKHR(
+				physical_device,
+				g->surface,
+				&surface_format_count,
+				surface_formats);
+
+		VkSurfaceFormatKHR const surface_format_preferences[] =
+		{
+			{
+				.format = VK_FORMAT_B8G8R8A8_SRGB,
+				.colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
+			},
+			{
+				.format = VK_FORMAT_B8G8R8A8_UNORM,
+				.colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
+			}
+		};
+
+		uint32_t const surface_format_preference_count =
+				sizeof surface_format_preferences /
+					sizeof *surface_format_preferences;
+
+		uint32_t best_surface_format_index =
+				surface_format_preference_count;
+
+		for(uint32_t j = 0; j < surface_format_count; ++j)
+		{
+			for(uint32_t k = 0; k < best_surface_format_index; ++k)
+			{
+				if(surface_format_preferences[k].format !=
+						surface_formats[j].format)
+					continue;
+				if(surface_format_preferences[k].colorSpace !=
+						surface_formats[j].colorSpace)
+					continue;
+				best_surface_format_index = k;
+				surface_format = surface_formats[j];
+				break;
+			}
+		}
+
+		bool const have_surface_format =
+				(best_surface_format_index <
+					surface_format_preference_count);
+
+		if(!have_surface_format)
+			continue;
+
 		// accept device
 		selected_physical_device = physical_device;
 		have_selected_physical_device = true;
@@ -210,6 +272,8 @@ bool vulkan_device_setup(struct global *g)
 		.ppEnabledExtensionNames = enabled_extension_names,
 		.pEnabledFeatures = NULL	/// @todo
 	};
+
+	g->surface_format = surface_format;
 
 	rc = vkCreateDevice(
 			selected_physical_device,
