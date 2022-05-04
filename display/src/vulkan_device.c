@@ -6,6 +6,8 @@
 
 #include "bss2kdpy.h"
 
+#include <string.h>
+
 bool vulkan_device_setup(struct global *g)
 {
 	VkPhysicalDevice selected_physical_device;
@@ -41,6 +43,41 @@ bool vulkan_device_setup(struct global *g)
 		vkGetPhysicalDeviceProperties(
 				physical_device,
 				&pd_prop);
+
+		uint32_t extension_count = 0;
+
+		rc = vkEnumerateDeviceExtensionProperties(
+				physical_device,
+				NULL,
+				&extension_count,
+				NULL);
+		if(rc != VK_SUCCESS)
+			continue;
+
+		VkExtensionProperties extension_properties[extension_count];
+
+		rc = vkEnumerateDeviceExtensionProperties(
+				physical_device,
+				NULL,
+				&extension_count,
+				extension_properties);
+		if(rc != VK_SUCCESS)
+			continue;
+
+		bool have_swapchain_extension = false;
+
+		for(uint32_t j = 0; j < extension_count; ++j)
+		{
+			if(!strcmp(extension_properties[j].extensionName,
+					VK_KHR_SWAPCHAIN_EXTENSION_NAME))
+				have_swapchain_extension = true;
+
+			if(have_swapchain_extension)
+				break;
+		}
+
+		if(!have_swapchain_extension)
+			continue;
 
 		uint32_t queue_family_count = 0;
 
@@ -152,6 +189,7 @@ bool vulkan_device_setup(struct global *g)
 
 	char const *const enabled_extension_names[] =
 	{
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME
 	};
 
 	VkDeviceCreateInfo const info =
