@@ -141,13 +141,16 @@ bool vulkan_device_setup(struct global *g)
 			}
 		}
 
-		if(have_graphics_queue_family_index &&
-				have_present_queue_family_index)
-		{
-			selected_physical_device = physical_device;
-			have_selected_physical_device = true;
-			break;
-		}
+		if(!have_graphics_queue_family_index)
+			continue;
+
+		if(!have_present_queue_family_index)
+			continue;
+
+		// accept device
+		selected_physical_device = physical_device;
+		have_selected_physical_device = true;
+		break;
 	}
 
 	if(!have_selected_physical_device)
