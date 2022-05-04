@@ -33,8 +33,11 @@ AC_CHECK_HEADER(
 	[vulkan/vulkan.h],
 	,
 	[AC_MSG_ERROR([Cannot find Vulkan headers])])
+AC_CHECK_HEADERS([stddef.h string.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
+AC_CHECK_HEADER_STDBOOL
+AC_TYPE_UINT32_T
 
 # Checks for library functions.
 
