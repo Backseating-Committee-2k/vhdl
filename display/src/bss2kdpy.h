@@ -27,6 +27,7 @@ struct global
 	VkDevice device;
 
 	VkSurfaceFormatKHR surface_format;
+	VkPresentModeKHR present_mode;
 
 	bool mapped;
 

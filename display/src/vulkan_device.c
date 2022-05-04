@@ -14,6 +14,7 @@ bool vulkan_device_setup(struct global *g)
 	uint32_t graphics_queue_family_index;
 	uint32_t present_queue_family_index;
 	VkSurfaceFormatKHR surface_format;
+	VkPresentModeKHR present_mode;
 
 	bool have_selected_physical_device = false;
 
@@ -209,6 +210,62 @@ bool vulkan_device_setup(struct global *g)
 		if(!have_surface_format)
 			continue;
 
+		uint32_t present_mode_count = 0;
+
+		vkGetPhysicalDeviceSurfacePresentModesKHR(
+				physical_device,
+				g->surface,
+				&present_mode_count,
+				NULL);
+
+		if(present_mode_count == 0)
+			continue;
+
+		VkPresentModeKHR present_modes[present_mode_count];
+
+		vkGetPhysicalDeviceSurfacePresentModesKHR(
+				physical_device,
+				g->surface,
+				&present_mode_count,
+				present_modes);
+
+		VkPresentModeKHR const present_mode_preferences[] =
+		{
+			VK_PRESENT_MODE_MAILBOX_KHR,
+			VK_PRESENT_MODE_FIFO_RELAXED_KHR,
+			VK_PRESENT_MODE_IMMEDIATE_KHR,
+			VK_PRESENT_MODE_FIFO_KHR,
+			VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR,
+			// VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR
+		};
+
+		uint32_t const present_mode_preference_count =
+				sizeof present_mode_preferences /
+					sizeof *present_mode_preferences;
+
+		uint32_t best_present_mode_index =
+				present_mode_preference_count;
+
+		for(uint32_t j = 0; j < present_mode_count; ++j)
+		{
+			for(uint32_t k = 0; k < best_present_mode_index; ++k)
+			{
+				if(present_mode_preferences[k] !=
+						present_modes[j])
+					continue;
+				best_present_mode_index = k;
+				present_mode = present_modes[j];
+				break;
+			}
+		}
+
+		bool const have_present_mode =
+				(best_present_mode_index <
+					present_mode_preference_count);
+
+		if(!have_present_mode)
+			continue;
+
 		// accept device
 		selected_physical_device = physical_device;
 		have_selected_physical_device = true;
@@ -274,6 +331,7 @@ bool vulkan_device_setup(struct global *g)
 	};
 
 	g->surface_format = surface_format;
+	g->present_mode = present_mode;
 
 	rc = vkCreateDevice(
 			selected_physical_device,
