@@ -5,7 +5,8 @@
 #include "x11_vulkan.h"
 #include "x11_setup.h"
 #include "x11_mainloop.h"
-#include "vulkan_setup.h"
+#include "vulkan_instance.h"
+#include "vulkan_device.h"
 
 #include "bss2kdpy.h"
 
@@ -24,7 +25,7 @@ int main(int argc, char **argv)
 	if(!x11_setup(&g))
 		goto fail;
 
-	if(!vulkan_setup(&g))
+	if(!vulkan_instance_setup(&g))
 		goto fail_x11;
 
 	if(!x11_vulkan_setup(&g))
@@ -46,7 +47,7 @@ fail_x11_vulkan:
 	x11_vulkan_teardown(&g);
 
 fail_vulkan:
-	vulkan_teardown(&g);
+	vulkan_instance_teardown(&g);
 
 fail_x11:
 	x11_teardown(&g);
