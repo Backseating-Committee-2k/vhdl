@@ -31,13 +31,13 @@ architecture rtl of top is
 	signal cpu_halted : std_logic;
 
 	-- instruction bus (Avalon-MM)
-	signal cpu_i_addr : std_logic_vector(31 downto 0);
+	signal cpu_i_addr : std_logic_vector(23 downto 0);
 	signal cpu_i_rddata : std_logic_vector(63 downto 0);
 	signal cpu_i_rdreq : std_logic;
 	signal cpu_i_waitrequest : std_logic;
 
 	-- data bus (Avalon-MM)
-	signal cpu_d_addr : std_logic_vector(31 downto 0);
+	signal cpu_d_addr : std_logic_vector(23 downto 0);
 	signal cpu_d_rddata : std_logic_vector(31 downto 0);
 	signal cpu_d_rdreq : std_logic;
 	signal cpu_d_wrdata : std_logic_vector(31 downto 0);
@@ -59,13 +59,13 @@ architecture rtl of top is
 			halted : out std_logic;
 
 			-- instruction bus (Avalon-MM)
-			i_addr : out std_logic_vector(31 downto 0);
+			i_addr : out std_logic_vector(23 downto 0);
 			i_rddata : in std_logic_vector(63 downto 0);
 			i_rdreq : out std_logic;
 			i_waitrequest : in std_logic;
 
 			-- data bus (Avalon-MM)
-			d_addr : out std_logic_vector(31 downto 0);
+			d_addr : out std_logic_vector(23 downto 0);
 			d_rddata : in std_logic_vector(31 downto 0);
 			d_rdreq : out std_logic;
 			d_wrdata : out std_logic_vector(31 downto 0);
@@ -170,7 +170,7 @@ begin
 
 	c : cpu
 		generic map(
-			address_width => 32
+			address_width => 24
 		)
 		port map(
 			reset => cpu_reset,

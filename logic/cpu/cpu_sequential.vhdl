@@ -5,7 +5,7 @@ use ieee.std_logic_misc.or_reduce;
 
 entity cpu_sequential is
 	generic(
-		address_width : integer range 1 to 32 := 32
+		address_width : integer range 1 to 32 := 24
 	);
 	port(
 		-- async reset
@@ -54,11 +54,24 @@ architecture rtl of cpu_sequential is
 	subtype word is std_logic_vector(31 downto 0);
 	subtype reg is std_logic_vector(7 downto 0);
 
+	function to_word(a : address) return word is
+		variable ret : word;
+	begin
+		ret := (others => '0');
+		ret(address'range) := a;
+		return ret;
+	end function;
+
+	function to_address(w : word) return address is
+	begin
+		return w(address'range);
+	end function;
+
 	constant ip : reg := x"fe";
-	constant reset_ip : address := x"00100000";
+	constant reset_ip : address := x"100000";
 
 	constant sp : reg := x"ff";
-	constant reset_sp : address := x"000000fc";
+	constant reset_sp : address := x"0000fc";
 
 	type state is (ifetch1, ifetch15, ifetch2, decode, decode2, execute, writeback, advance1, advance15, advance2, load, load2, store, store2, halt);
 
@@ -251,7 +264,7 @@ begin
 					done;
 				when x"0001" =>
 					-- LD abs
-					m_addr <= c;
+					m_addr <= to_address(c);
 					m_reg <= reg1;
 					s <= load;
 				when x"0002" =>
@@ -260,17 +273,17 @@ begin
 					done;
 				when x"0003" =>
 					-- ST abs
-					m_addr <= c;
+					m_addr <= to_address(c);
 					m_value <= r_q_a;
 					s <= store;
 				when x"0004" =>
 					-- LD [r]
-					m_addr <= r_q_a;
+					m_addr <= to_address(r_q_a);
 					m_reg <= reg1;
 					s <= load;
 				when x"0005" =>
 					-- ST [r]
-					m_addr <= r_q_a;
+					m_addr <= to_address(r_q_a);
 					m_value <= r_q_b;
 					s <= store;
 				when x"0006" =>
@@ -390,14 +403,14 @@ begin
 					-- PUSH
 					tmp32 := std_logic_vector(unsigned(r_q_a) - 4);
 					writeback1(sp, tmp32);
-					m_addr <= r_q_a;
+					m_addr <= to_address(r_q_a);
 					m_value <= r_q_b;
 					s <= store;
 				when x"0016" =>
 					-- POP
 					tmp32 := std_logic_vector(unsigned(r_q_a) + 4);
 					writeback2(sp, tmp32);
-					m_addr <= tmp32;
+					m_addr <= to_address(tmp32);
 					m_reg <= reg1;
 					s <= load;
 				when x"0017" =>
@@ -406,14 +419,14 @@ begin
 					writeback1(sp, tmp32);
 					tmp32 := std_logic_vector(unsigned(r_q_b) + 8);
 					writeback2(ip, c);
-					m_addr <= r_q_a;
+					m_addr <= to_address(r_q_a);
 					m_value <= tmp32;
 					s <= store;
 				when x"0018" =>
 					-- RET
 					tmp32 := std_logic_vector(unsigned(r_q_a) + 4);
 					writeback2(sp, tmp32);
-					m_addr <= tmp32;
+					m_addr <= to_address(tmp32);
 					m_reg <= ip;
 					s <= load;
 				when others =>
@@ -426,10 +439,10 @@ begin
 			s <= writeback;
 			wb_active1 <= '1';
 			wb_reg1 <= ip;
-			wb_value1 <= reset_ip;
+			wb_value1 <= to_word(reset_ip);
 			wb_active2 <= '1';
 			wb_reg2 <= sp;
-			wb_value2 <= reset_sp;
+			wb_value2 <= to_word(reset_sp);
 			i_rdreq <= '0';
 			d_rdreq <= '0';
 			d_wrreq <= '0';
@@ -450,7 +463,7 @@ begin
 				when ifetch15 =>
 					s <= ifetch2;
 				when ifetch2 =>
-					i_addr <= r_q_a;
+					i_addr <= to_address(r_q_a);
 					i_rdreq <= '1';
 					if(i_waitrequest = '0') then
 						s <= decode;

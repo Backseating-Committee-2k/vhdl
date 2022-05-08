@@ -12,7 +12,7 @@ end entity;
 architecture sim of tb_cpu is
 	component cpu is
 		generic(
-			address_width : integer range 1 to 32 := 32
+			address_width : integer range 1 to 32 := 24
 		);
 		port(
 			-- async reset
@@ -43,7 +43,7 @@ architecture sim of tb_cpu is
 	signal reset : std_logic;
 	signal clk : std_logic := '0';
 
-	constant address_width : integer := 32;
+	constant address_width : integer := 24;
 	constant word_width : integer := 32;
 
 	subtype address is std_logic_vector(address_width - 1 downto 0);
@@ -127,6 +127,9 @@ begin
 
 	-- dut
 	dut : cpu
+		generic map(
+			address_width => address_width
+		)
 		port map(
 			reset => reset,
 			clk => clk,

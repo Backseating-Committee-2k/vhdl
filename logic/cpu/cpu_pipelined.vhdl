@@ -4,7 +4,7 @@ use ieee.numeric_std.ALL;
 
 entity cpu_pipelined is
 	generic(
-		address_width : integer range 1 to 32 := 32
+		address_width : integer range 1 to 32 := 24
 	);
 	port(
 		-- async reset
@@ -53,11 +53,24 @@ architecture rtl of cpu_pipelined is
 	subtype word is std_logic_vector(31 downto 0);
 	subtype reg is std_logic_vector(7 downto 0);
 
+	function to_word(a : address) return word is
+		variable ret : word;
+	begin
+		ret := (others => '0');
+		ret(address'range) := a;
+		return ret;
+	end function;
+
+	function to_address(w : word) return address is
+	begin
+		return w(address'range);
+	end function;
+
 	constant ip : reg := x"fe";
-	constant reset_ip : address := x"00100000";
+	constant reset_ip : address := x"100000";
 
 	constant sp : reg := x"ff";
-	constant reset_sp : address := x"000000fc";
+	constant reset_sp : address := x"0000fc";
 
 	subtype reg_port is integer range 1 to 2;
 
@@ -437,7 +450,7 @@ begin
 				d_rdreq <= '0';
 				d_wrreq <= '0';
 				if(store_active = '1' and store_ready = '1') then
-					d_addr <= i.op(1).value;
+					d_addr <= to_address(i.op(1).value);
 					d_wrdata <= i.op(2).value;
 					d_wrreq <= '1';
 				end if;
