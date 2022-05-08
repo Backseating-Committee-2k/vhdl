@@ -36,8 +36,8 @@ architecture rtl of cpu_sequential is
 	component registers is
 		port
 		(
-			address_a : in std_logic_vector (7 downto 0);
-			address_b : in std_logic_vector (7 downto 0);
+			address_a : in reg;
+			address_b : in reg;
 			clock : in std_logic;
 			data_a : in word;
 			data_b : in word;
@@ -47,8 +47,6 @@ architecture rtl of cpu_sequential is
 			q_b : out word
 		);
 	end component;
-
-	subtype reg is std_logic_vector(7 downto 0);
 
 	constant ip : reg := x"fe";
 	constant reset_ip : address := x"100000";
@@ -114,10 +112,10 @@ begin
 			alias i : instruction is i_rddata;
 
 			alias opcode : std_logic_vector(15 downto 0) is i(63 downto 48);
-			alias reg1 : std_logic_vector(7 downto 0) is i(47 downto 40);
-			alias reg2 : std_logic_vector(7 downto 0) is i(39 downto 32);
-			alias reg3 : std_logic_vector(7 downto 0) is i(31 downto 24);
-			alias reg4 : std_logic_vector(7 downto 0) is i(23 downto 16);
+			alias reg1 : reg is i(47 downto 40);
+			alias reg2 : reg is i(39 downto 32);
+			alias reg3 : reg is i(31 downto 24);
+			alias reg4 : reg is i(23 downto 16);
 			alias c : word is i(31 downto 0);
 		begin
 			-- map register slots in opcode to register file accesses
@@ -221,10 +219,10 @@ begin
 			alias i : instruction is i_buffer;
 
 			alias opcode : std_logic_vector(15 downto 0) is i(63 downto 48);
-			alias reg1 : std_logic_vector(7 downto 0) is i(47 downto 40);
-			alias reg2 : std_logic_vector(7 downto 0) is i(39 downto 32);
-			alias reg3 : std_logic_vector(7 downto 0) is i(31 downto 24);
-			alias reg4 : std_logic_vector(7 downto 0) is i(23 downto 16);
+			alias reg1 : reg is i(47 downto 40);
+			alias reg2 : reg is i(39 downto 32);
+			alias reg3 : reg is i(31 downto 24);
+			alias reg4 : reg is i(23 downto 16);
 			alias c : word is i(31 downto 0);
 
 			-- 32 bit wide temporary

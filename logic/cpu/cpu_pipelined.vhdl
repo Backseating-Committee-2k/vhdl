@@ -35,8 +35,8 @@ architecture rtl of cpu_pipelined is
 	component registers is
 		port
 		(
-			address_a : in std_logic_vector (7 downto 0);
-			address_b : in std_logic_vector (7 downto 0);
+			address_a : in reg;
+			address_b : in reg;
 			clock : in std_logic;
 			data_a : in word;
 			data_b : in word;
@@ -46,8 +46,6 @@ architecture rtl of cpu_pipelined is
 			q_b : out word
 		);
 	end component;
-
-	subtype reg is std_logic_vector(7 downto 0);
 
 	constant ip : reg := x"fe";
 	constant reset_ip : address := x"100000";

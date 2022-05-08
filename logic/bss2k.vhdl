@@ -10,6 +10,7 @@ package bss2k is
 	subtype address is std_logic_vector(address_width - 1 downto 0);
 	subtype instruction is std_logic_vector(instruction_size - 1 downto 0);
 	subtype word is std_logic_vector(word_size - 1 downto 0);
+	subtype reg is std_logic_vector(7 downto 0);
 
 	function to_word(a : address) return word;
 	function to_address(w : word) return address;
