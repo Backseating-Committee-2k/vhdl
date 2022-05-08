@@ -160,7 +160,6 @@ architecture rtl of top is
 	signal tl_cfg_sts : std_logic_vector(52 downto 0);
 	signal tl_cfg_sts_wr : std_logic;
 begin
-	cpu_reset <= '1';
 	cpu_clk <= '0';
 
 	cpu_i_rddata <= (others => '0');
@@ -189,21 +188,40 @@ begin
 			d_waitrequest => cpu_d_waitrequest
 		);
 
+	control_inst : entity work.control
+		port map(
+			reset => not app_rstn,
+			clk => app_clk,
+
+			rx_ready => pcie_rx_ready,
+			rx_valid => pcie_rx_valid,
+			rx_data => pcie_rx_data,
+			rx_sop => pcie_rx_sop,
+			rx_eop => pcie_rx_eop,
+			rx_err => pcie_rx_err,
+
+			rx_bardec => pcie_rx_bardec,
+
+			tx_ready => pcie_tx_ready,
+			tx_valid => pcie_tx_valid,
+			tx_data => pcie_tx_data,
+			tx_sop => pcie_tx_sop,
+			tx_eop => pcie_tx_eop,
+			tx_err => pcie_tx_err,
+
+			completer_id => cfg_busdev & "000",
+
+			cpu_reset => cpu_reset,
+			cpu_halted => cpu_halted
+		);
+
 	-- clocks
 	pld_clk <= core_clk_out;		-- needs to be connected
 	app_clk <= pld_clk;			-- app is synchronous to pld_clk
 	cal_blk_clk <= core_clk_out;
 
 	-- PCIe internal rx interface (Avalon-ST)
-	pcie_rx_ready <= '0';
 	pcie_rx_mask <= '0';
-
-	-- PCIe internal tx interface (Avalon-ST)
-	pcie_tx_valid <= '0';
-	pcie_tx_data <= (others => '0');
-	pcie_tx_sop <= '0';
-	pcie_tx_eop <= '0';
-	pcie_tx_err <= '0';
 
 	-- completion interface
 	cpl_pending <= '0';
