@@ -1,6 +1,8 @@
 library ieee;
 use ieee.std_logic_1164.ALL;
 
+use work.bss2k.ALL;
+
 entity top is
 	port(
 		-- PCIe #PERST
@@ -31,13 +33,13 @@ architecture rtl of top is
 	signal cpu_halted : std_logic;
 
 	-- instruction bus (Avalon-MM)
-	signal cpu_i_addr : std_logic_vector(23 downto 0);
+	signal cpu_i_addr : address;
 	signal cpu_i_rddata : std_logic_vector(63 downto 0);
 	signal cpu_i_rdreq : std_logic;
 	signal cpu_i_waitrequest : std_logic;
 
 	-- data bus (Avalon-MM)
-	signal cpu_d_addr : std_logic_vector(23 downto 0);
+	signal cpu_d_addr : address;
 	signal cpu_d_rddata : std_logic_vector(31 downto 0);
 	signal cpu_d_rdreq : std_logic;
 	signal cpu_d_wrdata : std_logic_vector(31 downto 0);
@@ -45,9 +47,6 @@ architecture rtl of top is
 	signal cpu_d_waitrequest : std_logic;
 
 	component cpu is
-		generic(
-			address_width : integer
-		);
 		port(
 			-- async reset
 			reset : in std_logic;
@@ -59,13 +58,13 @@ architecture rtl of top is
 			halted : out std_logic;
 
 			-- instruction bus (Avalon-MM)
-			i_addr : out std_logic_vector(23 downto 0);
+			i_addr : out address;
 			i_rddata : in std_logic_vector(63 downto 0);
 			i_rdreq : out std_logic;
 			i_waitrequest : in std_logic;
 
 			-- data bus (Avalon-MM)
-			d_addr : out std_logic_vector(23 downto 0);
+			d_addr : out address;
 			d_rddata : in std_logic_vector(31 downto 0);
 			d_rdreq : out std_logic;
 			d_wrdata : out std_logic_vector(31 downto 0);
@@ -169,9 +168,6 @@ begin
 	cpu_d_waitrequest <= '1';
 
 	c : cpu
-		generic map(
-			address_width => 24
-		)
 		port map(
 			reset => cpu_reset,
 			clk => cpu_clk,

@@ -4,6 +4,8 @@ use ieee.std_logic_1164.ALL;
 library std;
 use std.env.finish;
 
+use work.bss2k.ALL;
+
 entity tb_mem_arbiter is
 begin
 end entity;
@@ -16,7 +18,7 @@ architecture sim of tb_mem_arbiter is
 	signal clk : std_logic := '0';
 
 	-- combined (Avalon-MM)
-	signal comb_addr : std_logic_vector(23 downto 0);
+	signal comb_addr : address;
 	signal comb_rdreq : std_logic;
 	signal comb_rddata : std_logic_vector(31 downto 0);
 	signal comb_wrreq : std_logic;
@@ -24,13 +26,13 @@ architecture sim of tb_mem_arbiter is
 	signal comb_waitrequest : std_logic;
 
 	-- insn bus (Avalon-MM)
-	signal i_addr : std_logic_vector(23 downto 0);
+	signal i_addr : address;
 	signal i_rdreq : std_logic;
 	signal i_rddata : std_logic_vector(63 downto 0);
 	signal i_waitrequest : std_logic;
 
 	-- data bus (Avalon-MM)
-	signal d_addr : std_logic_vector(23 downto 0);
+	signal d_addr : address;
 	signal d_rdreq : std_logic;
 	signal d_rddata : std_logic_vector(31 downto 0);
 	signal d_wrreq : std_logic;

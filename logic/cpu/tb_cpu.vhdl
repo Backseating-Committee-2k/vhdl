@@ -2,6 +2,8 @@ library ieee;
 use ieee.std_logic_1164.ALL;
 use ieee.numeric_std.ALL;
 
+use work.bss2k.ALL;
+
 library std;
 use std.env.finish;
 
@@ -11,9 +13,6 @@ end entity;
 
 architecture sim of tb_cpu is
 	component cpu is
-		generic(
-			address_width : integer range 1 to 32 := 24
-		);
 		port(
 			-- async reset
 			reset : in std_logic;
@@ -22,13 +21,13 @@ architecture sim of tb_cpu is
 			clk : in std_logic;
 
 			-- instruction bus (Avalon-MM)
-			i_addr : out std_logic_vector(address_width - 1 downto 0);
+			i_addr : out address;
 			i_rddata : in std_logic_vector(63 downto 0);
 			i_rdreq : out std_logic;
 			i_waitrequest : in std_logic;
 
 			-- data bus (Avalon-MM)
-			d_addr : out std_logic_vector(address_width - 1 downto 0);
+			d_addr : out address;
 			d_rddata : in std_logic_vector(31 downto 0);
 			d_rdreq : out std_logic;
 			d_wrdata : out std_logic_vector(31 downto 0);
@@ -43,13 +42,10 @@ architecture sim of tb_cpu is
 	signal reset : std_logic;
 	signal clk : std_logic := '0';
 
-	constant address_width : integer := 24;
 	constant word_width : integer := 32;
 
-	subtype address is std_logic_vector(address_width - 1 downto 0);
 	subtype insn is std_logic_vector(63 downto 0);
 	subtype word is std_logic_vector(word_width - 1 downto 0);
-
 	signal i_addr : address;
 	signal i_rddata : insn;
 	signal i_rdreq : std_logic;
@@ -127,9 +123,6 @@ begin
 
 	-- dut
 	dut : cpu
-		generic map(
-			address_width => address_width
-		)
 		port map(
 			reset => reset,
 			clk => clk,

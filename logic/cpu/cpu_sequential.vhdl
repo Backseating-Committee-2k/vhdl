@@ -3,10 +3,9 @@ use ieee.std_logic_1164.ALL;
 use ieee.numeric_std.ALL;
 use ieee.std_logic_misc.or_reduce;
 
+use work.bss2k.ALL;
+
 entity cpu_sequential is
-	generic(
-		address_width : integer range 1 to 32 := 24
-	);
 	port(
 		-- async reset
 		reset : in std_logic;
@@ -15,13 +14,13 @@ entity cpu_sequential is
 		clk : in std_logic;
 
 		-- instruction bus (Avalon-MM)
-		i_addr : out std_logic_vector(address_width - 1 downto 0);
+		i_addr : out address;
 		i_rddata : in std_logic_vector(63 downto 0);
 		i_rdreq : out std_logic;
 		i_waitrequest : in std_logic;
 
 		-- data bus (Avalon-MM)
-		d_addr : out std_logic_vector(address_width - 1 downto 0);
+		d_addr : out address;
 		d_rddata : in std_logic_vector(31 downto 0);
 		d_rdreq : out std_logic;
 		d_wrdata : out std_logic_vector(31 downto 0);
@@ -49,7 +48,6 @@ architecture rtl of cpu_sequential is
 		);
 	end component;
 
-	subtype address is std_logic_vector(address_width - 1 downto 0);
 	subtype insn is std_logic_vector(63 downto 0);
 	subtype word is std_logic_vector(31 downto 0);
 	subtype reg is std_logic_vector(7 downto 0);

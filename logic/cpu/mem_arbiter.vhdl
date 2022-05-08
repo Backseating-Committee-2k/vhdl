@@ -1,6 +1,8 @@
 library ieee;
 use ieee.std_logic_1164.ALL;
 
+use work.bss2k.ALL;
+
 entity mem_arbiter is
 	port(
 		-- async
@@ -10,7 +12,7 @@ entity mem_arbiter is
 		clk : in std_logic;
 
 		-- combined (Avalon-MM)
-		comb_addr : out std_logic_vector(23 downto 0);
+		comb_addr : out address;
 		comb_rdreq : out std_logic;
 		comb_rddata : in std_logic_vector(31 downto 0);
 		comb_wrreq : out std_logic;
@@ -18,13 +20,13 @@ entity mem_arbiter is
 		comb_waitrequest : in std_logic;
 
 		-- insn bus (Avalon-MM)
-		i_addr : in std_logic_vector(23 downto 0);
+		i_addr : in address;
 		i_rdreq : in std_logic;
 		i_rddata : out std_logic_vector(63 downto 0);
 		i_waitrequest : out std_logic;
 
 		-- data bus (Avalon-MM)
-		d_addr : in std_logic_vector(23 downto 0);
+		d_addr : in address;
 		d_rdreq : in std_logic;
 		d_rddata : out std_logic_vector(31 downto 0);
 		d_wrreq : in std_logic;
