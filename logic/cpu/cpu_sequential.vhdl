@@ -49,10 +49,7 @@ architecture rtl of cpu_sequential is
 	end component;
 
 	constant ip : reg := x"fe";
-	constant reset_ip : address := x"100000";
-
 	constant sp : reg := x"ff";
-	constant reset_sp : address := x"0000fc";
 
 	type state is (ifetch1, ifetch15, ifetch2, decode, decode2, execute, writeback, advance1, advance15, advance2, load, load2, store, store2, halt);
 
@@ -420,10 +417,10 @@ begin
 			s <= writeback;
 			wb_active1 <= '1';
 			wb_reg1 <= ip;
-			wb_value1 <= to_word(reset_ip);
+			wb_value1 <= to_word(entry_point);
 			wb_active2 <= '1';
 			wb_reg2 <= sp;
-			wb_value2 <= to_word(reset_sp);
+			wb_value2 <= to_word(stack_start);
 			i_rdreq <= '0';
 			d_rdreq <= '0';
 			d_wrreq <= '0';

@@ -56,7 +56,11 @@ architecture sim of tb_cpu is
 
 	signal halted : std_logic;
 
-	type insn_mem is array(16#100000# to 16#1000ff#) of instruction;
+	constant rom_size : integer := 256;
+	constant rom_start : integer := to_integer(unsigned(entry_point));
+	constant rom_end : integer := rom_start + rom_size - 1;
+
+	type insn_mem is array(rom_start to rom_end) of instruction;
 	signal i : insn_mem;
 
 	type data_mem is array(16#0000# to 16#ffff#) of word;

@@ -48,10 +48,7 @@ architecture rtl of cpu_pipelined is
 	end component;
 
 	constant ip : reg := x"fe";
-	constant reset_ip : address := x"100000";
-
 	constant sp : reg := x"ff";
-	constant reset_sp : address := x"0000fc";
 
 	subtype reg_port is integer range 1 to 2;
 
@@ -160,7 +157,7 @@ begin
 		begin
 			if(reset = '1') then
 				s <= start;
-				current_ip <= reset_ip;
+				current_ip <= entry_point;
 				i_addr <= (others => 'U');
 				i_rdreq <= '0';
 				decode_insn <= (others => 'U');
