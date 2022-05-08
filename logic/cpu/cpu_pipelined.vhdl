@@ -14,7 +14,7 @@ entity cpu_pipelined is
 
 		-- instruction bus (Avalon-MM)
 		i_addr : out address;
-		i_rddata : in std_logic_vector(63 downto 0);
+		i_rddata : in instruction;
 		i_rdreq : out std_logic;
 		i_waitrequest : in std_logic;
 
@@ -47,7 +47,6 @@ architecture rtl of cpu_pipelined is
 		);
 	end component;
 
-	subtype insn is std_logic_vector(63 downto 0);
 	subtype word is std_logic_vector(31 downto 0);
 	subtype reg is std_logic_vector(7 downto 0);
 
@@ -84,7 +83,7 @@ architecture rtl of cpu_pipelined is
 	signal r : reg_ports;
 
 	-- handover between fetch and decode
-	signal decode_insn : insn;		-- current instruction
+	signal decode_insn : instruction;	-- current instruction
 	signal decode_strobe : std_logic;	-- current instruction is new
 	signal decode_restart : std_logic;	-- restart after broken pipeline
 	signal decode_waitrequest : std_logic;	-- decoder is busy
@@ -154,7 +153,7 @@ begin
 	fetch : block is
 		signal current_ip : address;
 
-		signal stash : insn;
+		signal stash : instruction;
 
 		type state is (start, normal, overflow, halt);
 
@@ -234,13 +233,13 @@ begin
 	end block;
 
 	decode : block is
-		alias instruction : insn is decode_insn;
-		alias o : std_logic_vector(15 downto 0) is instruction(63 downto 48);
-		alias r1 : reg is instruction(47 downto 40);
-		alias r2 : reg is instruction(39 downto 32);
-		alias r3 : reg is instruction(31 downto 24);
-		alias r4 : reg is instruction(23 downto 16);
-		alias c : word is instruction(31 downto 0);
+		alias insn : instruction is decode_insn;
+		alias o : std_logic_vector(15 downto 0) is insn(63 downto 48);
+		alias r1 : reg is insn(47 downto 40);
+		alias r2 : reg is insn(39 downto 32);
+		alias r3 : reg is insn(31 downto 24);
+		alias r4 : reg is insn(23 downto 16);
+		alias c : word is insn(31 downto 0);
 
 		type slot is (unused, reg1, reg2, reg3, reg4, const);
 		subtype writeback_slot is slot range unused to reg4;

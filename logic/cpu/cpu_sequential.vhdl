@@ -15,7 +15,7 @@ entity cpu_sequential is
 
 		-- instruction bus (Avalon-MM)
 		i_addr : out address;
-		i_rddata : in std_logic_vector(63 downto 0);
+		i_rddata : in instruction;
 		i_rdreq : out std_logic;
 		i_waitrequest : in std_logic;
 
@@ -48,7 +48,6 @@ architecture rtl of cpu_sequential is
 		);
 	end component;
 
-	subtype insn is std_logic_vector(63 downto 0);
 	subtype word is std_logic_vector(31 downto 0);
 	subtype reg is std_logic_vector(7 downto 0);
 
@@ -86,7 +85,7 @@ architecture rtl of cpu_sequential is
 	end record;
 	signal f : flags;
 
-	signal i_buffer : insn;
+	signal i_buffer : instruction;
 
 	-- address for memory operation
 	signal m_addr : address;
@@ -126,7 +125,7 @@ begin
 
 		procedure decode_insn is
 			-- instruction is on i_rddata in this cycle
-			alias i : insn is i_rddata;
+			alias i : instruction is i_rddata;
 
 			alias opcode : std_logic_vector(15 downto 0) is i(63 downto 48);
 			alias reg1 : std_logic_vector(7 downto 0) is i(47 downto 40);
@@ -233,7 +232,7 @@ begin
 
 		procedure execute_insn is
 			-- instruction is on i_buffer in this cycle
-			alias i : insn is i_buffer;
+			alias i : instruction is i_buffer;
 
 			alias opcode : std_logic_vector(15 downto 0) is i(63 downto 48);
 			alias reg1 : std_logic_vector(7 downto 0) is i(47 downto 40);

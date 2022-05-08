@@ -34,7 +34,7 @@ architecture rtl of top is
 
 	-- instruction bus (Avalon-MM)
 	signal cpu_i_addr : address;
-	signal cpu_i_rddata : std_logic_vector(63 downto 0);
+	signal cpu_i_rddata : instruction;
 	signal cpu_i_rdreq : std_logic;
 	signal cpu_i_waitrequest : std_logic;
 
@@ -59,7 +59,7 @@ architecture rtl of top is
 
 			-- instruction bus (Avalon-MM)
 			i_addr : out address;
-			i_rddata : in std_logic_vector(63 downto 0);
+			i_rddata : in instruction;
 			i_rdreq : out std_logic;
 			i_waitrequest : in std_logic;
 

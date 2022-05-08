@@ -28,7 +28,7 @@ architecture sim of tb_mem_arbiter is
 	-- insn bus (Avalon-MM)
 	signal i_addr : address;
 	signal i_rdreq : std_logic;
-	signal i_rddata : std_logic_vector(63 downto 0);
+	signal i_rddata : instruction;
 	signal i_waitrequest : std_logic;
 
 	-- data bus (Avalon-MM)

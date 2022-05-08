@@ -22,7 +22,7 @@ architecture sim of tb_cpu is
 
 			-- instruction bus (Avalon-MM)
 			i_addr : out address;
-			i_rddata : in std_logic_vector(63 downto 0);
+			i_rddata : in instruction;
 			i_rdreq : out std_logic;
 			i_waitrequest : in std_logic;
 
@@ -44,10 +44,9 @@ architecture sim of tb_cpu is
 
 	constant word_width : integer := 32;
 
-	subtype insn is std_logic_vector(63 downto 0);
 	subtype word is std_logic_vector(word_width - 1 downto 0);
 	signal i_addr : address;
-	signal i_rddata : insn;
+	signal i_rddata : instruction;
 	signal i_rdreq : std_logic;
 	signal i_waitrequest : std_logic;
 
@@ -60,7 +59,7 @@ architecture sim of tb_cpu is
 
 	signal halted : std_logic;
 
-	type insn_mem is array(16#100000# to 16#1000ff#) of insn;
+	type insn_mem is array(16#100000# to 16#1000ff#) of instruction;
 	signal i : insn_mem;
 
 	type data_mem is array(16#0000# to 16#ffff#) of word;
@@ -94,7 +93,7 @@ begin
 		file rom : insn_file_type;
 		variable fstatus : file_open_status;
 		variable t : character;
-		variable a : insn;
+		variable a : instruction;
 		variable x : integer;
 	begin
 		file_open(fstatus, rom, "../roms/hello_world.backseat", read_mode);

@@ -22,7 +22,7 @@ entity mem_arbiter is
 		-- insn bus (Avalon-MM)
 		i_addr : in address;
 		i_rdreq : in std_logic;
-		i_rddata : out std_logic_vector(63 downto 0);
+		i_rddata : out instruction;
 		i_waitrequest : out std_logic;
 
 		-- data bus (Avalon-MM)
