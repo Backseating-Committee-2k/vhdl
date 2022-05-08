@@ -1,0 +1,49 @@
+# VHDL model
+
+This should implement the same ISA as the emulator, but aims to be
+synthesizable inside an FPGA or ASIC.
+
+## How to Build
+
+### Quick Start
+
+For simulation only, you need the GHDL compiler, and possibly GTKWave to
+display the simulated waveforms.
+
+If you want to synthesize a bitstream or simulate for the actual hardware,
+you need the vendor toolchain. For the Phi board (which is rather seldom,
+but the first board implemented here, this would be Intel Quartus 20.1.
+
+There are four scripts inside the `logic/` directory:
+
+sim.sh
+: Compile and simulate using GHDL
+
+gen.sh
+: Generate the vendor IP blocks for synthesis and simulation
+
+msim.sh
+: Simulate using ModelSim
+
+syn.sh
+: Synthesize bitstreams
+
+The `display/` directory contains the Vulkan frontend to display the output
+generated inside the FPGA. Configure using `./configure` and build with
+`make`, as per usual; you need X11 and Vulkan headers and libraries.
+
+## Core
+
+The main CPU core (`cpu`) has separate 64 bit instruction and 32 bit data
+buses that are fully synchronous and assumes that any memory interface or
+peripherals are external.
+
+## Testbench
+
+Testbenches can be run automatically using the `sim.sh` script, and require
+GHDL to run, and GtkWave to inspect the waveform data.
+
+### CPU testbench
+
+This testbench loads the "Hello world" example binary, and executes it in
+the CPU, then terminates when the CPU stops.
