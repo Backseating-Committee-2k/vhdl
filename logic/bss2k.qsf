@@ -47,6 +47,7 @@ set_global_assignment -name VHDL_FILE cpu/cpu_pipelined.vhdl
 set_global_assignment -name QIP_FILE cpu/altera_registers.qip
 set_global_assignment -name VHDL_FILE cpu/cpu_sequential.vhdl
 set_global_assignment -name VHDL_FILE board_phi/pcie_rs_hip.vhd
+set_global_assignment -name VHDL_FILE board_phi/altpcierd_tl_cfg_sample.vhd
 set_global_assignment -name QIP_FILE board_phi/pcie.qip
 set_global_assignment -name QIP_FILE board_phi/pcie_reconfig.qip
 set_global_assignment -name QIP_FILE board_phi/pll.qip

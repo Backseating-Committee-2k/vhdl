@@ -100,6 +100,9 @@ architecture rtl of top is
 	signal pcie_tx_eop : std_logic;
 	signal pcie_tx_err : std_logic;
 
+	-- configuration/status interface
+	signal cfg_busdev : std_logic_vector(12 downto 0);
+
 	-- completion interface
 	signal cpl_pending : std_logic;
 
@@ -438,6 +441,32 @@ begin
 			reconfig_fromgxb => reconfig_fromgxb,
 			reconfig_togxb => reconfig_togxb
 		);
+
+	tl_cfg_sampling_inst : entity work.altpcierd_tl_cfg_sample
+		port map(
+			pld_clk => pld_clk,
+			rstn => app_rstn,
+
+			tl_cfg_add => tl_cfg_add,
+			tl_cfg_ctl => tl_cfg_ctl,
+			tl_cfg_ctl_wr => tl_cfg_ctl_wr,
+			tl_cfg_sts => tl_cfg_sts,
+			tl_cfg_sts_wr => tl_cfg_sts_wr,
+
+			cfg_busdev => cfg_busdev,
+			cfg_busdev => open,
+			cfg_devcsr => open,
+			cfg_linkcsr => open,
+			cfg_prmcsr => open,
+			cfg_io_bas => open,
+			cfg_io_lim => open,
+			cfg_np_bas => open,
+			cfg_np_lim => open,
+			cfg_pr_bas => open,
+			cfg_pr_lim => open,
+			cfg_tcvcmap => open,
+			cfg_msicsr => open
+	);
 end architecture;
 
 library work;

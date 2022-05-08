@@ -1,3 +1,4 @@
+board_phi/altpcierd_tl_cfg_sample.vhd
 board_phi/ip_compiler_for_pci_express-library/
 board_phi/pcie.ppf
 board_phi/pcie.ppx
