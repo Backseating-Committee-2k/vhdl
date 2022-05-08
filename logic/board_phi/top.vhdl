@@ -27,6 +27,9 @@ architecture rtl of top is
 	-- clock
 	signal cpu_clk : std_logic;
 
+	-- status
+	signal cpu_halted : std_logic;
+
 	-- instruction bus (Avalon-MM)
 	signal cpu_i_addr : std_logic_vector(31 downto 0);
 	signal cpu_i_rddata : std_logic_vector(63 downto 0);
@@ -51,6 +54,9 @@ architecture rtl of top is
 
 			-- clock
 			clk : in std_logic;
+
+			-- status
+			halted : out std_logic;
 
 			-- instruction bus (Avalon-MM)
 			i_addr : out std_logic_vector(31 downto 0);
@@ -167,6 +173,7 @@ begin
 		port map(
 			reset => cpu_reset,
 			clk => cpu_clk,
+			halted => cpu_halted,
 			i_addr => cpu_i_addr,
 			i_rddata => cpu_i_rddata,
 			i_rdreq => cpu_i_rdreq,
