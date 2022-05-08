@@ -1,0 +1,7 @@
+.*.cmd
+Module.symvers
+bss2k.ko
+bss2k.mod
+bss2k.mod.c
+*.o
+modules.order
