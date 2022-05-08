@@ -14,9 +14,9 @@ entity mem_arbiter is
 		-- combined (Avalon-MM)
 		comb_addr : out address;
 		comb_rdreq : out std_logic;
-		comb_rddata : in std_logic_vector(31 downto 0);
+		comb_rddata : in word;
 		comb_wrreq : out std_logic;
-		comb_wrdata : out std_logic_vector(31 downto 0);
+		comb_wrdata : out word;
 		comb_waitrequest : in std_logic;
 
 		-- insn bus (Avalon-MM)
@@ -28,9 +28,9 @@ entity mem_arbiter is
 		-- data bus (Avalon-MM)
 		d_addr : in address;
 		d_rdreq : in std_logic;
-		d_rddata : out std_logic_vector(31 downto 0);
+		d_rddata : out word;
 		d_wrreq : in std_logic;
-		d_wrdata : in std_logic_vector(31 downto 0);
+		d_wrdata : in word;
 		d_waitrequest : out std_logic
 	);
 end entity;
@@ -39,7 +39,7 @@ architecture rtl of mem_arbiter is
 	type state is (data, insn1, insn2);
 	signal s : state;
 
-	signal i_buffer : std_logic_vector(31 downto 0);
+	signal i_buffer : word;
 begin
 	with s select comb_addr <=
 		i_addr when insn1,

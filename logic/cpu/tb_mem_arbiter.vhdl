@@ -20,9 +20,9 @@ architecture sim of tb_mem_arbiter is
 	-- combined (Avalon-MM)
 	signal comb_addr : address;
 	signal comb_rdreq : std_logic;
-	signal comb_rddata : std_logic_vector(31 downto 0);
+	signal comb_rddata : word;
 	signal comb_wrreq : std_logic;
-	signal comb_wrdata : std_logic_vector(31 downto 0);
+	signal comb_wrdata : word;
 	signal comb_waitrequest : std_logic;
 
 	-- insn bus (Avalon-MM)
@@ -34,9 +34,9 @@ architecture sim of tb_mem_arbiter is
 	-- data bus (Avalon-MM)
 	signal d_addr : address;
 	signal d_rdreq : std_logic;
-	signal d_rddata : std_logic_vector(31 downto 0);
+	signal d_rddata : word;
 	signal d_wrreq : std_logic;
-	signal d_wrdata : std_logic_vector(31 downto 0);
+	signal d_wrdata : word;
 	signal d_waitrequest : std_logic;
 begin
 	reset <= '1', '0' after 1 us;

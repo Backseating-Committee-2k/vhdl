@@ -28,9 +28,9 @@ architecture sim of tb_cpu is
 
 			-- data bus (Avalon-MM)
 			d_addr : out address;
-			d_rddata : in std_logic_vector(31 downto 0);
+			d_rddata : in word;
 			d_rdreq : out std_logic;
-			d_wrdata : out std_logic_vector(31 downto 0);
+			d_wrdata : out word;
 			d_wrreq : out std_logic;
 			d_waitrequest : in std_logic;
 
@@ -42,9 +42,6 @@ architecture sim of tb_cpu is
 	signal reset : std_logic;
 	signal clk : std_logic := '0';
 
-	constant word_width : integer := 32;
-
-	subtype word is std_logic_vector(word_width - 1 downto 0);
 	signal i_addr : address;
 	signal i_rddata : instruction;
 	signal i_rdreq : std_logic;

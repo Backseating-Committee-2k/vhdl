@@ -40,9 +40,9 @@ architecture rtl of top is
 
 	-- data bus (Avalon-MM)
 	signal cpu_d_addr : address;
-	signal cpu_d_rddata : std_logic_vector(31 downto 0);
+	signal cpu_d_rddata : word;
 	signal cpu_d_rdreq : std_logic;
-	signal cpu_d_wrdata : std_logic_vector(31 downto 0);
+	signal cpu_d_wrdata : word;
 	signal cpu_d_wrreq : std_logic;
 	signal cpu_d_waitrequest : std_logic;
 
@@ -65,9 +65,9 @@ architecture rtl of top is
 
 			-- data bus (Avalon-MM)
 			d_addr : out address;
-			d_rddata : in std_logic_vector(31 downto 0);
+			d_rddata : in word;
 			d_rdreq : out std_logic;
-			d_wrdata : out std_logic_vector(31 downto 0);
+			d_wrdata : out word;
 			d_wrreq : out std_logic;
 			d_waitrequest : in std_logic
 		);

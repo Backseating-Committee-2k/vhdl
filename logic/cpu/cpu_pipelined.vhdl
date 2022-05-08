@@ -20,9 +20,9 @@ entity cpu_pipelined is
 
 		-- data bus (Avalon-MM)
 		d_addr : out address;
-		d_rddata : in std_logic_vector(31 downto 0);
+		d_rddata : in word;
 		d_rdreq : out std_logic;
-		d_wrdata : out std_logic_vector(31 downto 0);
+		d_wrdata : out word;
 		d_wrreq : out std_logic;
 		d_waitrequest : in std_logic;
 
@@ -38,16 +38,15 @@ architecture rtl of cpu_pipelined is
 			address_a : in std_logic_vector (7 downto 0);
 			address_b : in std_logic_vector (7 downto 0);
 			clock : in std_logic;
-			data_a : in std_logic_vector (31 downto 0);
-			data_b : in std_logic_vector (31 downto 0);
+			data_a : in word;
+			data_b : in word;
 			wren_a : in std_logic;
 			wren_b : in std_logic;
-			q_a : out std_logic_vector (31 downto 0);
-			q_b : out std_logic_vector (31 downto 0)
+			q_a : out word;
+			q_b : out word
 		);
 	end component;
 
-	subtype word is std_logic_vector(31 downto 0);
 	subtype reg is std_logic_vector(7 downto 0);
 
 	function to_word(a : address) return word is
