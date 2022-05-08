@@ -101,7 +101,7 @@ begin
 		variable a : insn;
 		variable x : integer;
 	begin
-		file_open(fstatus, rom, "hello_world.backseat", read_mode);
+		file_open(fstatus, rom, "../roms/hello_world.backseat", read_mode);
 		x := i'low;
 		while not endfile(rom) loop
 			a := (others => '0');
