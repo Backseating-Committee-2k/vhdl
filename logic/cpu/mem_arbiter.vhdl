@@ -10,7 +10,7 @@ entity mem_arbiter is
 		clk : in std_logic;
 
 		-- combined (Avalon-MM)
-		comb_addr : out std_logic_vector(31 downto 0);
+		comb_addr : out std_logic_vector(23 downto 0);
 		comb_rdreq : out std_logic;
 		comb_rddata : in std_logic_vector(31 downto 0);
 		comb_wrreq : out std_logic;
@@ -18,13 +18,13 @@ entity mem_arbiter is
 		comb_waitrequest : in std_logic;
 
 		-- insn bus (Avalon-MM)
-		i_addr : in std_logic_vector(31 downto 0);
+		i_addr : in std_logic_vector(23 downto 0);
 		i_rdreq : in std_logic;
 		i_rddata : out std_logic_vector(63 downto 0);
 		i_waitrequest : out std_logic;
 
 		-- data bus (Avalon-MM)
-		d_addr : in std_logic_vector(31 downto 0);
+		d_addr : in std_logic_vector(23 downto 0);
 		d_rdreq : in std_logic;
 		d_rddata : out std_logic_vector(31 downto 0);
 		d_wrreq : in std_logic;
@@ -41,7 +41,7 @@ architecture rtl of mem_arbiter is
 begin
 	with s select comb_addr <=
 		i_addr when insn1,
-		i_addr xor x"00000004" when insn2,
+		i_addr xor x"000004" when insn2,
 		d_addr when data;
 	with s select comb_rdreq <=
 		i_rdreq when insn1|insn2,

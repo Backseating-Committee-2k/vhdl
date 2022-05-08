@@ -16,7 +16,7 @@ architecture sim of tb_mem_arbiter is
 	signal clk : std_logic := '0';
 
 	-- combined (Avalon-MM)
-	signal comb_addr : std_logic_vector(31 downto 0);
+	signal comb_addr : std_logic_vector(23 downto 0);
 	signal comb_rdreq : std_logic;
 	signal comb_rddata : std_logic_vector(31 downto 0);
 	signal comb_wrreq : std_logic;
@@ -24,13 +24,13 @@ architecture sim of tb_mem_arbiter is
 	signal comb_waitrequest : std_logic;
 
 	-- insn bus (Avalon-MM)
-	signal i_addr : std_logic_vector(31 downto 0);
+	signal i_addr : std_logic_vector(23 downto 0);
 	signal i_rdreq : std_logic;
 	signal i_rddata : std_logic_vector(63 downto 0);
 	signal i_waitrequest : std_logic;
 
 	-- data bus (Avalon-MM)
-	signal d_addr : std_logic_vector(31 downto 0);
+	signal d_addr : std_logic_vector(23 downto 0);
 	signal d_rdreq : std_logic;
 	signal d_rddata : std_logic_vector(31 downto 0);
 	signal d_wrreq : std_logic;
@@ -60,21 +60,21 @@ begin
 		wait until reset = '0';
 		tick;
 		i_rdreq <= '1';
-		i_addr <= x"00000000";
+		i_addr <= x"000000";
 		tick;
 		while i_waitrequest = '1' loop
 			tick;
 		end loop;
 		i_rdreq <= '0';
 		d_rdreq <= '1';
-		d_addr <= x"12345678";
+		d_addr <= x"123456";
 		tick;
 		while d_waitrequest = '1' loop
 			tick;
 		end loop;
 		d_rdreq <= '0';
 		d_wrreq <= '1';
-		d_addr <= x"87654321";
+		d_addr <= x"654321";
 		d_wrdata <= x"2468ace0";
 		tick;
 		while d_waitrequest = '1' loop
@@ -102,7 +102,7 @@ begin
 						s := write;
 					end if;
 				when read =>
-					comb_rddata <= comb_addr;
+					comb_rddata <= x"00" & comb_addr;
 					comb_waitrequest <= '0';
 					s := idle;
 				when write =>
