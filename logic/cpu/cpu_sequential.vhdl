@@ -50,19 +50,6 @@ architecture rtl of cpu_sequential is
 
 	subtype reg is std_logic_vector(7 downto 0);
 
-	function to_word(a : address) return word is
-		variable ret : word;
-	begin
-		ret := (others => '0');
-		ret(address'range) := a;
-		return ret;
-	end function;
-
-	function to_address(w : word) return address is
-	begin
-		return w(address'range);
-	end function;
-
 	constant ip : reg := x"fe";
 	constant reset_ip : address := x"100000";
 
