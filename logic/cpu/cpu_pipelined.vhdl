@@ -117,6 +117,7 @@ architecture rtl of cpu_pipelined is
 		div0, ndiv0);		-- check divide-by-zero flag
 	type alu_op is (nop, add, sub);
 	type store_op is (nop, store);
+	type load_op is (nop, load);
 
 	type decoded_insn_f is record
 		strobe : std_logic;	-- strobe when a new instruction is fed
@@ -126,6 +127,7 @@ architecture rtl of cpu_pipelined is
 		op : data_lanes_f;	-- operands
 		store : store_op;	-- store value from lane 2 to address from lane 1
 		alu : alu_op;		-- opcode for ALU
+		load : load_op;		-- load value from address from lane 1, put into lane 2
 	end record;
 
 	type decoded_insn_r is record
@@ -474,6 +476,10 @@ begin
 			store when store;
 
 		i_f.alu <= m.alu;
+
+		with m.mem select i_f.load <=
+			nop when nop|store,
+			load when load;
 	end block;
 
 	-- register lookup bypass
@@ -524,7 +530,8 @@ begin
 				)
 			),
 			store => sw_f.store,
-			alu => sw_f.alu
+			alu => sw_f.alu,
+			load => sw_f.load
 		);
 
 		sw_r <= alu_r;
@@ -570,7 +577,7 @@ begin
 		r(l).data <= data;
 		r(l).wren <= wren;
 
-		data <= wb_f.op(l).value;
+		data <= wb_f.op(l).value when ?? wren else (others => 'Z');
 		wren <= wb_f.op(l).writeback_active and wb_f.op(l).valid;
 
 		read_selected_register <= (others => '0') when reset = '1' else			-- reset
@@ -656,8 +663,25 @@ begin
 		alias wb_r : decoded_insn_r is load_to_writeback_r;
 		alias wb_f : decoded_insn_f is load_to_writeback_f;
 
+		alias ld_a : data_lane_f is ld_f.op(1);	-- lane 1 is address
+		alias ld_d : data_lane_f is ld_f.op(2);	-- lane 2 is data
+
 		alias st_f : decoded_insn_f is swap_to_alu_store_f;
 		alias st_r : decoded_insn_r is swap_to_alu_store_r;
+
+		alias st_a : data_lane_f is st_f.op(1);	-- lane 1 is address
+		alias st_d : data_lane_f is st_f.op(2);	-- lane 2 is data
+
+		signal load_active : std_logic;
+		signal load_ready : std_logic;
+
+		signal load_valid : std_logic;
+		signal load_value : word;
+
+		signal load_addr : address;
+		signal load_rdreq : std_logic;
+		signal load_rddata : word;
+		signal load_waitrequest : std_logic;
 
 		signal store_active : std_logic;
 		signal store_ready : std_logic;
@@ -667,14 +691,59 @@ begin
 		signal store_wrdata : word;
 		signal store_waitrequest : std_logic;
 	begin
-		-- internal bypass
-		wb_f <= ld_f;
+		with ld_f.load select load_active <=
+			'1' when load,
+			'0' when nop;
+
+		-- ready when address is valid
+		load_ready <= ld_a.valid;
+
+		load_addr <= ld_a.value when ?? (load_active and load_ready) else
+			     (others => 'U');
+		load_rdreq <= load_active and load_ready;
+
+		-- bypass when inactive
+		with ld_f.load select load_valid <=
+			not load_waitrequest when load,
+			ld_d.valid when nop;
+		with ld_f.load select load_value <=
+			load_rddata when load,
+			ld_d.value when nop;
+
+		-- pass through remaining signals
+		wb_f <= (
+			strobe => ld_f.strobe,
+			skip => ld_f.skip,
+			cond => ld_f.cond,
+			jmp => ld_f.jmp,
+			op => (
+				-- lane 1 is passthrough
+				1 => ld_a,
+				-- lane 2 has value replaced if active
+				2 => (
+					source => ld_d.source,
+					c_value => ld_d.c_value,
+					r_num => ld_d.r_num,
+					r_valid => ld_d.r_valid,
+					r_value => ld_d.r_value,
+					valid => load_valid,
+					value => load_value,
+					writeback_active => ld_d.writeback_active,
+					writeback_target => ld_d.writeback_target
+				)
+			),
+			store => ld_f.store,
+			alu => ld_f.alu,
+			load => ld_f.load
+		);
 		ld_r <= wb_r;
 
 		with st_f.store select store_active <=
 			'1' when store,
 			'0' when nop;
-		store_ready <= st_f.op(1).valid and st_f.op(2).valid;
+
+		-- ready when both address and data are valid
+		store_ready <= st_a.valid and st_d.valid;
 
 		-- store value from lane 2 to address from lane 1
 
@@ -691,8 +760,8 @@ begin
 				store_wrreq <= '0';
 				store_wrdata <= (others => 'U');
 				if(store_active = '1' and store_ready = '1') then
-					store_addr <= st_f.op(1).value;
-					store_wrdata <= st_f.op(2).value;
+					store_addr <= st_a.value;
+					store_wrdata <= st_d.value;
 					store_wrreq <= '1';
 				end if;
 			end if;
@@ -710,10 +779,10 @@ begin
 				comb_wrdata => d_wrdata,
 				comb_waitrequest => d_waitrequest,
 
-				load_addr => (others => 'U'),
-				load_rdreq => '0',
-				load_rddata => open,
-				load_waitrequest => open,
+				load_addr => load_addr,
+				load_rdreq => load_rdreq,
+				load_rddata => load_rddata,
+				load_waitrequest => load_waitrequest,
 
 				store_addr => store_addr,
 				store_wrreq => store_wrreq,
