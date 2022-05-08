@@ -1,7 +1,7 @@
 #! /bin/sh -x
 set -e
 if ! which vlib 2>/dev/null; then
-        PATH=/opt/altera/20.1/modelsim_ase/bin:$PATH
+        PATH=/opt/altera/16.1/modelsim_ase/bin:$PATH
 fi
 
 rm -rf work

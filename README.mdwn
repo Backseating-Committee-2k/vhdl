@@ -12,7 +12,7 @@ display the simulated waveforms.
 
 If you want to synthesize a bitstream or simulate for the actual hardware,
 you need the vendor toolchain. For the Phi board (which is rather seldom,
-but the first board implemented here, this would be Intel Quartus 20.1.
+but the first board implemented here, this would be Intel Quartus 16.1.
 
 There are four scripts inside the `logic/` directory:
 
