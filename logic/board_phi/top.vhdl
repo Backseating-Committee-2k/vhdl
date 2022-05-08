@@ -26,6 +26,26 @@ entity top is
 end entity;
 
 architecture rtl of top is
+	-- async reset
+	signal cpu_reset : std_logic;
+
+	-- clock
+	signal cpu_clk : std_logic;
+
+	-- instruction bus (Avalon-MM)
+	signal cpu_i_addr : std_logic_vector(31 downto 0);
+	signal cpu_i_rddata : std_logic_vector(63 downto 0);
+	signal cpu_i_rdreq : std_logic;
+	signal cpu_i_waitrequest : std_logic;
+
+	-- data bus (Avalon-MM)
+	signal cpu_d_addr : std_logic_vector(31 downto 0);
+	signal cpu_d_rddata : std_logic_vector(31 downto 0);
+	signal cpu_d_rdreq : std_logic;
+	signal cpu_d_wrdata : std_logic_vector(31 downto 0);
+	signal cpu_d_wrreq : std_logic;
+	signal cpu_d_waitrequest : std_logic;
+
 	component cpu is
 		generic(
 			address_width : integer
@@ -53,24 +73,38 @@ architecture rtl of top is
 		);
 	end component;
 begin
+	cpu_reset <= reset;
+	cpu_clk <= clk;
+
+	i_addr <= cpu_i_addr;
+	cpu_i_rddata <= i_rddata;
+	i_rdreq <= cpu_i_rdreq;
+	cpu_i_waitrequest <= i_waitrequest;
+
+	d_addr <= cpu_d_addr;
+	cpu_d_rddata <= d_rddata;
+	d_rdreq <= cpu_d_rdreq;
+	d_wrreq <= cpu_d_wrreq;
+	d_wrdata <= cpu_d_wrdata;
+	cpu_d_waitrequest <= d_waitrequest;
 
 	c : cpu
 		generic map(
 			address_width => 32
 		)
 		port map(
-			reset => reset,
-			clk => clk,
-			i_addr => i_addr,
-			i_rddata => i_rddata,
-			i_rdreq => i_rdreq,
-			i_waitrequest => i_waitrequest,
-			d_addr => d_addr,
-			d_rddata => d_rddata,
-			d_rdreq => d_rdreq,
-			d_wrdata => d_wrdata,
-			d_wrreq => d_wrreq,
-			d_waitrequest => d_waitrequest
+			reset => cpu_reset,
+			clk => cpu_clk,
+			i_addr => cpu_i_addr,
+			i_rddata => cpu_i_rddata,
+			i_rdreq => cpu_i_rdreq,
+			i_waitrequest => cpu_i_waitrequest,
+			d_addr => cpu_d_addr,
+			d_rddata => cpu_d_rddata,
+			d_rdreq => cpu_d_rdreq,
+			d_wrdata => cpu_d_wrdata,
+			d_wrreq => cpu_d_wrreq,
+			d_waitrequest => cpu_d_waitrequest
 		);
 end architecture;
 
