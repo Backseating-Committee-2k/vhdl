@@ -46,7 +46,36 @@ set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name VHDL_FILE cpu/cpu_pipelined.vhdl
 set_global_assignment -name QIP_FILE cpu/altera_registers.qip
 set_global_assignment -name VHDL_FILE cpu/cpu_sequential.vhdl
+set_global_assignment -name VHDL_FILE board_phi/pcie_rs_hip.vhd
+set_global_assignment -name QIP_FILE board_phi/pcie.qip
+set_global_assignment -name QIP_FILE board_phi/pcie_reconfig.qip
+set_global_assignment -name QIP_FILE board_phi/pll.qip
 set_global_assignment -name VHDL_FILE board_phi/top.vhdl
+set_global_assignment -name SDC_FILE board_phi/top.sdc
+
+# Pin & Location Assignments
+# ==========================
+set_location_assignment PIN_T2 -to pcie_rx[0]
+set_location_assignment PIN_M2 -to pcie_rx[1]
+set_location_assignment PIN_H2 -to pcie_rx[2]
+set_location_assignment PIN_D2 -to pcie_rx[3]
+set_location_assignment PIN_P2 -to pcie_tx[0]
+set_location_assignment PIN_K2 -to pcie_tx[1]
+set_location_assignment PIN_F2 -to pcie_tx[2]
+set_location_assignment PIN_B2 -to pcie_tx[3]
+set_location_assignment PIN_D1 -to "pcie_rx[3](n)"
+set_location_assignment PIN_H1 -to "pcie_rx[2](n)"
+set_location_assignment PIN_M1 -to "pcie_rx[1](n)"
+set_location_assignment PIN_T1 -to "pcie_rx[0](n)"
+set_location_assignment PIN_B1 -to "pcie_tx[3](n)"
+set_location_assignment PIN_F1 -to "pcie_tx[2](n)"
+set_location_assignment PIN_K1 -to "pcie_tx[1](n)"
+set_location_assignment PIN_P1 -to "pcie_tx[0](n)"
+set_location_assignment PIN_M9 -to refclk
+set_location_assignment PIN_G10 -to fixedclk_serdes
+set_location_assignment PIN_M10 -to "refclk(n)"
+set_location_assignment PIN_G9 -to "fixedclk_serdes(n)"
+set_location_assignment PIN_V5 -to pcie_nperst
 
 # Classic Timing Assignments
 # ==========================
@@ -148,6 +177,20 @@ set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -
 
 # -----------------
 # start ENTITY(top)
+
+	# Fitter Assignments
+	# ==================
+	set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_rx[3]
+	set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_rx[2]
+	set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_rx[1]
+	set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_rx[0]
+	set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_tx[3]
+	set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_tx[2]
+	set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_tx[1]
+	set_instance_assignment -name IO_STANDARD "1.5-V PCML" -to pcie_tx[0]
+	set_instance_assignment -name IO_STANDARD HCSL -to refclk
+	set_instance_assignment -name IO_STANDARD LVDS -to fixedclk_serdes
+	set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to pcie_nperst
 
 	# start DESIGN_PARTITION(Top)
 	# ---------------------------
