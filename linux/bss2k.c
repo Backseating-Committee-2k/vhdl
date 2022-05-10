@@ -58,6 +58,21 @@ static int bss2k_probe(
 static void bss2k_remove(
 		struct pci_dev *pdev)
 {
+	struct device *const dev = &pdev->dev;
+	struct bss2k_priv *const priv = dev->driver_data;
+
+	unsigned int i;
+
+	/* shut down emulated CPU */
+	priv->reg[REG_CONTROL] = CTL_RESET;
+
+	/* disable interrupts */
+	priv->reg[REG_INT_MASK] = 0ULL;
+
+	/* clear mappings, for safety */
+	for(i = 0; i < NUM_MAPPINGS; ++i)
+		priv->reg[REG_MAPPING + i] = 0ULL;
+
 	/* iomap, kmalloc, enable_device are handled by managed device
 	 * framework, nothing more to do here.
 	 */
