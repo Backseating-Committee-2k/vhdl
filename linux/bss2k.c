@@ -52,6 +52,12 @@ static int bss2k_probe(
 	if(priv->reg == 0)
 		return -ENODEV;
 
+	/* shut down emulated CPU */
+	priv->reg[REG_CONTROL] = CTL_RESET;
+
+	/* disable interrupts */
+	priv->reg[REG_INT_MASK] = 0ULL;
+
 	return 0;
 }
 
