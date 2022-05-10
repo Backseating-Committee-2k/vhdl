@@ -2,11 +2,26 @@
 
 #include <linux/pci.h>
 
-static unsigned int const reg_status = 0;
-static unsigned int const reg_control = 1;
-static unsigned int const reg_int_status = 2;
-static unsigned int const reg_int_mask = 3;
-static unsigned int const reg_mapping = 16;
+#define REG_STATUS      0
+#define REG_CONTROL     1
+#define REG_INT_STATUS  2
+#define REG_INT_MASK    3
+#define REG_MAPPING     16
+
+/* emulated CPU has 24 bits, we're using 2 MB pages for mapping, so 3 bits
+ * page number and 21 bits page offset */
+#define MAPPING_SIZE    (1 << 21)
+#define NUM_MAPPINGS    (1 << 3)
+
+/* status register */
+#define STS_RUNNING             (1 << 0)
+#define STS_MAPPING_ERROR       (1 << 1)
+
+/* control register */
+#define CTL_RESET               (1 << 0)
+
+/* interrupt registers */
+#define INT_HALTED		(1 << 0)
 
 struct bss2k_priv
 {
