@@ -18,37 +18,9 @@ static int bss2k_probe(
 	if(err < 0)
 		return err;
 
-	printk(KERN_INFO "BSS2k driver loaded.\n");
-
 	reg = pcim_iomap(dev, 2, 256);
 	if(reg == 0)
 		return -ENODEV;
-
-	printk(KERN_INFO " registers at %px\n", reg);
-
-	printk(KERN_INFO "  status %llx\n", reg[reg_status]);
-	reg[reg_status] = 0;
-	printk(KERN_INFO "  write status 0 => %llx\n", reg[reg_status]);
-	reg[reg_status] = 1;
-	printk(KERN_INFO "  write status 1 => %llx\n", reg[reg_status]);
-
-	printk(KERN_INFO "  control %llx\n", reg[reg_control]);
-	reg[reg_control] = 0;
-	printk(KERN_INFO "  write control 0 => %llx\n", reg[reg_control]);
-	reg[reg_control] = 1;
-	printk(KERN_INFO "  write control 1 => %llx\n", reg[reg_control]);
-
-	printk(KERN_INFO "  int_status %llx\n", reg[reg_int_status]);
-	reg[reg_int_status] = 0;
-	printk(KERN_INFO "  write int_status 0 => %llx\n", reg[reg_int_status]);
-	reg[reg_int_status] = 1;
-	printk(KERN_INFO "  write int_status 1 => %llx\n", reg[reg_int_status]);
-
-	printk(KERN_INFO "  int_mask %llx\n", reg[reg_int_mask]);
-	reg[reg_int_mask] = 0;
-	printk(KERN_INFO "  write int_mask 0 => %llx\n", reg[reg_int_mask]);
-	reg[reg_int_mask] = 1;
-	printk(KERN_INFO "  write int_mask 1 => %llx\n", reg[reg_int_mask]);
 
 	return 0;
 }
@@ -56,7 +28,9 @@ static int bss2k_probe(
 static void bss2k_remove(
 		struct pci_dev *dev)
 {
-	printk(KERN_INFO "BSS2k driver unloaded.\n");
+	/* iomap, kmalloc, enable_device are handled by managed device
+	 * framework, nothing more to do here.
+	 */
 }
 
 static struct pci_device_id const bss2k_ids[] =
