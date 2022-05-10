@@ -8,19 +8,33 @@ static unsigned int const reg_int_status = 2;
 static unsigned int const reg_int_mask = 3;
 static unsigned int const reg_mapping = 16;
 
+struct bss2k_priv
+{
+	/* BAR 2 (registers) mapping */
+	u64 volatile *reg;
+};
+
 static int bss2k_probe(
 		struct pci_dev *pdev,
 		struct pci_device_id const *id)
 {
+	struct device *const dev = &pdev->dev;
+
 	int err;
-	u64 volatile *reg;
+	struct bss2k_priv *priv;
 
 	err = pcim_enable_device(pdev);
 	if(err < 0)
 		return err;
 
-	reg = pcim_iomap(pdev, 2, 256);
-	if(reg == 0)
+	priv = devm_kzalloc(dev, sizeof *priv, GFP_KERNEL);
+	if(!priv)
+		return -ENOMEM;
+
+	dev->driver_data = priv;
+
+	priv->reg = pcim_iomap(pdev, 2, 256);
+	if(priv->reg == 0)
 		return -ENODEV;
 
 	return 0;
