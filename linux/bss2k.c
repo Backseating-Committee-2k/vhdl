@@ -9,17 +9,17 @@ static unsigned int const reg_int_mask = 3;
 static unsigned int const reg_mapping = 16;
 
 static int bss2k_probe(
-		struct pci_dev *dev,
+		struct pci_dev *pdev,
 		struct pci_device_id const *id)
 {
 	int err;
 	u64 volatile *reg;
 
-	err = pcim_enable_device(dev);
+	err = pcim_enable_device(pdev);
 	if(err < 0)
 		return err;
 
-	reg = pcim_iomap(dev, 2, 256);
+	reg = pcim_iomap(pdev, 2, 256);
 	if(reg == 0)
 		return -ENODEV;
 
@@ -27,7 +27,7 @@ static int bss2k_probe(
 }
 
 static void bss2k_remove(
-		struct pci_dev *dev)
+		struct pci_dev *pdev)
 {
 	/* iomap, kmalloc, enable_device are handled by managed device
 	 * framework, nothing more to do here.
