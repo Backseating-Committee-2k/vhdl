@@ -269,6 +269,13 @@ bool vulkan_device_setup(struct global *g)
 		// accept device
 		selected_physical_device = physical_device;
 		have_selected_physical_device = true;
+
+		/* get capabilities */
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+				physical_device,
+				g->surface,
+				&g->surface_capabilities);
+
 		break;
 	}
 
