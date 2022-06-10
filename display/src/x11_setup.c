@@ -43,11 +43,21 @@ bool x11_setup(struct global *g)
 			.event_mask = StructureNotifyMask|VisibilityChangeMask
 		};
 
+		/* initialize position/size info with requested values. If
+		 * the window manager doesn't override our choices, there
+		 * won't be a ConfigureNotify, and these are what we go
+		 * with during swapchain creation
+		 */
+		g->canvas.x = 0;
+		g->canvas.y = 0;
+		g->canvas.w = tex_width;
+		g->canvas.h = tex_height;
+
 		g->x11.window = XCreateWindow(
 				/* display */	g->x11.display,
 				/* parent */	root,
-				/* x, y */	0, 0,
-				/* w, h */	tex_width, tex_height,
+				/* x, y */	g->canvas.x, g->canvas.y,
+				/* w, h */	g->canvas.w, g->canvas.h,
 				/* border w */	0,
 				/* depth */	CopyFromParent,
 				/* class */	InputOutput,
