@@ -17,6 +17,26 @@ AC_CHECK_LIB(
 	[XOpenDisplay],
 	,
 	[AC_MSG_ERROR([Cannot find X11 library])])
+
+dnl Workaround for libXext bug (fails to deregister a callback when the
+dnl last user is gone and the library is unloaded)
+dnl
+dnl This just forces the library to remain loaded.
+dnl
+dnl TODO: check if as-needed is active before with compilers that don't
+dnl support push-state/pop-state, and restore properly.
+
+AX_CHECK_LINK_FLAG(
+	[-Wl,--as-needed],
+	[
+		AX_CHECK_LINK_FLAG(
+			[-Wl,--push-state,--pop-state],
+			[LIBS="-Wl,--push-state,--no-as-needed,-lXext,--pop-state $LIBS"],
+			[LIBS="-Wl,--no-as-needed,-lXext,--as-needed $LIBS"]
+		)
+	],
+	[LIBS="-lXext $LIBS"])
+
 AC_CHECK_LIB(
 	[vulkan],
 	[vkCreateInstance],
