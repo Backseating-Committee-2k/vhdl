@@ -10,6 +10,9 @@
 
 #include <vulkan/vulkan.h>
 
+#include <stdlib.h>
+
+#include <assert.h>
 
 bool vulkan_swapchain_update(struct global *g)
 {
@@ -78,6 +81,9 @@ bool vulkan_swapchain_update(struct global *g)
 		.oldSwapchain = g->swapchain
 	};
 
+	for(uint32_t i = 0; i < g->swapchain_image_count; ++i)
+		g->swapchain_images[i].image = VK_NULL_HANDLE;
+
 	VkResult rc = vkCreateSwapchainKHR(
 			g->device,
 			&info,
@@ -86,7 +92,50 @@ bool vulkan_swapchain_update(struct global *g)
 	if(rc != VK_SUCCESS)
 		goto fail_create_swapchain;
 
+	{
+		uint32_t swapchain_image_count = 0;
+
+		rc = vkGetSwapchainImagesKHR(
+				g->device,
+				g->swapchain,
+				&swapchain_image_count,
+				NULL);
+		if(rc != VK_SUCCESS)
+			goto fail_get_swapchain_images;
+
+		VkImage swapchain_images[swapchain_image_count];
+
+		rc = vkGetSwapchainImagesKHR(
+				g->device,
+				g->swapchain,
+				&swapchain_image_count,
+				swapchain_images);
+		if(rc != VK_SUCCESS)
+			goto fail_get_swapchain_images;
+
+		if(swapchain_image_count != g->swapchain_image_count)
+		{
+			if(g->swapchain_images)
+				free(g->swapchain_images);
+
+			g->swapchain_images = malloc(swapchain_image_count *
+					sizeof g->swapchain_images[0]);
+			if(!g->swapchain_images)
+				goto fail_get_swapchain_images;
+			g->swapchain_image_count = swapchain_image_count;
+		}
+
+		for(uint32_t i = 0; i < swapchain_image_count; ++i)
+		{
+			g->swapchain_images[i].image =
+					swapchain_images[i];
+		}
+	}
+
 	return true;
+
+fail_get_swapchain_images:
+	vulkan_swapchain_teardown(g);
 
 fail_create_swapchain:
 	return false;
@@ -94,6 +143,16 @@ fail_create_swapchain:
 
 void vulkan_swapchain_teardown(struct global *g)
 {
+	for(uint32_t i = 0; i < g->swapchain_image_count; ++i)
+		g->swapchain_images[i].image = VK_NULL_HANDLE;
+
+	if(g->swapchain_images)
+	{
+		free(g->swapchain_images);
+		g->swapchain_images = NULL;
+		g->swapchain_image_count = 0;
+	}
+
 	if(g->swapchain != VK_NULL_HANDLE)
 	{
 		vkDestroySwapchainKHR(

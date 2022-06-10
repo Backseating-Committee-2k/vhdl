@@ -42,4 +42,12 @@ struct global
 	{
 		int x, y, w, h;
 	} canvas;
+
+	/* swapchain render targets */
+	uint32_t swapchain_image_count;
+	struct
+	{
+		/* owned by the swapchain */
+		VkImage image;
+	} *swapchain_images;
 };
