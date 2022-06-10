@@ -2,6 +2,7 @@ bin_PROGRAMS = bss2kdpy
 
 bss2kdpy_SOURCES = \
 	bss2kdpy.c bss2kdpy.h \
+	util.h \
 	vulkan_instance.c vulkan_instance.h \
 	vulkan_device.c vulkan_device.h \
 	x11_mainloop.c x11_mainloop.h \
