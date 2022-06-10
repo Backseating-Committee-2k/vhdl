@@ -7,6 +7,7 @@
 #include "x11_mainloop.h"
 #include "vulkan_instance.h"
 #include "vulkan_device.h"
+#include "vulkan_swapchain.h"
 
 #include "bss2kdpy.h"
 
@@ -39,6 +40,8 @@ int main(int argc, char **argv)
 
 	// success starts here
 	rc = 0;
+
+	vulkan_swapchain_teardown(&g);
 
 fail_vulkan_device:
 	vulkan_device_teardown(&g);

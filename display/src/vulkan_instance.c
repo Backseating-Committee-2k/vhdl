@@ -15,6 +15,7 @@ bool vulkan_instance_setup(struct global *g)
 	g->instance = VK_NULL_HANDLE;
 	g->surface = VK_NULL_HANDLE;
 	g->device = VK_NULL_HANDLE;
+	g->swapchain = VK_NULL_HANDLE;
 
 	VkApplicationInfo const app_info =
 	{

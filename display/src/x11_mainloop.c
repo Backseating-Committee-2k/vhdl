@@ -6,6 +6,8 @@
 
 #include "x11_vulkan.h"
 
+#include "vulkan_swapchain.h"
+
 #include "bss2kdpy.h"
 
 #include <X11/Xlib.h>
@@ -14,6 +16,8 @@
 #include <sys/select.h>
 
 #include <stddef.h>
+
+#include <assert.h>
 
 static void handle_visibility_event(struct global *g, XVisibilityEvent *event)
 {
@@ -46,6 +50,7 @@ static void handle_unmap_event(struct global *g, XUnmapEvent *event)
 
 	g->mapped = false;
 
+	vulkan_swapchain_teardown(g);
 	x11_vulkan_teardown(g);
 
 	XDestroyWindow(g->x11.display, g->x11.window);
@@ -55,15 +60,33 @@ static void handle_map_event(struct global *g, XMapEvent *event)
 {
 	(void)event;
 
+	bool const rebuild_swapchain = !g->mapped;
+
 	g->mapped = true;
+
+	if(rebuild_swapchain)
+	{
+		bool const success = vulkan_swapchain_update(g);
+		assert(success);
+	}
 }
 
 static void handle_configure_event(struct global *g, XConfigureEvent *event)
 {
+	bool const rebuild_swapchain =
+			(g->canvas.w != event->width) ||
+			(g->canvas.h != event->height);
+
 	g->canvas.x = event->x;
 	g->canvas.y = event->y;
 	g->canvas.w = event->width;
 	g->canvas.h = event->height;
+
+	if(rebuild_swapchain)
+	{
+		bool const success = vulkan_swapchain_update(g);
+		assert(success);
+	}
 }
 
 static bool handle_event(struct global *g, XEvent *event)
