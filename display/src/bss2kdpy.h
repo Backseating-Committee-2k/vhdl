@@ -26,6 +26,8 @@ struct global
 	VkSurfaceKHR surface;
 	VkDevice device;
 
+	uint32_t graphics_queue_family_index;
+	uint32_t present_queue_family_index;
 	VkSurfaceFormatKHR surface_format;
 	VkPresentModeKHR present_mode;
 
