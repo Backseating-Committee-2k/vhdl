@@ -11,7 +11,10 @@ bool vulkan_instance_setup(struct global *g)
 	/* if you want a custom allocator, here is where you set it up. */
 	g->allocation_callbacks = NULL;
 
+	/* initialize */
+	g->instance = VK_NULL_HANDLE;
 	g->surface = VK_NULL_HANDLE;
+	g->device = VK_NULL_HANDLE;
 
 	VkApplicationInfo const app_info =
 	{
