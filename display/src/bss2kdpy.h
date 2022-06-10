@@ -49,5 +49,7 @@ struct global
 	{
 		/* owned by the swapchain */
 		VkImage image;
+		/* owned by us */
+		VkImageView image_view;
 	} *swapchain_images;
 };

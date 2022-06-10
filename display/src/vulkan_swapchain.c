@@ -14,8 +14,25 @@
 
 #include <assert.h>
 
+static void teardown_image_views(struct global *g)
+{
+	for(uint32_t i = 0; i < g->swapchain_image_count; ++i)
+	{
+		vkDestroyImageView(
+				g->device,
+				g->swapchain_images[i].image_view,
+				g->allocation_callbacks);
+		g->swapchain_images[i].image_view = VK_NULL_HANDLE;
+	}
+}
+
 bool vulkan_swapchain_update(struct global *g)
 {
+	teardown_image_views(g);
+
+	for(uint32_t i = 0; i < g->swapchain_image_count; ++i)
+		assert(g->swapchain_images[i].image_view == VK_NULL_HANDLE);
+
 	uint32_t const minImageCount = g->surface_capabilities.minImageCount;
 	uint32_t const maxImageCount = g->surface_capabilities.maxImageCount;
 
@@ -129,10 +146,52 @@ bool vulkan_swapchain_update(struct global *g)
 		{
 			g->swapchain_images[i].image =
 					swapchain_images[i];
+			g->swapchain_images[i].image_view =
+					VK_NULL_HANDLE;
 		}
 	}
 
+	for(uint32_t i = 0; i < g->swapchain_image_count; ++i)
+		assert(g->swapchain_images[i].image_view == VK_NULL_HANDLE);
+
+	for(uint32_t i = 0; i < g->swapchain_image_count; ++i)
+	{
+		VkImageViewCreateInfo const info =
+		{
+			.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+			.image = g->swapchain_images[i].image,
+			.viewType = VK_IMAGE_VIEW_TYPE_2D,
+			.format = g->surface_format.format,
+			.components =
+			{
+				.r = VK_COMPONENT_SWIZZLE_IDENTITY,
+				.g = VK_COMPONENT_SWIZZLE_IDENTITY,
+				.b = VK_COMPONENT_SWIZZLE_IDENTITY,
+				.a = VK_COMPONENT_SWIZZLE_IDENTITY
+			},
+			.subresourceRange =
+			{
+				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+				.baseMipLevel = 0,
+				.levelCount = 1,
+				.baseArrayLayer = 0,
+				.layerCount = 1
+			}
+		};
+
+		rc = vkCreateImageView(
+				g->device,
+				&info,
+				g->allocation_callbacks,
+				&g->swapchain_images[i].image_view);
+		if(rc != VK_SUCCESS)
+			goto fail_create_image_view;
+	}
+
 	return true;
+
+fail_create_image_view:
+	/* handled by normal teardown */
 
 fail_get_swapchain_images:
 	vulkan_swapchain_teardown(g);
@@ -143,6 +202,8 @@ fail_create_swapchain:
 
 void vulkan_swapchain_teardown(struct global *g)
 {
+	teardown_image_views(g);
+
 	for(uint32_t i = 0; i < g->swapchain_image_count; ++i)
 		g->swapchain_images[i].image = VK_NULL_HANDLE;
 
