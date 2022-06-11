@@ -24,38 +24,38 @@ int main(int argc, char **argv)
 	};
 
 	if(!x11_setup(&g))
-		goto fail;
-
-	if(!vulkan_instance_setup(&g))
 		goto fail_x11;
 
-	if(!x11_vulkan_setup(&g))
-		goto fail_vulkan;
+	if(!vulkan_instance_setup(&g))
+		goto fail_vulkan_instance;
 
-	if(!vulkan_device_setup(&g))
+	if(!x11_vulkan_setup(&g))
 		goto fail_x11_vulkan;
 
-	if(!x11_mainloop(&g))
+	if(!vulkan_device_setup(&g))
 		goto fail_vulkan_device;
+
+	if(!x11_mainloop(&g))
+		goto fail_x11_mainloop;
 
 	// success starts here
 	rc = 0;
 
-fail_vulkan_device:
+fail_x11_mainloop:
 	/* shouldn't be necessary */
 	vulkan_swapchain_teardown(&g);
 
 	vulkan_device_teardown(&g);
 
-fail_x11_vulkan:
+fail_vulkan_device:
 	x11_vulkan_teardown(&g);
 
-fail_vulkan:
+fail_x11_vulkan:
 	vulkan_instance_teardown(&g);
 
-fail_x11:
+fail_vulkan_instance:
 	x11_teardown(&g);
 
-fail:
+fail_x11:
 	return rc;
 }
