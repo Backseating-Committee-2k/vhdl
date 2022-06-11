@@ -41,9 +41,10 @@ int main(int argc, char **argv)
 	// success starts here
 	rc = 0;
 
+fail_vulkan_device:
+	/* shouldn't be necessary */
 	vulkan_swapchain_teardown(&g);
 
-fail_vulkan_device:
 	vulkan_device_teardown(&g);
 
 fail_x11_vulkan:
