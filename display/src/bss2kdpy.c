@@ -8,6 +8,7 @@
 #include "vulkan_instance.h"
 #include "vulkan_device.h"
 #include "vulkan_swapchain.h"
+#include "vulkan_shader.h"
 
 #include "bss2kdpy.h"
 
@@ -35,6 +36,9 @@ int main(int argc, char **argv)
 	if(!vulkan_device_setup(&g))
 		goto fail_vulkan_device;
 
+	if(!vulkan_shader_setup(&g))
+		goto fail_vulkan_shader;
+
 	if(!x11_mainloop(&g))
 		goto fail_x11_mainloop;
 
@@ -45,6 +49,9 @@ fail_x11_mainloop:
 	/* shouldn't be necessary */
 	vulkan_swapchain_teardown(&g);
 
+	vulkan_shader_teardown(&g);
+
+fail_vulkan_shader:
 	vulkan_device_teardown(&g);
 
 fail_vulkan_device:

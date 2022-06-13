@@ -43,6 +43,12 @@ struct global
 		int x, y, w, h;
 	} canvas;
 
+	struct
+	{
+		VkShaderModule triangle;
+		VkShaderModule red;
+	} shaders;
+
 	/* swapchain render targets */
 	uint32_t swapchain_image_count;
 	struct

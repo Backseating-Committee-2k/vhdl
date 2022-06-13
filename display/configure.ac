@@ -11,6 +11,23 @@ AC_CONFIG_HEADERS([config.h])
 # Checks for programs.
 AC_PROG_CC
 
+AC_CHECK_TOOL(
+	[OBJDUMP],
+	[objdump])
+
+AC_MSG_CHECKING([BFD type of compiler output])
+AC_TRY_COMPILE(
+	[],
+	[],
+	[BFDTYPE=`${OBJDUMP} -f conftest.$ac_objext | sed -ne 's/.*format //p'`])
+AC_MSG_RESULT([${BFDTYPE}])
+
+AC_SUBST([BFDTYPE])
+
+AC_CHECK_TOOL(
+	[OBJCOPY],
+	[objcopy])
+
 # Checks for libraries.
 AC_CHECK_LIB(
 	[X11],

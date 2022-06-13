@@ -16,6 +16,8 @@ bool vulkan_instance_setup(struct global *g)
 	g->surface = VK_NULL_HANDLE;
 	g->device = VK_NULL_HANDLE;
 	g->swapchain = VK_NULL_HANDLE;
+	g->shaders.triangle = VK_NULL_HANDLE;
+	g->shaders.red = VK_NULL_HANDLE;
 	g->swapchain_image_count = 0;
 	g->swapchain_images = NULL;
 
