@@ -121,36 +121,38 @@ bool x11_mainloop(struct global *g)
 
 	for(;;)
 	{
-		int x11_fd = ConnectionNumber(g->x11.display);
-
-		int maxfd = -1;
-
-		fd_set readfds;
-
-		FD_ZERO(&readfds);
-		FD_SET(x11_fd, &readfds);
-		if(x11_fd > maxfd)
-			maxfd = x11_fd;
-
-		struct timespec timeout =
 		{
-			.tv_sec = 1,
-			.tv_nsec = 0
-		};
+			int x11_fd = ConnectionNumber(g->x11.display);
 
-		int rc = pselect(
-				maxfd + 1,
-				&readfds,
-				NULL,
-				NULL,
-				&timeout,
-				NULL);
+			int maxfd = -1;
 
-		if(rc == 0)
-		{
-			XUnmapWindow(
-					g->x11.display,
-					g->x11.window);
+			fd_set readfds;
+
+			FD_ZERO(&readfds);
+			FD_SET(x11_fd, &readfds);
+			if(x11_fd > maxfd)
+				maxfd = x11_fd;
+
+			struct timespec timeout =
+			{
+				.tv_sec = 1,
+				.tv_nsec = 0
+			};
+
+			int rc = pselect(
+					maxfd + 1,
+					&readfds,
+					NULL,
+					NULL,
+					&timeout,
+					NULL);
+
+			if(rc == 0)
+			{
+				XUnmapWindow(
+						g->x11.display,
+						g->x11.window);
+			}
 		}
 
 		XEvent event;
