@@ -11,6 +11,14 @@ AC_CONFIG_HEADERS([config.h])
 # Checks for programs.
 AC_PROG_CC
 
+AC_CHECK_PROGS(
+	[GLSLANGVALIDATOR],
+	[glslangValidator])
+
+if test -z "${GLSLANGVALIDATOR}"; then
+	AC_MSG_ERROR([glslangValidator is required to compile SPIR-V])
+fi
+
 AC_CHECK_TOOL(
 	[OBJDUMP],
 	[objdump])

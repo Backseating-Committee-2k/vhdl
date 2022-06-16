@@ -1,3 +1,5 @@
 *.o
 .deps/
 bss2kdpy
+frag.spv
+vert.spv

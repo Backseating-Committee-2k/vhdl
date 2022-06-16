@@ -28,25 +28,25 @@ static VkResult create_shader(
 
 bool vulkan_shader_setup(struct global *g)
 {
-	extern unsigned char const _binary_triangle_glsl_start[];
-	extern unsigned char const _binary_triangle_glsl_end[];
+	extern unsigned char const _binary_frag_spv_start[];
+	extern unsigned char const _binary_frag_spv_end[];
 
 	VkResult rc = create_shader(
 			g,
-			_binary_triangle_glsl_start,
-			_binary_triangle_glsl_end,
-			&g->shaders.triangle);
+			_binary_frag_spv_start,
+			_binary_frag_spv_end,
+			&g->shaders.frag);
 	if(rc != VK_SUCCESS)
 		goto fail;
 
-	extern unsigned char const _binary_red_glsl_start[];
-	extern unsigned char const _binary_red_glsl_end[];
+	extern unsigned char const _binary_vert_spv_start[];
+	extern unsigned char const _binary_vert_spv_end[];
 
 	rc = create_shader(
 			g,
-			_binary_red_glsl_start,
-			_binary_red_glsl_end,
-			&g->shaders.red);
+			_binary_vert_spv_start,
+			_binary_vert_spv_end,
+			&g->shaders.vert);
 	if(rc != VK_SUCCESS)
 		goto fail;
 
@@ -70,8 +70,8 @@ static void destroy_shader(
 
 void vulkan_shader_teardown(struct global *g)
 {
-	destroy_shader(g, g->shaders.red);
-	g->shaders.red = VK_NULL_HANDLE;
-	destroy_shader(g, g->shaders.triangle);
-	g->shaders.triangle = VK_NULL_HANDLE;
+	destroy_shader(g, g->shaders.vert);
+	g->shaders.vert = VK_NULL_HANDLE;
+	destroy_shader(g, g->shaders.frag);
+	g->shaders.frag = VK_NULL_HANDLE;
 }

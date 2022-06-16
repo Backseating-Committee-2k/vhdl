@@ -12,22 +12,22 @@ bss2kdpy_SOURCES = \
 	x11_vulkan.c x11_vulkan.h
 
 bss2kdpy_LDADD = \
-	red.$(OBJEXT) \
-	triangle.$(OBJEXT)
+	frag.$(OBJEXT) \
+	vert.$(OBJEXT)
 
 EXTRA_DIST = \
 	red.frag \
 	triangle.vert
 
 CLEANFILES = \
-	red.glsl \
-	triangle.glsl
+	frag.spv \
+	vert.spv
 
-.glsl.$(OBJEXT):
+.spv.$(OBJEXT):
 	$(OBJCOPY) -I binary -O $(BFDTYPE) $< $@
 
-.frag.glsl:
-	cp $< $@
+frag.spv: red.frag
+	$(GLSLANGVALIDATOR) -V $^
 
-.vert.glsl:
-	cp $< $@
+vert.spv: triangle.vert
+	$(GLSLANGVALIDATOR) -V $^

@@ -45,8 +45,8 @@ struct global
 
 	struct
 	{
-		VkShaderModule triangle;
-		VkShaderModule red;
+		VkShaderModule frag;
+		VkShaderModule vert;
 	} shaders;
 
 	/* swapchain render targets */
