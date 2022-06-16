@@ -30,6 +30,7 @@ struct global
 		struct
 		{
 			uint32_t family_index;
+			VkQueue queue;
 		} graphics, present;
 	} queue;
 	VkSwapchainKHR swapchain;

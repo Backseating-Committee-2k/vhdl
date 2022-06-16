@@ -351,6 +351,21 @@ bool vulkan_device_setup(struct global *g)
 	if(rc != VK_SUCCESS)
 		return false;
 
+	vkGetDeviceQueue(
+			g->device,
+			g->queue.graphics.family_index,
+			0,
+			&g->queue.graphics.queue);
+
+	if(separate_queues)
+		vkGetDeviceQueue(
+				g->device,
+				g->queue.present.family_index,
+				0,
+				&g->queue.present.queue);
+	else
+		g->queue.present.queue = g->queue.graphics.queue;
+
 	return true;
 }
 
