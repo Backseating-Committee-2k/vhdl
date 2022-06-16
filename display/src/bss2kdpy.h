@@ -69,5 +69,6 @@ struct global
 		VkImage image;
 		/* owned by us */
 		VkImageView image_view;
+		VkFramebuffer framebuffer;
 	} *swapchain_images;
 };

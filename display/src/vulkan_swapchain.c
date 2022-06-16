@@ -14,6 +14,20 @@
 
 #include <assert.h>
 
+static void teardown_framebuffers(struct global *g)
+{
+	for(uint32_t i = 0; i < g->swapchain_image_count; ++i)
+	{
+		if(g->swapchain_images[i].framebuffer == VK_NULL_HANDLE)
+			continue;
+		vkDestroyFramebuffer(
+				g->device,
+				g->swapchain_images[i].framebuffer,
+				g->allocation_callbacks);
+		g->swapchain_images[i].framebuffer = VK_NULL_HANDLE;
+	}
+}
+
 static void teardown_image_views(struct global *g)
 {
 	for(uint32_t i = 0; i < g->swapchain_image_count; ++i)
@@ -33,6 +47,7 @@ bool vulkan_swapchain_update(struct global *g)
 	/* TODO: hardcoded here */
 	uint32_t const layer_count = 1;
 
+	teardown_framebuffers(g);
 	teardown_image_views(g);
 
 	for(uint32_t i = 0; i < g->swapchain_image_count; ++i)
@@ -200,7 +215,37 @@ bool vulkan_swapchain_update(struct global *g)
 			goto fail_create_image_view;
 	}
 
+	for(uint32_t i = 0; i < g->swapchain_image_count; ++i)
+	{
+		VkImageView const attachments[] =
+		{
+			g->swapchain_images[i].image_view
+		};
+
+		VkFramebufferCreateInfo const info =
+		{
+			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+			.renderPass = g->render_pass,
+			.attachmentCount = sizeof attachments / sizeof attachments[0],
+			.pAttachments = attachments,
+			.width = g->canvas.w,
+			.height = g->canvas.h,
+			.layers = layer_count
+		};
+
+		rc = vkCreateFramebuffer(
+				g->device,
+				&info,
+				g->allocation_callbacks,
+				&g->swapchain_images[i].framebuffer);
+		if(rc != VK_SUCCESS)
+			goto fail_create_framebuffer;
+	}
+
 	return true;
+
+fail_create_framebuffer:
+	/* handled by normal teardown */
 
 fail_create_image_view:
 	/* handled by normal teardown */
@@ -214,6 +259,7 @@ fail_create_swapchain:
 
 void vulkan_swapchain_teardown(struct global *g)
 {
+	teardown_framebuffers(g);
 	teardown_image_views(g);
 
 	for(uint32_t i = 0; i < g->swapchain_image_count; ++i)
