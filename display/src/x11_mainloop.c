@@ -77,8 +77,9 @@ static void handle_map_event(struct global *g, XMapEvent *event)
 static void handle_configure_event(struct global *g, XConfigureEvent *event)
 {
 	bool const rebuild_swapchain =
-			(g->canvas.w != event->width) ||
-			(g->canvas.h != event->height);
+			g->mapped && (
+				(g->canvas.w != event->width) ||
+				(g->canvas.h != event->height));
 
 	g->canvas.x = event->x;
 	g->canvas.y = event->y;
