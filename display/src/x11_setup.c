@@ -25,6 +25,8 @@ bool x11_setup(struct global *g)
 	g->canvas.w = tex_width;
 	g->canvas.h = tex_height;
 
+	XInitThreads();
+
 	g->x11.display = XOpenDisplay(NULL);
 
 	if(g->x11.display == NULL)
