@@ -10,7 +10,6 @@
 
 bool vulkan_device_setup(struct global *g)
 {
-	VkPhysicalDevice selected_physical_device;
 	uint32_t graphics_queue_family_index;
 	uint32_t present_queue_family_index;
 	VkSurfaceFormatKHR surface_format;
@@ -267,7 +266,7 @@ bool vulkan_device_setup(struct global *g)
 			continue;
 
 		// accept device
-		selected_physical_device = physical_device;
+		g->physical_device = physical_device;
 		have_selected_physical_device = true;
 
 		/* get capabilities */
@@ -343,7 +342,7 @@ bool vulkan_device_setup(struct global *g)
 	g->present_mode = present_mode;
 
 	rc = vkCreateDevice(
-			selected_physical_device,
+			g->physical_device,
 			&info,
 			g->allocation_callbacks,
 			&g->device);

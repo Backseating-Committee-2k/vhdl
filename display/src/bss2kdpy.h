@@ -24,6 +24,7 @@ struct global
 
 	VkInstance instance;
 	VkSurfaceKHR surface;
+	VkPhysicalDevice physical_device;
 	VkDevice device;
 	struct
 	{

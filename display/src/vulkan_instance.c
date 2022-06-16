@@ -14,6 +14,7 @@ bool vulkan_instance_setup(struct global *g)
 	/* initialize */
 	g->instance = VK_NULL_HANDLE;
 	g->surface = VK_NULL_HANDLE;
+	g->physical_device = VK_NULL_HANDLE;
 	g->device = VK_NULL_HANDLE;
 	g->swapchain = VK_NULL_HANDLE;
 	g->shaders.frag = VK_NULL_HANDLE;
