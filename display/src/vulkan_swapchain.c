@@ -46,13 +46,13 @@ bool vulkan_swapchain_update(struct global *g)
 
 	/** @todo replace image sharing by ownership transfer */
 	bool const image_sharing_needed =
-			g->graphics_queue_family_index !=
-				g->present_queue_family_index;
+			g->queue.graphics.family_index !=
+				g->queue.present.family_index;
 
 	uint32_t const queue_family_indices[2] =
 	{
-		g->graphics_queue_family_index,
-		g->present_queue_family_index
+		g->queue.graphics.family_index,
+		g->queue.present.family_index
 	};
 
 	/* if queue families are the same, we use exclusive mode, so we

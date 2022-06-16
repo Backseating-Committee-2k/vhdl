@@ -337,8 +337,8 @@ bool vulkan_device_setup(struct global *g)
 		.pEnabledFeatures = NULL	/// @todo
 	};
 
-	g->graphics_queue_family_index = graphics_queue_family_index;
-	g->present_queue_family_index = present_queue_family_index;
+	g->queue.graphics.family_index = graphics_queue_family_index;
+	g->queue.present.family_index = present_queue_family_index;
 	g->surface_format = surface_format;
 	g->present_mode = present_mode;
 
