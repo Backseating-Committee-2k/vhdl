@@ -42,8 +42,10 @@ struct global
 	/* shutting down, don't start new things */
 	bool shutdown;
 
+	/* window currently mapped */
 	bool mapped;
 
+	/* window currently visible */
 	bool visible;
 
 	/* current canvas size */
