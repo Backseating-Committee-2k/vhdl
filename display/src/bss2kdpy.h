@@ -36,7 +36,6 @@ struct global
 	} queue;
 	VkSwapchainKHR swapchain;
 
-	VkSurfaceCapabilitiesKHR surface_capabilities;
 	VkSurfaceFormatKHR surface_format;
 	VkPresentModeKHR present_mode;
 

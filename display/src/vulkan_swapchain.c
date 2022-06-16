@@ -33,16 +33,23 @@ bool vulkan_swapchain_update(struct global *g)
 	for(uint32_t i = 0; i < g->swapchain_image_count; ++i)
 		assert(g->swapchain_images[i].image_view == VK_NULL_HANDLE);
 
-	uint32_t const minImageCount = g->surface_capabilities.minImageCount;
-	uint32_t const maxImageCount = g->surface_capabilities.maxImageCount;
+	VkSurfaceCapabilitiesKHR surface_capabilities;
+
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+			g->physical_device,
+			g->surface,
+			&surface_capabilities);
+
+	uint32_t const minImageCount = surface_capabilities.minImageCount;
+	uint32_t const maxImageCount = surface_capabilities.maxImageCount;
 
 	uint32_t const imageCount =
 			(maxImageCount == 0)
 			? (minImageCount + 1)
 			: (min(minImageCount + 1, maxImageCount));
 
-	VkExtent2D const minExtent = g->surface_capabilities.minImageExtent;
-	VkExtent2D const maxExtent = g->surface_capabilities.maxImageExtent;
+	VkExtent2D const minExtent = surface_capabilities.minImageExtent;
+	VkExtent2D const maxExtent = surface_capabilities.maxImageExtent;
 
 	/** @todo replace image sharing by ownership transfer */
 	bool const image_sharing_needed =
@@ -91,7 +98,7 @@ bool vulkan_swapchain_update(struct global *g)
 		.imageSharingMode = sharing_mode,
 		.queueFamilyIndexCount = used_indices_count,
 		.pQueueFamilyIndices = queue_family_indices,
-		.preTransform = g->surface_capabilities.currentTransform,
+		.preTransform = surface_capabilities.currentTransform,
 		.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
 		.presentMode = g->present_mode,
 		.clipped = VK_TRUE,
