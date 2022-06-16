@@ -50,10 +50,12 @@ static void handle_unmap_event(struct global *g, XUnmapEvent *event)
 
 	g->mapped = false;
 
-	vulkan_swapchain_teardown(g);
-	x11_vulkan_teardown(g);
+	{
+		vulkan_swapchain_teardown(g);
+		x11_vulkan_teardown(g);
 
-	XDestroyWindow(g->x11.display, g->x11.window);
+		XDestroyWindow(g->x11.display, g->x11.window);
+	}
 }
 
 static void handle_map_event(struct global *g, XMapEvent *event)
