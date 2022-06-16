@@ -28,6 +28,9 @@ static void teardown_image_views(struct global *g)
 
 bool vulkan_swapchain_update(struct global *g)
 {
+	/* TODO: hardcoded here */
+	uint32_t const layer_count = 1;
+
 	teardown_image_views(g);
 
 	for(uint32_t i = 0; i < g->swapchain_image_count; ++i)
@@ -93,7 +96,7 @@ bool vulkan_swapchain_update(struct global *g)
 					minExtent.height,
 					maxExtent.height)
 		},
-		.imageArrayLayers = 1,
+		.imageArrayLayers = layer_count,
 		.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
 		.imageSharingMode = sharing_mode,
 		.queueFamilyIndexCount = used_indices_count,
@@ -182,7 +185,7 @@ bool vulkan_swapchain_update(struct global *g)
 				.baseMipLevel = 0,
 				.levelCount = 1,
 				.baseArrayLayer = 0,
-				.layerCount = 1
+				.layerCount = layer_count
 			}
 		};
 
