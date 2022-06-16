@@ -121,6 +121,7 @@ bool x11_mainloop(struct global *g)
 
 	for(;;)
 	{
+		if(XPending(g->x11.display) == 0)
 		{
 			int x11_fd = ConnectionNumber(g->x11.display);
 
