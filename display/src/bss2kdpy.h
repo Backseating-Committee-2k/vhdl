@@ -33,6 +33,9 @@ struct global
 	VkSurfaceFormatKHR surface_format;
 	VkPresentModeKHR present_mode;
 
+	/* shutting down, don't start new things */
+	bool shutdown;
+
 	bool mapped;
 
 	bool visible;

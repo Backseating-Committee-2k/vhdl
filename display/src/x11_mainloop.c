@@ -50,6 +50,7 @@ static void handle_unmap_event(struct global *g, XUnmapEvent *event)
 
 	g->mapped = false;
 
+	if(g->shutdown)
 	{
 		vulkan_swapchain_teardown(g);
 		x11_vulkan_teardown(g);
@@ -152,6 +153,7 @@ bool x11_mainloop(struct global *g)
 
 			if(rc == 0)
 			{
+				g->shutdown = true;
 				XUnmapWindow(
 						g->x11.display,
 						g->x11.window);
