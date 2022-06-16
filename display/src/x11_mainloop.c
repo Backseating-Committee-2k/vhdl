@@ -19,6 +19,18 @@
 
 #include <assert.h>
 
+static bool update_swapchain(struct global *g)
+{
+	if(!vulkan_swapchain_update(g))
+		return false;
+	return true;
+}
+
+static void teardown_swapchain(struct global *g)
+{
+	vulkan_swapchain_teardown(g);
+}
+
 static void handle_visibility_event(struct global *g, XVisibilityEvent *event)
 {
 	switch(event->state)
@@ -52,7 +64,7 @@ static void handle_unmap_event(struct global *g, XUnmapEvent *event)
 
 	if(g->shutdown)
 	{
-		vulkan_swapchain_teardown(g);
+		teardown_swapchain(g);
 		x11_vulkan_teardown(g);
 
 		XDestroyWindow(g->x11.display, g->x11.window);
@@ -69,7 +81,7 @@ static void handle_map_event(struct global *g, XMapEvent *event)
 
 	if(rebuild_swapchain)
 	{
-		bool const success = vulkan_swapchain_update(g);
+		bool const success = update_swapchain(g);
 		assert(success);
 	}
 }
@@ -88,7 +100,7 @@ static void handle_configure_event(struct global *g, XConfigureEvent *event)
 
 	if(rebuild_swapchain)
 	{
-		bool const success = vulkan_swapchain_update(g);
+		bool const success = update_swapchain(g);
 		assert(success);
 	}
 }
