@@ -21,6 +21,8 @@
 
 static bool update_swapchain(struct global *g)
 {
+	assert(!g->shutdown);
+
 	if(!vulkan_swapchain_update(g))
 		return false;
 	return true;
@@ -28,6 +30,8 @@ static bool update_swapchain(struct global *g)
 
 static void teardown_swapchain(struct global *g)
 {
+	assert(g->shutdown);
+
 	vulkan_swapchain_teardown(g);
 }
 
