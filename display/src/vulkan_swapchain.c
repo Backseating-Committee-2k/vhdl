@@ -18,6 +18,8 @@ static void teardown_image_views(struct global *g)
 {
 	for(uint32_t i = 0; i < g->swapchain_image_count; ++i)
 	{
+		if(g->swapchain_images[i].image_view == VK_NULL_HANDLE)
+			continue;
 		vkDestroyImageView(
 				g->device,
 				g->swapchain_images[i].image_view,
