@@ -154,9 +154,12 @@ bool x11_mainloop(struct global *g)
 			if(rc == 0)
 			{
 				g->shutdown = true;
-				XUnmapWindow(
-						g->x11.display,
-						g->x11.window);
+				if(g->mapped)
+					XUnmapWindow(
+							g->x11.display,
+							g->x11.window);
+				else
+					handle_unmap_event(g, NULL);
 			}
 		}
 
