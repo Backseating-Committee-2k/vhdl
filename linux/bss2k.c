@@ -27,6 +27,12 @@ struct bss2k_priv
 {
 	/* BAR 2 (registers) mapping */
 	u64 volatile *reg;
+
+	/* emulator memory (host pointers) */
+	void *host_mem[NUM_MAPPINGS];
+
+	/* emulator memory (DMA descriptors) */
+	dma_addr_t host_mem_dma[NUM_MAPPINGS];
 };
 
 static int bss2k_probe(
@@ -35,6 +41,7 @@ static int bss2k_probe(
 {
 	struct device *const dev = &pdev->dev;
 
+	int i;
 	int err;
 	struct bss2k_priv *priv;
 
@@ -63,6 +70,26 @@ static int bss2k_probe(
 	if(err < 0)
 		/* just suboptimal */
 		dev_warn(dev, "could not set up 64 bit DMA mask");
+
+	for(i = 0; i < NUM_MAPPINGS; ++i)
+	{
+		priv->host_mem[i] = dmam_alloc_coherent(dev,
+				MAPPING_SIZE,
+				&priv->host_mem_dma[i],
+				GFP_KERNEL);
+		if(!priv->host_mem[i])
+			return -ENOMEM;
+	}
+
+	for(i = 0; i < NUM_MAPPINGS; ++i)
+		priv->reg[REG_MAPPING + i] = priv->host_mem_dma[i];
+
+	if(priv->reg[REG_STATUS] & STS_MAPPING_ERROR)
+	{
+		dev_err(dev, "status still shows mapping error "
+				"after configuration");
+		return -ENODEV;
+	}
 
 	return 0;
 }
