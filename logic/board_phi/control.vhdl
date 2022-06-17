@@ -1,5 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.ALL;
+use ieee.std_logic_misc.ALL;
 use ieee.numeric_std.ALL;
 
 entity control is
@@ -44,18 +45,53 @@ architecture rtl of control is
 	-- control register
 	signal should_reset : std_logic;
 
+	-- status register
+	-- running bit is direct from CPU
+	signal mapping_error : std_logic;
+
 	-- interrupt mask register
 	signal mask : std_logic;
 
+	constant cpu_address_width : integer := 24;
+	constant host_address_width : integer := 64;
+
+	subtype cpu_address is std_logic_vector(cpu_address_width - 1 downto 0);
+	subtype host_address is std_logic_vector(host_address_width - 1 downto 0);
+
+	constant page_size_bits : integer := 21;	-- 12 (4k) or 21 (2M)
+	constant page_num_bits : integer := cpu_address_width - page_size_bits;
+	constant page_count : integer := 2 ** page_num_bits;
+
+	subtype page_num is integer range 0 to page_count - 1;
+
+	function to_page_num(a : cpu_address) return page_num is
+	begin
+		return to_integer(unsigned(a(cpu_address_width - 1 downto page_size_bits)));
+	end function;
+
+	subtype host_page is std_logic_vector(host_address_width - 1 downto page_size_bits);
+
+	type mapping_t is array(page_num) of host_page;
+
+	signal mapping : mapping_t;
+	signal mapping_invalid : std_logic_vector(page_num);
+
 	constant reg_addr_bits : integer := 8;
 	subtype reg_addr is std_logic_vector(reg_addr_bits - 1 downto 0);
+
+	-- useful bits in mapping registers
+	subtype mapping_bits is std_logic_vector(page_num_bits + 2 downto 3);
 
 	constant reg_status	: reg_addr := "00000000";
 	constant reg_control	: reg_addr := "00001000";
 	constant reg_int_status	: reg_addr := "00010000";
 	constant reg_int_mask	: reg_addr := "00011000";
+	constant reg_mapping	: reg_addr := (
+			reg_addr'high => '1',
+			mapping_bits'range => '-',
+			others => '0');		-- "10---000"
 
-	type sel is (sel_status, sel_control, sel_int_status, sel_int_mask, sel_invalid);
+	type sel is (sel_status, sel_control, sel_int_status, sel_int_mask, sel_mapping, sel_invalid);
 
 	subtype pci_address_bdf is std_logic_vector(15 downto 0);
 	subtype pcie_type is std_logic_vector(4 downto 0);
@@ -79,6 +115,8 @@ begin
 
 	cpu_reset <= should_reset;
 
+	mapping_error <= or_reduce(mapping_invalid);
+
 	process(reset, clk) is
 		variable has_data : std_logic;
 		variable has_64bit_address : std_logic;
@@ -100,8 +138,13 @@ begin
 		variable reg_address : reg_addr;
 
 		variable selected : sel;
+
+		variable page : page_num;
 	begin
 		if(reset = '1') then
+			-- reset mapping to all NULL pointers
+			--mapping <= (others => (others => '0'));
+			mapping_invalid <= (others => '1');
 			readback_strobe <= '0';
 			mask <= '0';
 			should_reset <= '1';
@@ -140,6 +183,7 @@ begin
 									when reg_control	=> selected := sel_control;
 									when reg_int_status	=> selected := sel_int_status;
 									when reg_int_mask	=> selected := sel_int_mask;
+									when reg_mapping	=> selected := sel_mapping;
 									when others		=> selected := sel_invalid;
 								end case?;
 								if(?? has_data) then
@@ -170,6 +214,10 @@ begin
 									null;		-- read only
 								when sel_int_mask =>
 									mask <= rx_data(0);
+								when sel_mapping =>
+									page := to_integer(unsigned(reg_address(mapping_bits'range)));
+									mapping(page) <= rx_data(host_page'range);
+									mapping_invalid(page) <= '0';
 								when sel_invalid =>
 									null;
 							end case;
@@ -184,6 +232,8 @@ begin
 	process(reset, clk) is
 		type state is (idle, header1, header2, data);
 		variable s : state;
+
+		variable page : page_num;
 
 		-- fixme
 		constant status : std_logic_vector(2 downto 0) := "000";
@@ -224,13 +274,17 @@ begin
 						tx_valid <= '1';
 						case readback_sel is
 							when sel_status =>
-								tx_data <= (0 => not cpu_halted, others => '0');
+								tx_data <= (0 => not cpu_halted, 1 => mapping_error, others => '0');
 							when sel_control =>
 								tx_data <= (0 => should_reset, others => '0');
 							when sel_int_status =>
 								tx_data <= (0 => cpu_halted, others => '0');
 							when sel_int_mask =>
 								tx_data <= (0 => mask, others => '0');
+							when sel_mapping =>
+								page := to_integer(unsigned(readback_lower_address(mapping_bits'range)));
+								tx_data <= (others => '0');
+								tx_data(host_page'range) <= mapping(page);
 							when sel_invalid =>
 								tx_data <= (others => '1');
 						end case;
