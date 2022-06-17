@@ -10,6 +10,14 @@
 
 bool vulkan_device_setup(struct global *g)
 {
+	char const *const required_extension_names[] =
+	{
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	};
+	uint32_t const required_extension_count =
+			sizeof required_extension_names /
+				sizeof required_extension_names[0];
+
 	uint32_t graphics_queue_family_index;
 	uint32_t present_queue_family_index;
 	VkSurfaceFormatKHR surface_format;
@@ -309,11 +317,6 @@ bool vulkan_device_setup(struct global *g)
 	{
 	};
 
-	char const *const enabled_extension_names[] =
-	{
-		VK_KHR_SWAPCHAIN_EXTENSION_NAME
-	};
-
 	VkDeviceCreateInfo const info =
 	{
 		.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -324,9 +327,8 @@ bool vulkan_device_setup(struct global *g)
 		.enabledLayerCount = sizeof enabled_layer_names /
 				sizeof enabled_layer_names[0],
 		.ppEnabledLayerNames = enabled_layer_names,
-		.enabledExtensionCount = sizeof enabled_extension_names /
-				sizeof enabled_extension_names[0],
-		.ppEnabledExtensionNames = enabled_extension_names,
+		.enabledExtensionCount = required_extension_count,
+		.ppEnabledExtensionNames = required_extension_names,
 		.pEnabledFeatures = NULL	/// @todo
 	};
 
