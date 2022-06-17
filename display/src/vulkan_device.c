@@ -78,9 +78,9 @@ bool vulkan_device_setup(struct global *g)
 		{
 			bool have_swapchain_extension = false;
 
-			for(uint32_t j = 0; j < extension_count; ++j)
+			for(uint32_t k = 0; k < extension_count; ++k)
 			{
-				if(!strcmp(extension_properties[j].extensionName,
+				if(!strcmp(extension_properties[k].extensionName,
 						VK_KHR_SWAPCHAIN_EXTENSION_NAME))
 					have_swapchain_extension = true;
 
