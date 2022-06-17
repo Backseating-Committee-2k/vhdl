@@ -18,6 +18,7 @@ bool x11_setup(struct global *g)
 	g->shutdown = false;
 	g->mapped = false;
 	g->visible = false;
+	g->drawing = false;
 
 	/* sensible defaults */
 	g->canvas.x = 0;
