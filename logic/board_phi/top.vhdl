@@ -294,7 +294,10 @@ begin
 			completer_id => cfg_busdev & "000",
 
 			cpu_reset => cpu_reset,
-			cpu_halted => cpu_halted
+			cpu_halted => cpu_halted,
+
+			mmu_address_in => (others => '0'),
+			mmu_address_out => open
 		);
 
 	-- clocks

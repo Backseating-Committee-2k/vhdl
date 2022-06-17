@@ -41,7 +41,11 @@ entity control is
 
 		-- CPU control interface
 		cpu_reset : out std_logic;
-		cpu_halted : in std_logic
+		cpu_halted : in std_logic;
+
+		-- memory translation
+		mmu_address_in : in std_logic_vector(23 downto 0);
+		mmu_address_out : out std_logic_vector(63 downto 0)
 	);
 end entity;
 
@@ -125,6 +129,10 @@ begin
 
 	-- completion interface
 	cpl_pending <= '0';
+
+	mmu_address_out <=
+			mapping(to_page_num(mmu_address_in)) &			-- resolved page
+			mmu_address_in(page_size_bits - 1 downto 0);	-- offset
 
 	process(reset, clk) is
 		variable has_data : std_logic;
