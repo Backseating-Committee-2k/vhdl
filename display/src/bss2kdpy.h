@@ -39,6 +39,7 @@ struct global
 	VkPipelineLayout pipeline_layout;
 	VkPipeline pipelines[1];
 	VkCommandPool graphics_command_pool;
+	VkCommandBuffer graphics_command_buffers[1];
 
 	VkSurfaceFormatKHR surface_format;
 	VkPresentModeKHR present_mode;

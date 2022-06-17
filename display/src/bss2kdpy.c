@@ -8,6 +8,7 @@
 #include "vulkan_instance.h"
 #include "vulkan_device.h"
 #include "vulkan_command_pool.h"
+#include "vulkan_command_buffer.h"
 #include "vulkan_swapchain.h"
 #include "vulkan_shader.h"
 #include "vulkan_renderpass.h"
@@ -42,6 +43,9 @@ int main(int argc, char **argv)
 	if(!vulkan_command_pool_setup(&g))
 		goto fail_vulkan_command_pool;
 
+	if(!vulkan_command_buffer_setup(&g))
+		goto fail_vulkan_command_buffer;
+
 	if(!vulkan_shader_setup(&g))
 		goto fail_vulkan_shader;
 
@@ -67,6 +71,9 @@ fail_vulkan_renderpass:
 	vulkan_shader_teardown(&g);
 
 fail_vulkan_shader:
+	vulkan_command_buffer_teardown(&g);
+
+fail_vulkan_command_buffer:
 	vulkan_command_pool_teardown(&g);
 
 fail_vulkan_command_pool:
