@@ -1,5 +1,7 @@
 #include <linux/module.h>
 
+#include <linux/cdev.h>
+
 #include <linux/pci.h>
 
 #define REG_STATUS      0
@@ -27,6 +29,12 @@
 
 struct bss2k_priv
 {
+	/* user-visible character device */
+	struct cdev cdev;
+
+	/* user visible device */
+	struct device *dev;
+
 	/* BAR 2 (registers) mapping */
 	u64 volatile *reg;
 
@@ -36,6 +44,36 @@ struct bss2k_priv
 	/* emulator memory (DMA descriptors) */
 	dma_addr_t host_mem_dma[NUM_MAPPINGS];
 };
+
+static int bss2k_open(
+		struct inode *ino,
+		struct file *filp)
+{
+	struct bss2k_priv *const priv =
+		container_of(
+				ino->i_cdev,
+				struct bss2k_priv,
+				cdev);
+
+	filp->private_data = priv;
+
+	return 0;
+}
+
+static struct file_operations const bss2k_fops =
+{
+	.owner = THIS_MODULE,
+	.open = &bss2k_open
+};
+
+static struct
+{
+	/* TODO clean up */
+	dev_t devt;
+
+	/* class */
+	struct class *class;
+} bss2k_driver_data;
 
 static int bss2k_probe(
 		struct pci_dev *pdev,
@@ -93,7 +131,33 @@ static int bss2k_probe(
 		return -ENODEV;
 	}
 
+	cdev_init(&priv->cdev, &bss2k_fops);
+
+	/* TODO minor numbers */
+	err = cdev_add(&priv->cdev, bss2k_driver_data.devt, 1);
+	if(err < 0)
+		goto fail_cdev_add;
+
+	priv->dev = device_create(
+			bss2k_driver_data.class,
+			dev,
+			bss2k_driver_data.devt,
+			priv,
+			"bss2k-%u",
+			0);
+	if(IS_ERR(priv->dev))
+	{
+		err = PTR_ERR(priv->dev);
+		goto fail_device_create;
+	}
+
 	return 0;
+
+fail_device_create:
+	cdev_del(&priv->cdev);
+
+fail_cdev_add:
+	return err;
 }
 
 static void bss2k_remove(
@@ -113,6 +177,13 @@ static void bss2k_remove(
 	/* clear mappings, for safety */
 	for(i = 0; i < NUM_MAPPINGS; ++i)
 		priv->reg[REG_MAPPING + i] = 0ULL;
+
+	/// TODO cleanup
+	device_destroy(
+			bss2k_driver_data.class,
+			bss2k_driver_data.devt);
+
+	cdev_del(&priv->cdev);
 
 	/* iomap, kmalloc, enable_device are handled by managed device
 	 * framework, nothing more to do here.
@@ -135,12 +206,42 @@ static struct pci_driver bss2k_driver =
 
 static int __init bss2k_init(void)
 {
-	return pci_register_driver(&bss2k_driver);
+	int err;
+
+	bss2k_driver_data.class = class_create(THIS_MODULE, "bss2k");
+	if(IS_ERR(bss2k_driver_data.class))
+	{
+		err = PTR_ERR(bss2k_driver_data.class);
+		goto err_class;
+	}
+
+	err = alloc_chrdev_region(&bss2k_driver_data.devt, 0, 1, "bss2k");
+	if(err < 0)
+		goto err_chrdev_region;
+
+	err = pci_register_driver(&bss2k_driver);
+	if(err < 0)
+		goto err_register_driver;
+
+	return 0;
+
+	//pci_unregister_driver(&bss2k_driver);
+
+err_register_driver:
+	unregister_chrdev_region(bss2k_driver_data.devt, 1);
+
+err_chrdev_region:
+	class_destroy(bss2k_driver_data.class);
+
+err_class:
+	return err;
 }
 
 static void __exit bss2k_exit(void)
 {
 	pci_unregister_driver(&bss2k_driver);
+	unregister_chrdev_region(bss2k_driver_data.devt, 1);
+	class_destroy(bss2k_driver_data.class);
 }
 
 module_init(bss2k_init);
