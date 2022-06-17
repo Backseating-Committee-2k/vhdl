@@ -10,6 +10,7 @@
 #include "vulkan_swapchain.h"
 #include "vulkan_shader.h"
 #include "vulkan_renderpass.h"
+#include "vulkan_pipeline.h"
 
 #include "bss2kdpy.h"
 
@@ -50,6 +51,9 @@ int main(int argc, char **argv)
 	rc = 0;
 
 fail_x11_mainloop:
+	/* shouldn't be necessary */
+	vulkan_pipeline_teardown(&g);
+
 	vulkan_renderpass_teardown(&g);
 
 fail_vulkan_renderpass:

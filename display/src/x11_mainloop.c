@@ -7,6 +7,7 @@
 #include "x11_vulkan.h"
 
 #include "vulkan_swapchain.h"
+#include "vulkan_pipeline.h"
 
 #include "bss2kdpy.h"
 
@@ -19,19 +20,23 @@
 
 #include <assert.h>
 
-static bool update_swapchain(struct global *g)
+static bool update_swapchain_and_pipeline(struct global *g)
 {
 	assert(!g->shutdown);
 
+	vulkan_pipeline_teardown(g);
 	if(!vulkan_swapchain_update(g))
+		return false;
+	if(!vulkan_pipeline_setup(g))
 		return false;
 	return true;
 }
 
-static void teardown_swapchain(struct global *g)
+static void teardown_swapchain_and_pipeline(struct global *g)
 {
 	assert(g->shutdown);
 
+	vulkan_pipeline_teardown(g);
 	vulkan_swapchain_teardown(g);
 }
 
@@ -68,7 +73,7 @@ static void handle_unmap_event(struct global *g, XUnmapEvent *event)
 
 	if(g->shutdown)
 	{
-		teardown_swapchain(g);
+		teardown_swapchain_and_pipeline(g);
 		x11_vulkan_teardown(g);
 
 		XDestroyWindow(g->x11.display, g->x11.window);
@@ -85,7 +90,7 @@ static void handle_map_event(struct global *g, XMapEvent *event)
 
 	if(rebuild_swapchain)
 	{
-		bool const success = update_swapchain(g);
+		bool const success = update_swapchain_and_pipeline(g);
 		assert(success);
 	}
 }
@@ -104,7 +109,7 @@ static void handle_configure_event(struct global *g, XConfigureEvent *event)
 
 	if(rebuild_swapchain)
 	{
-		bool const success = update_swapchain(g);
+		bool const success = update_swapchain_and_pipeline(g);
 		assert(success);
 	}
 }
