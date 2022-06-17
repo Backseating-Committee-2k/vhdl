@@ -38,6 +38,7 @@ struct global
 	VkRenderPass render_pass;
 	VkPipelineLayout pipeline_layout;
 	VkPipeline pipelines[1];
+	VkCommandPool graphics_command_pool;
 
 	VkSurfaceFormatKHR surface_format;
 	VkPresentModeKHR present_mode;

@@ -20,6 +20,7 @@ bool vulkan_instance_setup(struct global *g)
 	g->render_pass = VK_NULL_HANDLE;
 	g->pipeline_layout = VK_NULL_HANDLE;
 	g->pipelines[0] = VK_NULL_HANDLE;
+	g->graphics_command_pool = VK_NULL_HANDLE;
 	g->shaders.frag = VK_NULL_HANDLE;
 	g->shaders.vert = VK_NULL_HANDLE;
 	g->swapchain_image_count = 0;

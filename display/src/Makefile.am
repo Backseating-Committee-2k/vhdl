@@ -4,6 +4,7 @@ bss2kdpy_SOURCES = \
 	bss2kdpy.c bss2kdpy.h \
 	util.h \
 	vulkan_instance.c vulkan_instance.h \
+	vulkan_command_pool.c vulkan_command_pool.h \
 	vulkan_device.c vulkan_device.h \
 	vulkan_pipeline.c vulkan_pipeline.h \
 	vulkan_renderpass.c vulkan_renderpass.h \
