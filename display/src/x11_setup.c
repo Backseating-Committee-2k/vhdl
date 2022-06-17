@@ -80,11 +80,11 @@ bool x11_setup(struct global *g)
 
 		size_hints->min_width = tex_width;
 		size_hints->min_height = tex_height;
-		size_hints->width_inc = tex_width;
-		size_hints->height_inc = tex_height;
-		size_hints->base_width = tex_width;
-		size_hints->base_height = tex_height;
-		size_hints->flags = PMinSize|PResizeInc|PBaseSize;
+		size_hints->min_aspect.x = 4;
+		size_hints->min_aspect.y = 3;
+		size_hints->max_aspect.x = 4;
+		size_hints->max_aspect.y = 3;
+		size_hints->flags = PMinSize|PAspect;
 
 		XSetStandardProperties(
 				g->x11.display,
