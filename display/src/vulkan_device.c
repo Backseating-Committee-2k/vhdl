@@ -322,10 +322,10 @@ bool vulkan_device_setup(struct global *g)
 		.queueCreateInfoCount = num_queues,
 		.pQueueCreateInfos = queue_infos,
 		.enabledLayerCount = sizeof enabled_layer_names /
-				sizeof *enabled_layer_names,
+				sizeof enabled_layer_names[0],
 		.ppEnabledLayerNames = enabled_layer_names,
 		.enabledExtensionCount = sizeof enabled_extension_names /
-				sizeof *enabled_extension_names,
+				sizeof enabled_extension_names[0],
 		.ppEnabledExtensionNames = enabled_extension_names,
 		.pEnabledFeatures = NULL	/// @todo
 	};
