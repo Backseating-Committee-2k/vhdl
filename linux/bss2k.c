@@ -6,6 +6,7 @@ static unsigned int const reg_status = 0;
 static unsigned int const reg_control = 1;
 static unsigned int const reg_int_status = 2;
 static unsigned int const reg_int_mask = 3;
+static unsigned int const reg_mapping = 16;
 
 static int bss2k_probe(
 		struct pci_dev *dev,
