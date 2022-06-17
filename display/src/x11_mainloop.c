@@ -9,6 +9,8 @@
 #include "vulkan_swapchain.h"
 #include "vulkan_pipeline.h"
 
+#include "vulkan_draw.h"
+
 #include "bss2kdpy.h"
 
 #include <X11/Xlib.h>
@@ -24,6 +26,8 @@ static bool update_swapchain_and_pipeline(struct global *g)
 {
 	assert(!g->shutdown);
 
+	vulkan_draw_stop(g);
+
 	vulkan_pipeline_teardown(g);
 	if(!vulkan_swapchain_update(g))
 		return false;
@@ -35,6 +39,8 @@ static bool update_swapchain_and_pipeline(struct global *g)
 static void teardown_swapchain_and_pipeline(struct global *g)
 {
 	assert(g->shutdown);
+
+	vulkan_draw_stop(g);
 
 	vulkan_pipeline_teardown(g);
 	vulkan_swapchain_teardown(g);
@@ -52,6 +58,9 @@ static void handle_visibility_event(struct global *g, XVisibilityEvent *event)
 		g->visible = false;
 		break;
 	}
+
+	if(g->mapped && g->visible)
+		vulkan_draw(g);
 }
 
 static bool handle_destroy_event(struct global *g, XDestroyWindowEvent *event)
@@ -93,6 +102,9 @@ static void handle_map_event(struct global *g, XMapEvent *event)
 		bool const success = update_swapchain_and_pipeline(g);
 		assert(success);
 	}
+
+	if(g->mapped && g->visible)
+		vulkan_draw(g);
 }
 
 static void handle_configure_event(struct global *g, XConfigureEvent *event)
@@ -112,6 +124,9 @@ static void handle_configure_event(struct global *g, XConfigureEvent *event)
 		bool const success = update_swapchain_and_pipeline(g);
 		assert(success);
 	}
+
+	if(g->mapped && g->visible)
+		vulkan_draw(g);
 }
 
 static bool handle_event(struct global *g, XEvent *event)

@@ -62,6 +62,9 @@ struct global
 	/* window currently visible */
 	bool visible;
 
+	/* GPU busy (more likely, status not collected) */
+	bool drawing;
+
 	/* current canvas size */
 	struct
 	{
