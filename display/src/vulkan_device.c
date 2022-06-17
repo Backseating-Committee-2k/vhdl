@@ -75,20 +75,21 @@ bool vulkan_device_setup(struct global *g)
 
 		bool missing_an_extension = false;
 
+		for(uint32_t j = 0; j < required_extension_count; ++j)
 		{
-			bool have_swapchain_extension = false;
+			bool have_this_extension = false;
 
 			for(uint32_t k = 0; k < extension_count; ++k)
 			{
 				if(!strcmp(extension_properties[k].extensionName,
-						VK_KHR_SWAPCHAIN_EXTENSION_NAME))
-					have_swapchain_extension = true;
+						required_extension_names[j]))
+					have_this_extension = true;
 
-				if(have_swapchain_extension)
+				if(have_this_extension)
 					break;
 			}
 
-			if(!have_swapchain_extension)
+			if(!have_this_extension)
 				missing_an_extension = true;
 
 			if(missing_an_extension)
