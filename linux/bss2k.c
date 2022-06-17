@@ -46,7 +46,7 @@ static int bss2k_probe(
 	if(!priv)
 		return -ENOMEM;
 
-	dev->driver_data = priv;
+	dev_set_drvdata(dev, priv);
 
 	priv->reg = pcim_iomap(pdev, 2, 256);
 	if(priv->reg == 0)
@@ -65,7 +65,7 @@ static void bss2k_remove(
 		struct pci_dev *pdev)
 {
 	struct device *const dev = &pdev->dev;
-	struct bss2k_priv *const priv = dev->driver_data;
+	struct bss2k_priv *const priv = dev_get_drvdata(dev);
 
 	unsigned int i;
 
