@@ -37,6 +37,7 @@ struct global
 	VkSwapchainKHR swapchain;
 	VkRenderPass render_pass;
 	VkPipelineLayout pipeline_layout;
+	VkPipeline pipelines[1];
 
 	VkSurfaceFormatKHR surface_format;
 	VkPresentModeKHR present_mode;
