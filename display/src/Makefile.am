@@ -22,8 +22,8 @@ bss2kdpy_LDADD = \
 	vert.$(OBJEXT)
 
 EXTRA_DIST = \
-	red.frag \
-	triangle.vert
+	entire_viewport.vert \
+	red.frag
 
 CLEANFILES = \
 	frag.spv \
@@ -35,5 +35,5 @@ CLEANFILES = \
 frag.spv: red.frag
 	$(GLSLANGVALIDATOR) -V $^
 
-vert.spv: triangle.vert
+vert.spv: entire_viewport.vert
 	$(GLSLANGVALIDATOR) -V $^

@@ -100,7 +100,7 @@ bool vulkan_draw(struct global *g)
 			g->pipelines[0]);
 	vkCmdDraw(
 			buffer,
-			/* vertexCount */ 3,
+			/* vertexCount */ 4,
 			/* instanceCount */ 1,
 			/* firstVertex */ 0,
 			/* firstInstance */ 0);
