@@ -7,6 +7,7 @@
 #include "x11_mainloop.h"
 #include "vulkan_instance.h"
 #include "vulkan_device.h"
+#include "vulkan_sync.h"
 #include "vulkan_command_pool.h"
 #include "vulkan_command_buffer.h"
 #include "vulkan_swapchain.h"
@@ -39,6 +40,9 @@ int main(int argc, char **argv)
 
 	if(!vulkan_device_setup(&g))
 		goto fail_vulkan_device;
+
+	if(!vulkan_sync_setup(&g))
+		goto fail_vulkan_sync;
 
 	if(!vulkan_command_pool_setup(&g))
 		goto fail_vulkan_command_pool;
@@ -77,6 +81,9 @@ fail_vulkan_command_buffer:
 	vulkan_command_pool_teardown(&g);
 
 fail_vulkan_command_pool:
+	vulkan_sync_teardown(&g);
+
+fail_vulkan_sync:
 	vulkan_device_teardown(&g);
 
 fail_vulkan_device:

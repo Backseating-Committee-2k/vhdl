@@ -34,6 +34,11 @@ struct global
 			VkQueue queue;
 		} graphics, present;
 	} queue;
+	struct
+	{
+		VkSemaphore image_available;
+		VkSemaphore render_finished;
+	} sem;
 	VkSwapchainKHR swapchain;
 	VkRenderPass render_pass;
 	VkPipelineLayout pipeline_layout;
