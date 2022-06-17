@@ -18,6 +18,7 @@ bool vulkan_instance_setup(struct global *g)
 	g->device = VK_NULL_HANDLE;
 	g->sem.image_available = VK_NULL_HANDLE;
 	g->sem.render_finished = VK_NULL_HANDLE;
+	g->fence.in_flight = VK_NULL_HANDLE;
 	g->swapchain = VK_NULL_HANDLE;
 	g->render_pass = VK_NULL_HANDLE;
 	g->pipeline_layout = VK_NULL_HANDLE;

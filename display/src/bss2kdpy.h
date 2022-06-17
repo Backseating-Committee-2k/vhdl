@@ -39,6 +39,10 @@ struct global
 		VkSemaphore image_available;
 		VkSemaphore render_finished;
 	} sem;
+	struct
+	{
+		VkFence in_flight;
+	} fence;
 	VkSwapchainKHR swapchain;
 	VkRenderPass render_pass;
 	VkPipelineLayout pipeline_layout;

@@ -31,15 +31,41 @@ static VkSemaphore destroy_semaphore(struct global *g, VkSemaphore sem)
 	return VK_NULL_HANDLE;
 }
 
+static bool create_fence(struct global *g, VkFence *ret)
+{
+	VkFenceCreateInfo const info =
+	{
+		.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO
+	};
+
+	VkResult rc = vkCreateFence(
+			g->device,
+			&info,
+			g->allocation_callbacks,
+			ret);
+	return rc == VK_SUCCESS;
+}
+
+static VkFence destroy_fence(struct global *g, VkFence fence)
+{
+	if(fence != VK_NULL_HANDLE)
+		vkDestroyFence(g->device, fence, g->allocation_callbacks);
+	return VK_NULL_HANDLE;
+}
+
+/* fences are created in "signaled" state */
 bool vulkan_sync_setup(struct global *g)
 {
 	if(!create_semaphore(g, &g->sem.image_available))
 		goto fail_create_semaphore;
 	if(!create_semaphore(g, &g->sem.render_finished))
 		goto fail_create_semaphore;
+	if(!create_fence(g, &g->fence.in_flight))
+		goto fail_create_fence;
 
 	return true;
 
+fail_create_fence:
 fail_create_semaphore:
 	vulkan_sync_teardown(g);
 
@@ -48,6 +74,8 @@ fail_create_semaphore:
 
 void vulkan_sync_teardown(struct global *g)
 {
+	g->fence.in_flight =
+			destroy_fence(g, g->fence.in_flight);
 	g->sem.render_finished =
 			destroy_semaphore(g, g->sem.render_finished);
 	g->sem.image_available =
