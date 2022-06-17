@@ -6,6 +6,8 @@
 
 #include "bss2kdpy.h"
 
+#include <vulkan/vulkan_xlib.h>
+
 bool vulkan_instance_setup(struct global *g)
 {
 	/* if you want a custom allocator, here is where you set it up. */
@@ -49,8 +51,8 @@ bool vulkan_instance_setup(struct global *g)
 
 	char const *const extensions[] =
 	{
-		"VK_KHR_surface",
-		"VK_KHR_xlib_surface"
+		VK_KHR_SURFACE_EXTENSION_NAME,
+		VK_KHR_XLIB_SURFACE_EXTENSION_NAME
 	};
 
 	VkInstanceCreateInfo const info =
