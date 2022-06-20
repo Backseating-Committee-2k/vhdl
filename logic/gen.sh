@@ -5,6 +5,10 @@ if ! which quartus_sh 2>/dev/null; then
 fi
 qmegawiz -silent cpu/altera_registers.vhd
 
+qmegawiz -silent board_phi/debug_fifo.vhd
+qmegawiz -silent board_phi/debug_pll.vhd
+qmegawiz -silent board_phi/debug_port.vhd
+
 qmegawiz -silent board_phi/pll.vhd
 qmegawiz -silent board_phi/pcie.vhd
 qmegawiz -silent board_phi/pcie_serdes.vhd

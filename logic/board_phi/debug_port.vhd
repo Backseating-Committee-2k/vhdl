@@ -1,0 +1,34 @@
+-- megafunction wizard: %ALTDDIO_OUT%
+-- GENERATION: STANDARD
+-- VERSION: WM1.0
+-- MODULE: ALTDDIO_OUT 
+
+-- ============================================================
+-- CNX file retrieval info
+-- ============================================================
+-- Retrieval info: LIBRARY: altera_mf altera_mf.altera_mf_components.all
+-- Retrieval info: PRIVATE: INTENDED_DEVICE_FAMILY STRING "Cyclone IV GX"
+-- Retrieval info: CONSTANT: EXTEND_OE_DISABLE STRING "OFF"
+-- Retrieval info: CONSTANT: INTENDED_DEVICE_FAMILY STRING "Cyclone IV GX"
+-- Retrieval info: CONSTANT: INVERT_OUTPUT STRING "OFF"
+-- Retrieval info: CONSTANT: LPM_HINT STRING "UNUSED"
+-- Retrieval info: CONSTANT: LPM_TYPE STRING "altddio_out"
+-- Retrieval info: CONSTANT: OE_REG STRING "UNREGISTERED"
+-- Retrieval info: CONSTANT: POWER_UP_HIGH STRING "OFF"
+-- Retrieval info: CONSTANT: WIDTH NUMERIC "9"
+-- Retrieval info: USED_PORT: datain_h 0 0 9 0 INPUT NODEFVAL "datain_h[8..0]"
+-- Retrieval info: CONNECT: @datain_h 0 0 9 0 datain_h 0 0 9 0
+-- Retrieval info: USED_PORT: datain_l 0 0 9 0 INPUT NODEFVAL "datain_l[8..0]"
+-- Retrieval info: CONNECT: @datain_l 0 0 9 0 datain_l 0 0 9 0
+-- Retrieval info: USED_PORT: dataout 0 0 9 0 OUTPUT NODEFVAL "dataout[8..0]"
+-- Retrieval info: CONNECT: dataout 0 0 9 0 @dataout 0 0 9 0
+-- Retrieval info: USED_PORT: outclock 0 0 0 0 INPUT_CLK_EXT NODEFVAL "outclock"
+-- Retrieval info: CONNECT: @outclock 0 0 0 0 outclock 0 0 0 0
+-- Retrieval info: GEN_FILE: TYPE_NORMAL debug_port.vhd TRUE FALSE
+-- Retrieval info: GEN_FILE: TYPE_NORMAL debug_port.qip TRUE FALSE
+-- Retrieval info: GEN_FILE: TYPE_NORMAL debug_port.bsf FALSE TRUE
+-- Retrieval info: GEN_FILE: TYPE_NORMAL debug_port_inst.vhd FALSE TRUE
+-- Retrieval info: GEN_FILE: TYPE_NORMAL debug_port.inc FALSE TRUE
+-- Retrieval info: GEN_FILE: TYPE_NORMAL debug_port.cmp FALSE TRUE
+-- Retrieval info: GEN_FILE: TYPE_NORMAL debug_port.ppf TRUE FALSE
+-- Retrieval info: LIB_FILE: altera_mf
