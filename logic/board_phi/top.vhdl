@@ -18,7 +18,11 @@ entity top is
 		pcie_tx : out std_logic_vector(3 downto 0);
 
 		-- independent clock
-		fixedclk_serdes : in std_logic
+		fixedclk_serdes : in std_logic;
+
+		-- debug port
+		debug_clk : out std_logic;
+		debug_data : out std_logic_vector(7 downto 0)
 	);
 end entity;
 
@@ -45,6 +49,12 @@ architecture rtl of top is
 	signal cpu_d_wrdata : word;
 	signal cpu_d_wrreq : std_logic;
 	signal cpu_d_waitrequest : std_logic;
+
+	-- debug port
+	signal debug_clk_int : std_logic;
+	signal debug_data_valid_int : std_logic;
+	signal debug_data_invalid_int : std_logic;
+	signal debug_data_int : std_logic_vector(7 downto 0);
 
 	component cpu is
 		port(
@@ -481,6 +491,40 @@ begin
 			cfg_tcvcmap => open,
 			cfg_msicsr => open
 	);
+
+	-- debug port clock generation
+	debug_pll_inst : entity work.debug_pll
+		port map(
+			inclk0 => fixedclk_serdes,
+			c0 => debug_clk_int
+		);
+
+	-- debug port
+	debug_port_inst : entity work.debug_port
+		port map(
+			outclock => debug_clk_int,
+			datain_l(8) => '0',
+			datain_h(8) => debug_data_valid_int,
+			datain_l(7 downto 0) => debug_data_int,
+			datain_h(7 downto 0) => debug_data_int,
+			dataout(8) => debug_clk,
+			dataout(7 downto 0) => debug_data
+		);
+
+	-- debug port fifo
+	debug_fifo_inst : entity work.debug_fifo
+		port map(
+			aclr => not npor,
+			data => pcie_rx_data,
+			rdclk => debug_clk_int,
+			rdreq => debug_data_valid_int,
+			wrclk	=> app_clk,
+			wrreq	=> pcie_rx_valid,
+			q => debug_data_int,
+			rdempty => debug_data_invalid_int
+		);
+
+	debug_data_valid_int <= not debug_data_invalid_int;
 end architecture;
 
 library work;

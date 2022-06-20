@@ -47,6 +47,9 @@ set_global_assignment -name VHDL_FILE cpu/bss2k.vhdl
 set_global_assignment -name VHDL_FILE cpu/cpu_pipelined.vhdl
 set_global_assignment -name QIP_FILE cpu/altera_registers.qip
 set_global_assignment -name VHDL_FILE cpu/cpu_sequential.vhdl
+set_global_assignment -name QIP_FILE board_phi/debug_port.qip
+set_global_assignment -name QIP_FILE board_phi/debug_pll.qip
+set_global_assignment -name QIP_FILE board_phi/debug_fifo.qip
 set_global_assignment -name VHDL_FILE board_phi/pcie_rs_hip.vhd
 set_global_assignment -name VHDL_FILE board_phi/altpcierd_tl_cfg_sample.vhd
 set_global_assignment -name QIP_FILE board_phi/pcie.qip
@@ -79,6 +82,17 @@ set_location_assignment PIN_G10 -to fixedclk_serdes
 set_location_assignment PIN_M10 -to "refclk(n)"
 set_location_assignment PIN_G9 -to "fixedclk_serdes(n)"
 set_location_assignment PIN_V5 -to pcie_nperst
+set_location_assignment PIN_T7 -to debug_clk
+set_location_assignment PIN_P10 -to debug_data[7]
+set_location_assignment PIN_R9 -to debug_data[6]
+set_location_assignment PIN_T9 -to debug_data[5]
+set_location_assignment PIN_T8 -to debug_data[4]
+set_location_assignment PIN_R8 -to debug_data[3]
+set_location_assignment PIN_U6 -to debug_data[2]
+set_location_assignment PIN_T6 -to debug_data[1]
+set_location_assignment PIN_R7 -to debug_data[0]
+set_location_assignment PIN_R10 -to debug_gnd
+set_instance_assignment -name RESERVE_PIN AS_OUTPUT_DRIVING_GROUND -to debug_gnd
 
 # Classic Timing Assignments
 # ==========================

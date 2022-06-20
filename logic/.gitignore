@@ -18,6 +18,11 @@ board_phi/pll.qip
 bss2k.qws
 cpu/altera_registers.qip
 db/
+debug_fifo.qip
+debug_pll.ppf
+debug_pll.qip
+debug_port.ppf
+debug_port.qip
 greybox_tmp/
 incremental_db/
 modelsim.ini
