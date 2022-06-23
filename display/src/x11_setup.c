@@ -9,6 +9,8 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#include "util.h"
+
 bool x11_setup(struct global *g)
 {
 	/** @todo constants? */
@@ -47,6 +49,18 @@ bool x11_setup(struct global *g)
 			.event_mask = StructureNotifyMask|VisibilityChangeMask
 		};
 
+		int const screen_width = WidthOfScreen(screen);
+		int const screen_height = HeightOfScreen(screen);
+
+		int const scaling_factor = min(
+				screen_width / tex_width,
+				screen_height / tex_height);
+
+		int const window_width = tex_width * scaling_factor;
+		int const window_height = tex_height * scaling_factor;
+		int const window_x = (screen_width - window_width) / 2;
+		int const window_y = (screen_height - window_height) / 2;
+
 		/* initialize position/size info with requested values. If
 		 * the window manager doesn't override our choices, there
 		 * won't be a ConfigureNotify, and these are what we go
@@ -54,14 +68,14 @@ bool x11_setup(struct global *g)
 		 */
 		g->canvas.x = 0;
 		g->canvas.y = 0;
-		g->canvas.w = tex_width;
-		g->canvas.h = tex_height;
+		g->canvas.w = window_width;
+		g->canvas.h = window_height;
 
 		g->x11.window = XCreateWindow(
 				/* display */	g->x11.display,
 				/* parent */	root,
-				/* x, y */	g->canvas.x, g->canvas.y,
-				/* w, h */	g->canvas.w, g->canvas.h,
+				/* x, y */	window_x, window_y,
+				/* w, h */	window_width, window_height,
 				/* border w */	0,
 				/* depth */	CopyFromParent,
 				/* class */	InputOutput,
