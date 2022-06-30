@@ -30,6 +30,10 @@ entity control is
 
 		cpl_pending : out std_logic;
 
+		-- PCIe arbiter interface
+		tx_req : out std_logic;
+		tx_start : in std_logic;
+
 		completer_id : in std_logic_vector(15 downto 0);
 
 		-- interrupt
@@ -245,25 +249,31 @@ begin
 	begin
 		if(?? reset) then
 			s := idle;
+			tx_req <= '0';
 		elsif(rising_edge(clk)) then
 			tx_valid <= '0';
 			tx_data <= (others => 'U');
 			tx_sop <= 'U';
 			tx_eop <= 'U';
 			tx_err <= 'U';
+			tx_req <= '0';
 			case s is
 				when idle =>
 					if(?? readback_strobe) then
 						s := header1;
+						tx_req <= '1';
 					end if;
 				when header1 =>
-					if(?? tx_ready) then
+					if(?? (tx_ready and tx_start)) then
 						tx_valid <= '1';
 						tx_data <= completer_id & status & '0' & x"008" & '0' & "10" & completion & '0' & readback_tc & "0000" & '0' & '0' & readback_attr & "00" & "0000000010";
 						tx_sop <= '1';
 						tx_eop <= '0';
 						tx_err <= '0';
 						s := header2;
+						tx_req <= '0';
+					else
+						tx_req <= '1';
 					end if;
 				when header2 =>
 					if(?? tx_ready) then

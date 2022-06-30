@@ -90,6 +90,9 @@ architecture rtl of top is
 
 	signal app_clk : std_logic;			-- application clock
 
+	-- top-level PCIe component needs start and req connected
+	signal pcie_arbiter_shortcut : std_logic;
+
 	-- PCIe internal rx interface (Avalon-ST), synchronous to app_clk
 	signal pcie_rx_ready : std_logic;
 	signal pcie_rx_valid : std_logic;
@@ -214,6 +217,10 @@ begin
 			tx_sop => pcie_tx_sop,
 			tx_eop => pcie_tx_eop,
 			tx_err => pcie_tx_err,
+
+			tx_req => pcie_arbiter_shortcut,
+			tx_start => pcie_arbiter_shortcut,
+
 			cpl_pending => cpl_pending,
 
 			completer_id => cfg_busdev & "000",
