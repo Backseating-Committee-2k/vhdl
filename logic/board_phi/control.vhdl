@@ -28,6 +28,8 @@ entity control is
 		tx_eop : out std_logic;
 		tx_err : out std_logic;
 
+		cpl_pending : out std_logic;
+
 		completer_id : in std_logic_vector(15 downto 0);
 
 		-- interrupt
@@ -116,6 +118,9 @@ begin
 	cpu_reset <= should_reset;
 
 	mapping_error <= or_reduce(mapping_invalid);
+
+	-- completion interface
+	cpl_pending <= '0';
 
 	process(reset, clk) is
 		variable has_data : std_logic;

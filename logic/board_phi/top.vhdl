@@ -214,6 +214,7 @@ begin
 			tx_sop => pcie_tx_sop,
 			tx_eop => pcie_tx_eop,
 			tx_err => pcie_tx_err,
+			cpl_pending => cpl_pending,
 
 			completer_id => cfg_busdev & "000",
 
@@ -228,9 +229,6 @@ begin
 
 	-- PCIe internal rx interface (Avalon-ST)
 	pcie_rx_mask <= '0';
-
-	-- completion interface
-	cpl_pending <= '0';
 
 	-- interrupts
 	app_int_sts <= '0';
