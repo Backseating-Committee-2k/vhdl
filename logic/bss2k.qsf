@@ -56,6 +56,7 @@ set_global_assignment -name QIP_FILE board_phi/pcie.qip
 set_global_assignment -name QIP_FILE board_phi/pcie_reconfig.qip
 set_global_assignment -name QIP_FILE board_phi/pll.qip
 set_global_assignment -name VHDL_FILE board_phi/control.vhdl
+set_global_assignment -name VHDL_FILE board_phi/pcie_arbiter.vhdl
 set_global_assignment -name VHDL_FILE board_phi/top.vhdl
 set_global_assignment -name SDC_FILE board_phi/top.sdc
 

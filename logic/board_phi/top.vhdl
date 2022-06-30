@@ -228,17 +228,42 @@ begin
 	control_rx_err <= pcie_rx_err;
 	control_rx_bardec <= pcie_rx_bardec;
 
-	control_tx_ready <= pcie_tx_ready;
-	pcie_tx_valid <= control_tx_valid;
-	pcie_tx_data <= control_tx_data;
-	pcie_tx_sop <= control_tx_sop;
-	pcie_tx_eop <= control_tx_eop;
-	pcie_tx_err <= control_tx_err;
+	arbiter : entity work.pcie_arbiter
+		generic map(
+			num_agents => 1
+		)
+		port map(
+			reset_n => app_rstn,
 
-	pcie_arbiter_shortcut <= control_tx_req;
-	control_tx_start <= pcie_arbiter_shortcut;
+			clk => app_clk,
 
-	cpl_pending <= control_cpl_pending;
+			-- toplevel can give itself permission to start
+			merged_tx_req => pcie_arbiter_shortcut,
+			merged_tx_start => pcie_arbiter_shortcut,
+
+			merged_tx_ready => pcie_tx_ready,
+			merged_tx_valid => pcie_tx_valid,
+			merged_tx_data => pcie_tx_data,
+			merged_tx_sop => pcie_tx_sop,
+			merged_tx_eop => pcie_tx_eop,
+			merged_tx_err => pcie_tx_err,
+
+			merged_cpl_pending => cpl_pending,
+
+			-- request sending data
+			arb_tx_req(1) => control_tx_req,
+			-- start strobe (high one cycle before bus free)
+			arb_tx_start(1) => control_tx_start,
+
+			arb_tx_ready(1) => control_tx_ready,
+			arb_tx_valid(1) => control_tx_valid,
+			arb_tx_data(1) => control_tx_data,
+			arb_tx_sop(1) => control_tx_sop,
+			arb_tx_eop(1) => control_tx_eop,
+			arb_tx_err(1) => control_tx_err,
+
+			arb_cpl_pending(1) => control_cpl_pending
+		);
 
 	control_inst : entity work.control
 		port map(
