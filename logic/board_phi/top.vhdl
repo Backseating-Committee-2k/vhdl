@@ -118,6 +118,28 @@ architecture rtl of top is
 	-- completion interface
 	signal cpl_pending : std_logic;
 
+	-- PCIe internal interface for CPU control block
+	-- rx side
+	signal control_rx_ready : std_logic;
+	signal control_rx_valid : std_logic;
+	signal control_rx_data : std_logic_vector(63 downto 0);
+	signal control_rx_sop : std_logic;
+	signal control_rx_eop : std_logic;
+	signal control_rx_err : std_logic;
+	signal control_rx_bardec : std_logic_vector(7 downto 0);
+	-- tx side
+	signal control_tx_ready : std_logic;
+	signal control_tx_valid : std_logic;
+	signal control_tx_data : std_logic_vector(63 downto 0);
+	signal control_tx_sop : std_logic;
+	signal control_tx_eop : std_logic;
+	signal control_tx_err : std_logic;
+	-- power management
+	signal control_cpl_pending : std_logic;
+	-- arbiter interface
+	signal control_tx_req : std_logic;
+	signal control_tx_start : std_logic;
+
 	-- interrupts
 	signal app_int_sts : std_logic;
 	signal app_int_ack : std_logic;
@@ -197,31 +219,52 @@ begin
 			d_waitrequest => cpu_d_waitrequest
 		);
 
+	pcie_rx_ready <= control_rx_ready;
+
+	control_rx_valid <= pcie_rx_valid;
+	control_rx_data <= pcie_rx_data;
+	control_rx_sop <= pcie_rx_sop;
+	control_rx_eop <= pcie_rx_eop;
+	control_rx_err <= pcie_rx_err;
+	control_rx_bardec <= pcie_rx_bardec;
+
+	control_tx_ready <= pcie_tx_ready;
+	pcie_tx_valid <= control_tx_valid;
+	pcie_tx_data <= control_tx_data;
+	pcie_tx_sop <= control_tx_sop;
+	pcie_tx_eop <= control_tx_eop;
+	pcie_tx_err <= control_tx_err;
+
+	pcie_arbiter_shortcut <= control_tx_req;
+	control_tx_start <= pcie_arbiter_shortcut;
+
+	cpl_pending <= control_cpl_pending;
+
 	control_inst : entity work.control
 		port map(
 			reset => not app_rstn,
 			clk => app_clk,
 
-			rx_ready => pcie_rx_ready,
-			rx_valid => pcie_rx_valid,
-			rx_data => pcie_rx_data,
-			rx_sop => pcie_rx_sop,
-			rx_eop => pcie_rx_eop,
-			rx_err => pcie_rx_err,
+			rx_ready => control_rx_ready,
+			rx_valid => control_rx_valid,
+			rx_data => control_rx_data,
+			rx_sop => control_rx_sop,
+			rx_eop => control_rx_eop,
+			rx_err => control_rx_err,
 
-			rx_bardec => pcie_rx_bardec,
+			rx_bardec => control_rx_bardec,
 
-			tx_ready => pcie_tx_ready,
-			tx_valid => pcie_tx_valid,
-			tx_data => pcie_tx_data,
-			tx_sop => pcie_tx_sop,
-			tx_eop => pcie_tx_eop,
-			tx_err => pcie_tx_err,
+			tx_ready => control_tx_ready,
+			tx_valid => control_tx_valid,
+			tx_data => control_tx_data,
+			tx_sop => control_tx_sop,
+			tx_eop => control_tx_eop,
+			tx_err => control_tx_err,
 
-			tx_req => pcie_arbiter_shortcut,
-			tx_start => pcie_arbiter_shortcut,
+			tx_req => control_tx_req,
+			tx_start => control_tx_start,
 
-			cpl_pending => cpl_pending,
+			cpl_pending => control_cpl_pending,
 
 			completer_id => cfg_busdev & "000",
 
