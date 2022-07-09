@@ -150,6 +150,17 @@ begin
 					  unaffected;
 	end block;
 
+	d_addr <= (others => '0');
+	d_rdreq <= '0';
+	d_wrreq <= '0';
+
+	r(1).address <= (others => '0');
+	r(1).wren <= '0';
+	r(1).data <= (others => '0');
+	r(2).address <= (others => '0');
+	r(2).wren <= '0';
+	r(2).data <= (others => '0');
+
 	register_file : registers
 		port map(
 			address_a => r(1).address,
