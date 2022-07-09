@@ -68,6 +68,9 @@ architecture rtl of cpu_pipelined is
 	-- fetch to decode interface
 	signal fetch_insn_valid : std_logic;
 	signal fetch_insn : instruction;
+
+	-- decode to fetch interface
+	signal fetch_stop : std_logic;
 begin
 	i_rdreq <= i_rdreq_int;
 
@@ -85,7 +88,7 @@ begin
 			elsif(rising_edge(clk)) then
 				i_addr <= ip_reg;
 				i_rdreq_int <= '1';
-				if(not (?? i_waitrequest)) then
+				if(not (?? i_waitrequest) and not (?? fetch_stop)) then
 					ip_reg <= address(unsigned(ip_reg) + 8);
 				end if;
 			end if;
@@ -93,6 +96,47 @@ begin
 
 		fetch_insn_valid <= i_rdreq_int and not i_waitrequest;
 		fetch_insn <= i_rddata;
+	end block;
+
+	decode : block is
+		-- opcodes are 16 bit
+		subtype opcode is std_logic_vector(15 downto 0);
+
+		-- opcodes are in bits 63..48 of the instruction
+		alias op : opcode is fetch_insn(63 downto 48);
+
+		-- suboperation for flow logic
+		type jmp_op is (nop, halt);
+
+		type decoded is record
+			jmp : jmp_op;
+		end record;
+
+		-- decoded instruction
+		signal d_valid : std_logic;
+		signal d : decoded;
+
+		-- should_* signals are valid only if d_valid is set
+
+		-- currently decoded instruction should stop fetch block
+		signal should_stop : std_logic;
+	begin
+		d_valid <= fetch_insn_valid;
+
+		-- decode table
+		with op select d.jmp <=
+		-- jmp
+		( halt ) when x"0006",
+		( nop ) when others;
+
+		-- stop the fetcher if the next instruction should not be
+		-- executed
+		with d.jmp select should_stop <=
+			'0' when nop,
+			'1' when halt;
+		fetch_stop <= '0' when ?? reset else
+					  should_stop when ?? d_valid else
+					  unaffected;
 	end block;
 
 	register_file : registers
