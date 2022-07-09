@@ -62,7 +62,38 @@ architecture rtl of cpu_pipelined is
 	type reg_ports is array(reg_port) of reg_port_interface;
 
 	signal r : reg_ports;
+
+	signal i_rdreq_int : std_logic;
+
+	-- fetch to decode interface
+	signal fetch_insn_valid : std_logic;
+	signal fetch_insn : instruction;
 begin
+	i_rdreq <= i_rdreq_int;
+
+	fetch : block is
+		-- this is the actual IP register. Register 254 is an alias, and
+		-- needs special handling in the writeback code
+		signal ip_reg : address;
+	begin
+		process(reset, clk) is
+		begin
+			if(?? reset) then
+				ip_reg <= entry_point;
+				i_addr <= (others => 'U');
+				i_rdreq_int <= '0';
+			elsif(rising_edge(clk)) then
+				i_addr <= ip_reg;
+				i_rdreq_int <= '1';
+				if(not (?? i_waitrequest)) then
+					ip_reg <= address(unsigned(ip_reg) + 8);
+				end if;
+			end if;
+		end process;
+
+		fetch_insn_valid <= i_rdreq_int and not i_waitrequest;
+		fetch_insn <= i_rddata;
+	end block;
 
 	register_file : registers
 		port map(
