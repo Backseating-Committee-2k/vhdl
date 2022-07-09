@@ -118,6 +118,9 @@ begin
 
 		-- should_* signals are valid only if d_valid is set
 
+		-- currently decoded instruction should set the "halted" signal
+		signal should_halt : std_logic;
+
 		-- currently decoded instruction should stop fetch block
 		signal should_stop : std_logic;
 	begin
@@ -128,6 +131,14 @@ begin
 		-- jmp
 		( halt ) when x"0006",
 		( nop ) when others;
+
+		-- generation of "halted" signal
+		with d.jmp select should_halt <=
+			'0' when nop,
+			'1' when halt;
+		halted <= '0' when ?? reset else
+				  should_halt when ?? d_valid else
+				  unaffected;
 
 		-- stop the fetcher if the next instruction should not be
 		-- executed
