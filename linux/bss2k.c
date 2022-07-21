@@ -4,6 +4,8 @@
 
 #include <linux/pci.h>
 
+#include "bss2k_ioctl.h"
+
 #define REG_STATUS      0
 #define REG_CONTROL     1
 #define REG_INT_STATUS  2
@@ -154,13 +156,74 @@ static ssize_t bss2k_write(
 	return 0;
 }
 
+static long bss2k_ioctl(
+		struct file *filp,
+		unsigned int cmd,
+		unsigned long arg)
+{
+	struct bss2k_priv *priv = filp->private_data;
+
+	u64 val = 0;
+
+	if(_IOC_DIR(cmd) & _IOC_WRITE)
+	{
+		u64 const __user *src = (u64 const __user *)arg;
+		if(!src)
+			return -EINVAL;
+		if(copy_from_user(&val, src, sizeof val))
+			return -EFAULT;
+	}
+
+	switch(cmd)
+	{
+	case BSS2K_IOC_RESET:
+		priv->reg[REG_CONTROL] |= CTL_RESET;
+		break;
+	case BSS2K_IOC_START_CPU:
+		priv->reg[REG_CONTROL] &= ~CTL_RESET;
+		break;
+	case BSS2K_IOC_READ_STATUS:
+		val = priv->reg[REG_STATUS];
+		break;
+	case BSS2K_IOC_READ_CONTROL:
+		val = priv->reg[REG_CONTROL];
+		break;
+	case BSS2K_IOC_READ_INTSTS:
+		val = priv->reg[REG_INT_STATUS];
+		break;
+	case BSS2K_IOC_READ_INTMASK:
+		val = priv->reg[REG_INT_MASK];
+		break;
+	case BSS2K_IOC_WRITE_CONTROL:
+		priv->reg[REG_CONTROL] = val;
+		break;
+	case BSS2K_IOC_WRITE_INTMASK:
+		priv->reg[REG_INT_MASK] = val;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	if(_IOC_DIR(cmd) & _IOC_READ)
+	{
+		u64 __user *dst = (u64 __user *)arg;
+		if(!dst)
+			return -EINVAL;
+		if(copy_to_user(dst, &val, sizeof val))
+			return -EFAULT;
+	}
+
+	return 0;
+};
+
 static struct file_operations const bss2k_fops =
 {
 	.owner = THIS_MODULE,
 	.llseek = default_llseek,
 	.open = &bss2k_open,
 	.read = &bss2k_read,
-	.write = &bss2k_write
+	.write = &bss2k_write,
+	.unlocked_ioctl = &bss2k_ioctl
 };
 
 static struct
