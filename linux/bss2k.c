@@ -60,10 +60,107 @@ static int bss2k_open(
 	return 0;
 }
 
+static ssize_t bss2k_read(
+		struct file *filp,
+		char __user *buf,
+		size_t count,
+		loff_t *pos)
+{
+	struct bss2k_priv *const priv = filp->private_data;
+
+	size_t const end = 0x1000000;		/* 16 MiB */
+	size_t const page_size = 0x200000;	/* 2 MiB */
+
+	size_t const address_mask = end - 1;
+	size_t const offset_mask = page_size - 1;
+	size_t const page_mask = address_mask & ~offset_mask;
+
+	ssize_t total_read = 0;
+
+	/* limit to end of memory */
+	if(*pos + count > end)
+		count = end - *pos;
+
+	while(count)
+	{
+		size_t const current_page = (*pos & page_mask) >> MAPPING_BITS;
+
+		size_t const offset_in_current_page = *pos & offset_mask;
+		size_t const remaining_in_current_page =
+					page_size - offset_in_current_page;
+		size_t const to_copy =
+				(count > remaining_in_current_page)
+				? remaining_in_current_page
+				: count;
+		unsigned long const not_copied =
+				copy_to_user(
+					buf,
+					priv->host_mem[current_page] + offset_in_current_page,
+					to_copy);
+		size_t const copied = (to_copy - not_copied);
+		*pos += copied;
+		total_read += copied;
+		count -= copied;
+	}
+	return total_read;
+}
+
+static ssize_t bss2k_write(
+		struct file *filp,
+		char const __user *buf,
+		size_t count,
+		loff_t *pos)
+{
+	struct bss2k_priv *const priv = filp->private_data;
+
+	size_t const end = 0x1000000;		/* 16 MiB */
+	size_t const page_size = 0x200000;	/* 2 MiB */
+
+	size_t const address_mask = end - 1;
+	size_t const offset_mask = page_size - 1;
+	size_t const page_mask = address_mask & ~offset_mask;
+
+	ssize_t total_written = 0;
+
+	/* limit to end of memory */
+	if(*pos + count > end)
+		count = end - *pos;
+
+	while(count)
+	{
+		size_t const current_page = (*pos & page_mask) >> MAPPING_BITS;
+
+		size_t const offset_in_current_page = *pos & offset_mask;
+		size_t const remaining_in_current_page =
+					page_size - offset_in_current_page;
+		size_t const to_copy =
+				(count > remaining_in_current_page)
+				? remaining_in_current_page
+				: count;
+		unsigned long const not_copied =
+				copy_from_user(
+					priv->host_mem[current_page] + offset_in_current_page,
+					buf,
+					to_copy);
+		size_t const copied = (to_copy - not_copied);
+		*pos += copied;
+		total_written += copied;
+		count -= copied;
+	}
+	if(total_written)
+		return total_written;
+	if(count)
+		return -ENOSPC;
+	return 0;
+}
+
 static struct file_operations const bss2k_fops =
 {
 	.owner = THIS_MODULE,
-	.open = &bss2k_open
+	.llseek = default_llseek,
+	.open = &bss2k_open,
+	.read = &bss2k_read,
+	.write = &bss2k_write
 };
 
 static struct
