@@ -10,8 +10,10 @@
 
 /* emulated CPU has 24 bits, we're using 2 MB pages for mapping, so 3 bits
  * page number and 21 bits page offset */
-#define MAPPING_SIZE    (1 << 21)
-#define NUM_MAPPINGS    (1 << 3)
+#define ADDRESS_WIDTH   24
+#define MAPPING_BITS    21
+#define MAPPING_SIZE    (1 << MAPPING_BITS)
+#define NUM_MAPPINGS    (1 << (ADDRESS_WIDTH - MAPPING_BITS))
 
 /* status register */
 #define STS_RUNNING             (1 << 0)
