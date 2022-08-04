@@ -56,6 +56,9 @@ architecture rtl of top is
 	signal debug_data_invalid_int : std_logic;
 	signal debug_data_int : std_logic_vector(7 downto 0);
 
+	-- translated host address
+	signal cpu_i_addr_host : std_logic_vector(63 downto 0);
+
 	component cpu is
 		port(
 			-- async reset
@@ -140,6 +143,28 @@ architecture rtl of top is
 	signal control_tx_req : std_logic;
 	signal control_tx_start : std_logic;
 
+	-- PCIe internal interface for CPU DMA access
+	-- rx side
+	signal cpu_rx_ready : std_logic;
+	signal cpu_rx_valid : std_logic;
+	signal cpu_rx_data : std_logic_vector(63 downto 0);
+	signal cpu_rx_sop : std_logic;
+	signal cpu_rx_eop : std_logic;
+	signal cpu_rx_err : std_logic;
+	signal cpu_rx_bardec : std_logic_vector(7 downto 0);
+	-- tx side
+	signal cpu_tx_ready : std_logic;
+	signal cpu_tx_valid : std_logic;
+	signal cpu_tx_data : std_logic_vector(63 downto 0);
+	signal cpu_tx_sop : std_logic;
+	signal cpu_tx_eop : std_logic;
+	signal cpu_tx_err : std_logic;
+	-- power management
+	signal cpu_cpl_pending : std_logic;
+	-- arbiter interface
+	signal cpu_tx_req : std_logic;
+	signal cpu_tx_start : std_logic;
+
 	-- interrupts
 	signal app_int_sts : std_logic;
 	signal app_int_ack : std_logic;
@@ -194,10 +219,7 @@ architecture rtl of top is
 	signal tl_cfg_sts : std_logic_vector(52 downto 0);
 	signal tl_cfg_sts_wr : std_logic;
 begin
-	cpu_clk <= '0';
-
-	cpu_i_rddata <= (others => '0');
-	cpu_i_waitrequest <= '1';
+	cpu_clk <= app_clk;
 
 	cpu_d_rddata <= (others => '0');
 	cpu_d_waitrequest <= '1';
@@ -219,7 +241,7 @@ begin
 			d_waitrequest => cpu_d_waitrequest
 		);
 
-	pcie_rx_ready <= control_rx_ready;
+	pcie_rx_ready <= control_rx_ready and cpu_rx_ready;
 
 	control_rx_valid <= pcie_rx_valid;
 	control_rx_data <= pcie_rx_data;
@@ -228,9 +250,16 @@ begin
 	control_rx_err <= pcie_rx_err;
 	control_rx_bardec <= pcie_rx_bardec;
 
+	cpu_rx_valid <= pcie_rx_valid;
+	cpu_rx_data <= pcie_rx_data;
+	cpu_rx_sop <= pcie_rx_sop;
+	cpu_rx_eop <= pcie_rx_eop;
+	cpu_rx_err <= pcie_rx_err;
+	cpu_rx_bardec <= pcie_rx_bardec;
+
 	arbiter : entity work.pcie_arbiter
 		generic map(
-			num_agents => 1
+			num_agents => 2
 		)
 		port map(
 			reset_n => app_rstn,
@@ -252,17 +281,27 @@ begin
 
 			-- request sending data
 			arb_tx_req(1) => control_tx_req,
+			arb_tx_req(2) => cpu_tx_req,
+
 			-- start strobe (high one cycle before bus free)
 			arb_tx_start(1) => control_tx_start,
+			arb_tx_start(2) => cpu_tx_start,
 
 			arb_tx_ready(1) => control_tx_ready,
+			arb_tx_ready(2) => cpu_tx_ready,
 			arb_tx_valid(1) => control_tx_valid,
+			arb_tx_valid(2) => cpu_tx_valid,
 			arb_tx_data(1) => control_tx_data,
+			arb_tx_data(2) => cpu_tx_data,
 			arb_tx_sop(1) => control_tx_sop,
+			arb_tx_sop(2) => cpu_tx_sop,
 			arb_tx_eop(1) => control_tx_eop,
+			arb_tx_eop(2) => cpu_tx_eop,
 			arb_tx_err(1) => control_tx_err,
+			arb_tx_err(2) => cpu_tx_err,
 
-			arb_cpl_pending(1) => control_cpl_pending
+			arb_cpl_pending(1) => control_cpl_pending,
+			arb_cpl_pending(2) => cpu_cpl_pending
 		);
 
 	control_inst : entity work.control
@@ -296,8 +335,45 @@ begin
 			cpu_reset => cpu_reset,
 			cpu_halted => cpu_halted,
 
-			mmu_address_in => (others => '0'),
-			mmu_address_out => open
+			mmu_address_in => cpu_i_addr,
+			mmu_address_out => cpu_i_addr_host
+		);
+
+	cpu_dma_inst : entity work.avalon_mm_to_pcie_avalon_st
+		port map(
+			reset => not app_rstn,
+
+			clk => app_clk,
+
+			-- requester side (Avalon-MM)
+			req_addr => cpu_i_addr_host,
+			req_rdreq => cpu_i_rdreq,
+			req_rddata => cpu_i_rddata,
+			req_waitrequest => cpu_i_waitrequest,
+
+			-- completer side (PCIe Avalon-ST)
+			cmp_rx_ready => cpu_rx_ready,
+			cmp_rx_valid => cpu_rx_valid,
+			cmp_rx_data => cpu_rx_data,
+			cmp_rx_sop => cpu_rx_sop,
+			cmp_rx_eop => cpu_rx_eop,
+			cmp_rx_err => cpu_rx_err,
+
+			cmp_rx_bardec => cpu_rx_bardec,
+
+			cmp_tx_ready => cpu_tx_ready,
+			cmp_tx_valid => cpu_tx_valid,
+			cmp_tx_data => cpu_tx_data,
+			cmp_tx_sop => cpu_tx_sop,
+			cmp_tx_eop => cpu_tx_eop,
+			cmp_tx_err => cpu_tx_err,
+
+			cmp_tx_req => cpu_tx_req,
+			cmp_tx_start => cpu_tx_start,
+
+			cmp_cpl_pending => cpu_cpl_pending,
+
+			device_id => cfg_busdev & "000"
 		);
 
 	-- clocks

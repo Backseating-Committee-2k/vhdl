@@ -1,5 +1,9 @@
 #! /bin/sh -x
 set -e
+ghdl -a --std=08 board_phi/avalon_mm_to_pcie_avalon_st.vhdl board_phi/tb_avalon_mm_to_pcie_avalon_st.vhdl
+ghdl -e --std=08 tb_avalon_mm_to_pcie_avalon_st
+ghdl -r --std=08 tb_avalon_mm_to_pcie_avalon_st --wave=tb_avalon_mm_to_pcie_avalon_st.ghw
+
 ghdl -a --std=08 cpu/bss2k.vhdl cpu/mem_arbiter.vhdl cpu/tb_mem_arbiter.vhdl
 ghdl -e --std=08 tb_mem_arbiter
 ghdl -r --std=08 tb_mem_arbiter --wave=tb_mem_arbiter.ghw

@@ -29,6 +29,7 @@ modelsim.ini
 output_files/
 pcie.xml
 simulation/
+tb_avalon_mm_to_pcie_avalon_st.ghw
 tb_cpu_pipe.ghw
 tb_cpu_pipe.log
 tb_cpu_pipe.vcd
