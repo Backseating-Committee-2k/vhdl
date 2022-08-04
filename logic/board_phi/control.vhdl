@@ -52,6 +52,12 @@ end entity;
 architecture rtl of control is
 	constant reg_bar : integer := 2;
 
+	constant cpu_address_width : integer := 24;
+	constant host_address_width : integer := 64;
+
+	subtype cpu_address is std_logic_vector(cpu_address_width - 1 downto 0);
+	subtype host_address is std_logic_vector(host_address_width - 1 downto 0);
+
 	-- control register
 	signal should_reset : std_logic;
 
@@ -62,11 +68,7 @@ architecture rtl of control is
 	-- interrupt mask register
 	signal mask : std_logic;
 
-	constant cpu_address_width : integer := 24;
-	constant host_address_width : integer := 64;
-
-	subtype cpu_address is std_logic_vector(cpu_address_width - 1 downto 0);
-	subtype host_address is std_logic_vector(host_address_width - 1 downto 0);
+	signal textmode_texture : host_address;
 
 	constant page_size_bits : integer := 21;	-- 12 (4k) or 21 (2M)
 	constant page_num_bits : integer := cpu_address_width - page_size_bits;
@@ -96,12 +98,13 @@ architecture rtl of control is
 	constant reg_control	: reg_addr := "00001000";
 	constant reg_int_status	: reg_addr := "00010000";
 	constant reg_int_mask	: reg_addr := "00011000";
+	constant reg_textmode	: reg_addr := "00100000";
 	constant reg_mapping	: reg_addr := (
 			reg_addr'high => '1',
 			mapping_bits'range => '-',
 			others => '0');		-- "10---000"
 
-	type sel is (sel_status, sel_control, sel_int_status, sel_int_mask, sel_mapping, sel_invalid);
+	type sel is (sel_status, sel_control, sel_int_status, sel_int_mask, sel_textmode, sel_mapping, sel_invalid);
 
 	subtype pci_address_bdf is std_logic_vector(15 downto 0);
 	subtype pcie_type is std_logic_vector(4 downto 0);
@@ -200,6 +203,7 @@ begin
 									when reg_control	=> selected := sel_control;
 									when reg_int_status	=> selected := sel_int_status;
 									when reg_int_mask	=> selected := sel_int_mask;
+									when reg_textmode	=> selected := sel_textmode;
 									when reg_mapping	=> selected := sel_mapping;
 									when others		=> selected := sel_invalid;
 								end case?;
@@ -231,6 +235,8 @@ begin
 									null;		-- read only
 								when sel_int_mask =>
 									mask <= rx_data(0);
+								when sel_textmode =>
+									textmode_texture <= rx_data;
 								when sel_mapping =>
 									page := to_integer(unsigned(reg_address(mapping_bits'range)));
 									mapping(page) <= rx_data(host_page'range);
@@ -304,6 +310,8 @@ begin
 								tx_data <= (0 => cpu_halted, others => '0');
 							when sel_int_mask =>
 								tx_data <= (0 => mask, others => '0');
+							when sel_textmode =>
+								tx_data <= textmode_texture;
 							when sel_mapping =>
 								page := to_integer(unsigned(readback_lower_address(mapping_bits'range)));
 								tx_data <= (others => '0');
