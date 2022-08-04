@@ -1,6 +1,7 @@
 library ieee;
 
 use ieee.std_logic_1164.ALL;
+use ieee.std_logic_misc.ALL;
 
 entity avalon_mm_to_pcie_avalon_st is
 	port(
@@ -44,6 +45,7 @@ end entity;
 
 architecture syn of avalon_mm_to_pcie_avalon_st is
 	signal addr : std_logic_vector(63 downto 0);
+	signal is_64bit : std_logic;
 
 	signal busy : std_logic;
 
@@ -53,6 +55,8 @@ begin
 	busy <= '1' when ?? set_busy else
 			'0' when ?? reset_busy else
 			unaffected;
+
+	is_64bit <= or_reduce(addr(63 downto 32));
 
 	cmp_cpl_pending <= busy;
 
@@ -87,7 +91,7 @@ begin
 								   x"F" &			-- first DWORD BE
 								   "0" &			-- reserved
 								   "0" &			-- no data attached
-								   "1" &			-- 64 bit address
+								   is_64bit &		-- 64 bit address
 								   "00000" &		-- type: memory access
 								   "0" &			-- reserved
 								   "000" &			-- traffic class
@@ -107,9 +111,11 @@ begin
 				when header2 =>
 					if(?? cmp_tx_ready) then
 						cmp_tx_valid <= '1';
-						cmp_tx_data <= addr(31 downto 2) &
-									   "00" &
-									   addr(63 downto 32);
+						if(?? is_64bit) then
+							cmp_tx_data <= addr(31 downto 2) & "00" & addr(63 downto 32);
+						else
+							cmp_tx_data <= x"00000000" & addr(31 downto 2) & "00";
+						end if;
 						cmp_tx_sop <= '0';
 						cmp_tx_eop <= '1';
 						s := idle;
