@@ -478,7 +478,6 @@ begin
 			tl_cfg_sts_wr => tl_cfg_sts_wr,
 
 			cfg_busdev => cfg_busdev,
-			cfg_busdev => open,
 			cfg_devcsr => open,
 			cfg_linkcsr => open,
 			cfg_prmcsr => open,
@@ -504,8 +503,8 @@ begin
 		port map(
 			outclock => debug_clk_int,
 			datain_l(8) => '0',
-			datain_h(8) => debug_data_valid_int,
 			datain_l(7 downto 0) => debug_data_int,
+			datain_h(8) => debug_data_valid_int,
 			datain_h(7 downto 0) => debug_data_int,
 			dataout(8) => debug_clk,
 			dataout(7 downto 0) => debug_data
