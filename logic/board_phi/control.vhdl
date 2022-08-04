@@ -297,7 +297,7 @@ begin
 						tx_valid <= '1';
 						case readback_sel is
 							when sel_status =>
-								tx_data <= (0 => not cpu_halted, 1 => mapping_error, others => '0');
+								tx_data <= (0 => not should_reset and not cpu_halted, 1 => mapping_error, others => '0');
 							when sel_control =>
 								tx_data <= (0 => should_reset, others => '0');
 							when sel_int_status =>
