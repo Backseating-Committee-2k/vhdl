@@ -193,7 +193,14 @@ begin
 								s := idle;
 							end if;
 						when data =>
-							req_rddata <= cmp_rx_data;
+							req_rddata <= cmp_rx_data(7 downto 0) &
+											cmp_rx_data(15 downto 8) &
+											cmp_rx_data(23 downto 16) &
+											cmp_rx_data(31 downto 24) &
+											cmp_rx_data(39 downto 32) &
+											cmp_rx_data(47 downto 40) &
+											cmp_rx_data(55 downto 48) &
+											cmp_rx_data(63 downto 56);
 							req_waitrequest <= '0';
 							reset_busy <= '1';
 							s := idle;
