@@ -5,6 +5,10 @@ DATA_RADIX = BIN;		-- The radix for data values
 CONTENT					-- start of (address : data pairs)
 BEGIN
 
-[000..fff] : 000000;	-- not yet defined
+[000..1ff] : 000000;	-- non-printable
+
+[200..20f] : 000000;	-- space
+
+[210..fff] : 000000;	-- not yet defined
 
 END;
