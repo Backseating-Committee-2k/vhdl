@@ -95,6 +95,7 @@ struct global
 	struct
 	{
 		VkImage image;
+		VkDeviceMemory memory;
 	}
 	/* texture in GPU address space, optimized layout */
 	textmode_texture_internal;
