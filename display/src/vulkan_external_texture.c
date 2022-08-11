@@ -75,6 +75,60 @@ bool vulkan_external_texture_setup(struct global *g)
 	if(rc != VK_SUCCESS)
 		return false;
 
+	uint32_t memory_type_index;
+
+	{
+		VkMemoryFdPropertiesKHR prop =
+		{
+			.sType = VK_STRUCTURE_TYPE_MEMORY_FD_PROPERTIES_KHR,
+			.pNext = NULL
+		};
+
+		VkResult rc = vkGetMemoryFdPropertiesKHR(
+				g->device,
+				VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT,
+				mem_fd,
+				&prop);
+
+		if(rc != VK_SUCCESS)
+			return false;
+
+		for(memory_type_index = 0; memory_type_index < 32; ++memory_type_index)
+			if(prop.memoryTypeBits & ((uint32_t)1u << memory_type_index))
+				break;
+
+		if(memory_type_index == 32)
+			return false;
+	}
+
+	VkDeviceSize const size = 480 * 360 * 4;
+
+	{
+		VkImportMemoryFdInfoKHR const external_texture_info =
+		{
+			.sType = VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR,
+			.pNext = NULL,
+			.handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT,
+			.fd = mem_fd,
+		};
+
+		VkMemoryAllocateInfo const info =
+		{
+			.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+			.pNext = &external_texture_info,
+			.allocationSize = size,
+			.memoryTypeIndex = memory_type_index
+		};
+
+		VkResult rc = vkAllocateMemory(
+				g->device,
+				&info,
+				g->allocation_callbacks,
+				&g->textmode_texture_external.memory);
+		if(rc != VK_SUCCESS)
+			return false;
+	}
+
 	return true;
 }
 
@@ -83,6 +137,7 @@ void vulkan_external_texture_teardown(struct global *g)
 	vulkan_texture_destroy(
 			g,
 			g->textmode_texture_external.image,
-			NULL);
+			g->textmode_texture_external.memory);
+	g->textmode_texture_external.memory = VK_NULL_HANDLE;
 	g->textmode_texture_external.image = VK_NULL_HANDLE;
 }
