@@ -163,7 +163,10 @@ static long bss2k_ioctl(
 {
 	struct bss2k_priv *priv = filp->private_data;
 
-	u64 val = 0;
+	union
+	{
+		u64 as_u64;
+	} val;
 
 	if(_IOC_DIR(cmd) & _IOC_WRITE)
 	{
@@ -185,22 +188,22 @@ static long bss2k_ioctl(
 		priv->reg[REG_CONTROL] &= ~CTL_RESET;
 		break;
 	case BSS2K_IOC_READ_STATUS:
-		val = priv->reg[REG_STATUS];
+		val.as_u64 = priv->reg[REG_STATUS];
 		break;
 	case BSS2K_IOC_READ_CONTROL:
-		val = priv->reg[REG_CONTROL];
+		val.as_u64 = priv->reg[REG_CONTROL];
 		break;
 	case BSS2K_IOC_READ_INTSTS:
-		val = priv->reg[REG_INT_STATUS];
+		val.as_u64 = priv->reg[REG_INT_STATUS];
 		break;
 	case BSS2K_IOC_READ_INTMASK:
-		val = priv->reg[REG_INT_MASK];
+		val.as_u64 = priv->reg[REG_INT_MASK];
 		break;
 	case BSS2K_IOC_WRITE_CONTROL:
-		priv->reg[REG_CONTROL] = val;
+		priv->reg[REG_CONTROL] = val.as_u64;
 		break;
 	case BSS2K_IOC_WRITE_INTMASK:
-		priv->reg[REG_INT_MASK] = val;
+		priv->reg[REG_INT_MASK] = val.as_u64;
 		break;
 	default:
 		return -EINVAL;
