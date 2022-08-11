@@ -443,16 +443,17 @@ begin
 				when ifetch2 =>
 					i_addr <= to_address(r_q_a);
 					i_rdreq <= '1';
-					if(i_waitrequest = '0') then
-						s <= decode;
-					end if;
+					s <= decode;
 				when decode =>
 					if(i_waitrequest = '0') then
 						i_buffer <= i_rddata;
 						-- defined above because long
 						decode_insn;
+						s <= decode2;
+					else
+						i_addr <= to_address(r_q_a);
+						i_rdreq <= '1';
 					end if;
-					s <= decode2;
 				when decode2 =>
 					s <= execute;
 				when execute =>
