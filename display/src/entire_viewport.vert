@@ -13,5 +13,5 @@ vec2 positions[4] = vec2[]
 void main()
 {
 	gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);
-	texCoord = positions[gl_VertexIndex];
+	texCoord = positions[gl_VertexIndex] / 2.0 + vec2(0.5, 0.5);
 }
