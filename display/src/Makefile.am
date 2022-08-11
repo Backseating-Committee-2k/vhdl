@@ -6,6 +6,7 @@ bss2kdpy_SOURCES = \
 	vulkan_instance.c vulkan_instance.h \
 	vulkan_command_buffer.c vulkan_command_buffer.h \
 	vulkan_command_pool.c vulkan_command_pool.h \
+	vulkan_descriptor_pool.c vulkan_descriptor_pool.h \
 	vulkan_descriptor_set_layout.c vulkan_descriptor_set_layout.h \
 	vulkan_device.c vulkan_device.h \
 	vulkan_draw.c vulkan_draw.h \

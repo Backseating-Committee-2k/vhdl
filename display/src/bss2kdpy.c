@@ -12,6 +12,7 @@
 #include "vulkan_sampler.h"
 #include "vulkan_sync.h"
 #include "vulkan_descriptor_set_layout.h"
+#include "vulkan_descriptor_pool.h"
 #include "vulkan_command_pool.h"
 #include "vulkan_command_buffer.h"
 #include "vulkan_swapchain.h"
@@ -60,6 +61,9 @@ int main(int argc, char **argv)
 	if(!vulkan_descriptor_set_layout_setup(&g))
 		goto fail_vulkan_descriptor_set_layout;
 
+	if(!vulkan_descriptor_pool_setup(&g))
+		goto fail_vulkan_descriptor_pool;
+
 	if(!vulkan_command_pool_setup(&g))
 		goto fail_vulkan_command_pool;
 
@@ -97,6 +101,9 @@ fail_vulkan_command_buffer:
 	vulkan_command_pool_teardown(&g);
 
 fail_vulkan_command_pool:
+	vulkan_descriptor_pool_teardown(&g);
+
+fail_vulkan_descriptor_pool:
 	vulkan_descriptor_set_layout_teardown(&g);
 
 fail_vulkan_descriptor_set_layout:

@@ -34,6 +34,7 @@ struct global
 	VkDevice device;
 
 	VkDescriptorSetLayout descriptor_set_layout;
+	VkDescriptorPool descriptor_pool;
 
 	VkSampler textmode_texture_sampler;
 
