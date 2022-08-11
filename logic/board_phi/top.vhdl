@@ -59,6 +59,9 @@ architecture rtl of top is
 	-- translated host address
 	signal cpu_i_addr_host : std_logic_vector(63 downto 0);
 
+	-- address of textmode texture on host
+	signal textmode_address_host : std_logic_vector(63 downto 0);
+
 	component cpu is
 		port(
 			-- async reset
@@ -165,6 +168,20 @@ architecture rtl of top is
 	signal cpu_tx_req : std_logic;
 	signal cpu_tx_start : std_logic;
 
+	-- PCIe internal interface for textmode output
+	-- tx side
+	signal textmode_tx_ready : std_logic;
+	signal textmode_tx_valid : std_logic;
+	signal textmode_tx_data : std_logic_vector(63 downto 0);
+	signal textmode_tx_sop : std_logic;
+	signal textmode_tx_eop : std_logic;
+	signal textmode_tx_err : std_logic;
+	-- power management
+	signal textmode_cpl_pending : std_logic;
+	-- arbiter interface
+	signal textmode_tx_req : std_logic;
+	signal textmode_tx_start : std_logic;
+
 	-- interrupts
 	signal app_int_sts : std_logic;
 	signal app_int_ack : std_logic;
@@ -222,7 +239,6 @@ begin
 	cpu_clk <= app_clk;
 
 	cpu_d_rddata <= (others => '0');
-	cpu_d_waitrequest <= '1';
 
 	c : cpu
 		port map(
@@ -259,7 +275,7 @@ begin
 
 	arbiter : entity work.pcie_arbiter
 		generic map(
-			num_agents => 2
+			num_agents => 3
 		)
 		port map(
 			reset_n => app_rstn,
@@ -282,26 +298,35 @@ begin
 			-- request sending data
 			arb_tx_req(1) => control_tx_req,
 			arb_tx_req(2) => cpu_tx_req,
+			arb_tx_req(3) => textmode_tx_req,
 
 			-- start strobe (high one cycle before bus free)
 			arb_tx_start(1) => control_tx_start,
 			arb_tx_start(2) => cpu_tx_start,
+			arb_tx_start(3) => textmode_tx_start,
 
 			arb_tx_ready(1) => control_tx_ready,
 			arb_tx_ready(2) => cpu_tx_ready,
+			arb_tx_ready(3) => textmode_tx_ready,
 			arb_tx_valid(1) => control_tx_valid,
 			arb_tx_valid(2) => cpu_tx_valid,
+			arb_tx_valid(3) => textmode_tx_valid,
 			arb_tx_data(1) => control_tx_data,
 			arb_tx_data(2) => cpu_tx_data,
+			arb_tx_data(3) => textmode_tx_data,
 			arb_tx_sop(1) => control_tx_sop,
 			arb_tx_sop(2) => cpu_tx_sop,
+			arb_tx_sop(3) => textmode_tx_sop,
 			arb_tx_eop(1) => control_tx_eop,
 			arb_tx_eop(2) => cpu_tx_eop,
+			arb_tx_eop(3) => textmode_tx_eop,
 			arb_tx_err(1) => control_tx_err,
 			arb_tx_err(2) => cpu_tx_err,
+			arb_tx_err(3) => textmode_tx_err,
 
 			arb_cpl_pending(1) => control_cpl_pending,
-			arb_cpl_pending(2) => cpu_cpl_pending
+			arb_cpl_pending(2) => cpu_cpl_pending,
+			arb_cpl_pending(3) => textmode_cpl_pending
 		);
 
 	control_inst : entity work.control
@@ -336,7 +361,9 @@ begin
 			cpu_halted => cpu_halted,
 
 			mmu_address_in => cpu_i_addr,
-			mmu_address_out => cpu_i_addr_host
+			mmu_address_out => cpu_i_addr_host,
+
+			textmode_target_host => textmode_address_host
 		);
 
 	cpu_dma_inst : entity work.avalon_mm_to_pcie_avalon_st
@@ -374,6 +401,35 @@ begin
 			cmp_cpl_pending => cpu_cpl_pending,
 
 			device_id => cfg_busdev & "000"
+		);
+
+	textmode_inst : entity work.textmode_output
+		port map(
+			reset => not app_rstn,
+			clk => app_clk,
+
+			target_address => textmode_address_host,
+			start => '0',
+
+			tx_ready => textmode_tx_ready,
+			tx_valid => textmode_tx_valid,
+			tx_data => textmode_tx_data,
+			tx_sop => textmode_tx_sop,
+			tx_eop => textmode_tx_eop,
+			tx_err => textmode_tx_err,
+
+			cpl_pending => textmode_cpl_pending,
+
+			tx_req => textmode_tx_req,
+			tx_start => textmode_tx_start,
+
+			device_id => cfg_busdev & "000",
+
+			-- internal data bus
+			d_addr => cpu_d_addr,
+			d_wrreq => cpu_d_wrreq,
+			d_wrdata => cpu_d_wrdata,
+			d_waitrequest => cpu_d_waitrequest
 		);
 
 	-- clocks

@@ -45,7 +45,10 @@ entity control is
 
 		-- memory translation
 		mmu_address_in : in std_logic_vector(23 downto 0);
-		mmu_address_out : out std_logic_vector(63 downto 0)
+		mmu_address_out : out std_logic_vector(63 downto 0);
+
+		-- target address for textmode
+		textmode_target_host : out std_logic_vector(63 downto 0)
 	);
 end entity;
 
@@ -129,6 +132,8 @@ begin
 	cpu_reset <= should_reset;
 
 	mapping_error <= or_reduce(mapping_invalid);
+
+	textmode_target_host <= textmode_texture;
 
 	-- completion interface
 	cpl_pending <= '0';

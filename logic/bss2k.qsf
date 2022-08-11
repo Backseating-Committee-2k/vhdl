@@ -55,6 +55,10 @@ set_global_assignment -name VHDL_FILE board_phi/altpcierd_tl_cfg_sample.vhd
 set_global_assignment -name QIP_FILE board_phi/pcie.qip
 set_global_assignment -name QIP_FILE board_phi/pcie_reconfig.qip
 set_global_assignment -name QIP_FILE board_phi/pll.qip
+set_global_assignment -name QIP_FILE board_phi/textmode_pixel_fifo.qip
+set_global_assignment -name QIP_FILE board_phi/textmode_ram.qip
+set_global_assignment -name QIP_FILE board_phi/textmode_rom.qip
+set_global_assignment -name VHDL_FILE board_phi/textmode_output.vhdl
 set_global_assignment -name VHDL_FILE board_phi/control.vhdl
 set_global_assignment -name VHDL_FILE board_phi/pcie_arbiter.vhdl
 set_global_assignment -name VHDL_FILE board_phi/avalon_mm_to_pcie_avalon_st.vhdl

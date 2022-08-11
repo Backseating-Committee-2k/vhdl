@@ -14,6 +14,10 @@ qmegawiz -silent board_phi/pcie.vhd
 qmegawiz -silent board_phi/pcie_serdes.vhd
 qmegawiz -silent board_phi/pcie_reconfig.vhd
 
+qmegawiz -silent board_phi/textmode_pixel_fifo.vhd
+qmegawiz -silent board_phi/textmode_ram.vhd
+qmegawiz -silent board_phi/textmode_rom.vhd
+
 # patch frequency of fixedclk_serdes
 sed -i -e '/fixedclk_serdes/s/100/125/' board_phi/pcie.sdc
 # patch multicycle constraints for tl_cfg sampling

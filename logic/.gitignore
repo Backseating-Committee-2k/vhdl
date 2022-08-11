@@ -15,6 +15,9 @@ board_phi/pcie_serdes.ppf
 board_phi/pcie_serdes.qip
 board_phi/pll.ppf
 board_phi/pll.qip
+board_phi/textmode_pixel_fifo.qip
+board_phi/textmode_ram.qip
+board_phi/textmode_rom.qip
 bss2k.qws
 cpu/altera_registers.qip
 db/
@@ -37,5 +40,7 @@ tb_cpu_seq.ghw
 tb_cpu_seq.log
 tb_cpu_seq.vcd
 tb_mem_arbiter.ghw
+tb_textmode_output.log
+tb_textmode_output.vcd
 work-obj08.cf
 work/
