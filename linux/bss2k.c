@@ -35,7 +35,7 @@ struct bss2k_priv
 	struct cdev cdev;
 
 	/* user visible device */
-	struct device *dev;
+	struct device *user_dev;
 
 	/* BAR 2 (registers) mapping */
 	u64 volatile *reg;
@@ -298,16 +298,16 @@ static int bss2k_probe(
 	if(err < 0)
 		goto fail_cdev_add;
 
-	priv->dev = device_create(
+	priv->user_dev = device_create(
 			bss2k_driver_data.class,
 			dev,
 			bss2k_driver_data.devt,
 			priv,
 			"bss2k-%u",
 			0);
-	if(IS_ERR(priv->dev))
+	if(IS_ERR(priv->user_dev))
 	{
-		err = PTR_ERR(priv->dev);
+		err = PTR_ERR(priv->user_dev);
 		goto fail_device_create;
 	}
 
