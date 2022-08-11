@@ -22,6 +22,7 @@ bool vulkan_device_setup(struct global *g)
 	uint32_t present_queue_family_index;
 	VkSurfaceFormatKHR surface_format;
 	VkPresentModeKHR present_mode;
+	float max_sampler_anisotropy;
 
 	bool have_selected_physical_device = false;
 
@@ -52,6 +53,8 @@ bool vulkan_device_setup(struct global *g)
 		vkGetPhysicalDeviceProperties(
 				physical_device,
 				&pd_prop);
+
+		max_sampler_anisotropy = pd_prop.limits.maxSamplerAnisotropy;
 
 		uint32_t extension_count = 0;
 
@@ -328,6 +331,12 @@ bool vulkan_device_setup(struct global *g)
 	{
 	};
 
+	VkPhysicalDeviceFeatures const enabled_features =
+	{
+		/// @todo do not enable if unsupported
+		.samplerAnisotropy = VK_TRUE
+	};
+
 	VkDeviceCreateInfo const info =
 	{
 		.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -340,13 +349,14 @@ bool vulkan_device_setup(struct global *g)
 		.ppEnabledLayerNames = enabled_layer_names,
 		.enabledExtensionCount = required_extension_count,
 		.ppEnabledExtensionNames = required_extension_names,
-		.pEnabledFeatures = NULL	/// @todo
+		.pEnabledFeatures = &enabled_features
 	};
 
 	g->queue.graphics.family_index = graphics_queue_family_index;
 	g->queue.present.family_index = present_queue_family_index;
 	g->surface_format = surface_format;
 	g->present_mode = present_mode;
+	g->limits.max_sampler_anisotropy = max_sampler_anisotropy;
 
 	rc = vkCreateDevice(
 			g->physical_device,

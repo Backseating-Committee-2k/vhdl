@@ -56,6 +56,11 @@ struct global
 	VkSurfaceFormatKHR surface_format;
 	VkPresentModeKHR present_mode;
 
+	struct
+	{
+		float max_sampler_anisotropy;
+	} limits;
+
 	/* shutting down, don't start new things */
 	bool shutdown;
 
