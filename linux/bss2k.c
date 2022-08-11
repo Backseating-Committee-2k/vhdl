@@ -4,12 +4,15 @@
 
 #include <linux/pci.h>
 
+#include <linux/dma-buf.h>
+
 #include "bss2k_ioctl.h"
 
 #define REG_STATUS      0
 #define REG_CONTROL     1
 #define REG_INT_STATUS  2
 #define REG_INT_MASK    3
+#define REG_TEXTMODE    4
 #define REG_MAPPING     16
 
 /* emulated CPU has 24 bits, we're using 2 MB pages for mapping, so 3 bits
@@ -29,8 +32,14 @@
 /* interrupt registers */
 #define INT_HALTED		(1 << 0)
 
+/* aperture is two megabytes */
+#define DMA_BUF_TEXTMODE_EMULATION_SIZE	0x200000
+
 struct bss2k_priv
 {
+	/* hardware PCIe device */
+	struct pci_dev *pdev;
+
 	/* user-visible character device */
 	struct cdev cdev;
 
@@ -45,6 +54,12 @@ struct bss2k_priv
 
 	/* emulator memory (DMA descriptors) */
 	dma_addr_t host_mem_dma[NUM_MAPPINGS];
+
+	/* trampoline buffer for textmode (host pointer) */
+	void *trampoline_cpu;
+
+	/* trampoline buffer for textmode (DMA descriptor) */
+	dma_addr_t trampoline_dma;
 };
 
 static int bss2k_open(
@@ -156,6 +171,108 @@ static ssize_t bss2k_write(
 	return 0;
 }
 
+static int bss2k_attach_textmode(
+		struct dma_buf *buf,
+		struct dma_buf_attachment *attachment)
+{
+	struct bss2k_priv *const priv = buf->priv;
+
+	attachment->priv = priv;
+	attachment->peer2peer = false;
+
+	return 0;
+}
+
+static struct sg_table *bss2k_map_textmode(
+		struct dma_buf_attachment *attachment,
+		enum dma_data_direction direction)
+{
+	struct bss2k_priv *const priv = attachment->priv;
+	struct pci_dev *const pdev = priv->pdev;
+	struct device *const dev = &pdev->dev;
+
+	int err;
+	struct sg_table *sg;
+
+	bool const trampoline_is_set_up = !!priv->trampoline_cpu;
+
+	sg = devm_kmalloc(dev, sizeof *sg, GFP_KERNEL);
+	if(!sg)
+		goto fail_alloc_sg_table;
+
+	sg->nents = 0;
+	sg->orig_nents = 0;
+
+	err = -ENOMEM;
+
+	/* TODO: locking */
+
+	if(!priv->trampoline_cpu)
+		priv->trampoline_cpu = dmam_alloc_coherent(
+				dev,
+				DMA_BUF_TEXTMODE_EMULATION_SIZE,
+				&priv->trampoline_dma,
+				GFP_KERNEL);
+
+	if(!priv->trampoline_cpu)
+		goto fail_alloc_buf;
+
+	if(!trampoline_is_set_up)
+		priv->reg[REG_TEXTMODE] = priv->trampoline_dma;
+
+	sg->sgl = devm_kmalloc(dev, sizeof(*sg->sgl), GFP_KERNEL);
+	if(!sg->sgl)
+		goto fail_alloc_scatterlist;
+
+	sg_init_table(sg->sgl, 1);
+
+	sg_set_buf(&sg->sgl[0], priv->trampoline_cpu, DMA_BUF_TEXTMODE_EMULATION_SIZE);
+	sg_dma_address(&sg->sgl[0]) = priv->trampoline_dma;
+#ifdef CONFIG_NEED_SG_DMA_LENGTH
+	sg_dma_len(&sg->sgl[0]) = DMA_BUF_TEXTMODE_EMULATION_SIZE;
+#endif
+	sg->nents = 1;
+
+	return sg;
+
+fail_alloc_scatterlist:
+	/* buffer is kept for other clients */
+
+fail_alloc_buf:
+	devm_kfree(dev, sg);
+
+fail_alloc_sg_table:
+	return ERR_PTR(err);
+}
+
+void bss2k_unmap_textmode(
+		struct dma_buf_attachment *attachment,
+		struct sg_table *sg,
+		enum dma_data_direction direction)
+{
+	struct bss2k_priv *const priv = attachment->priv;
+	struct pci_dev *const pdev = priv->pdev;
+	struct device *const dev = &pdev->dev;
+
+	sg_free_table(sg);
+	devm_kfree(dev, sg);
+}
+
+static void bss2k_release_textmode(
+		struct dma_buf *buf)
+{
+	return;
+}
+
+static struct dma_buf_ops const bss2k_textmode_ops =
+{
+	.cache_sgt_mapping = true,
+	.attach = &bss2k_attach_textmode,
+	.map_dma_buf = &bss2k_map_textmode,
+	.unmap_dma_buf = &bss2k_unmap_textmode,
+	.release = &bss2k_release_textmode
+};
+
 static long bss2k_ioctl(
 		struct file *filp,
 		unsigned int cmd,
@@ -166,6 +283,7 @@ static long bss2k_ioctl(
 	union
 	{
 		u64 as_u64;
+		int as_int;
 	} val;
 
 	if(_IOC_DIR(cmd) & _IOC_WRITE)
@@ -204,6 +322,35 @@ static long bss2k_ioctl(
 		break;
 	case BSS2K_IOC_WRITE_INTMASK:
 		priv->reg[REG_INT_MASK] = val.as_u64;
+		break;
+	case BSS2K_IOC_GET_TEXTMODE_TEXTURE:
+		{
+			struct dma_buf_export_info const info =
+			{
+				.exp_name = KBUILD_MODNAME,
+				.owner = THIS_MODULE,
+				.ops = &bss2k_textmode_ops,
+				.size = DMA_BUF_TEXTMODE_EMULATION_SIZE,
+				.flags = O_RDONLY,
+				.resv = NULL,
+				.priv = priv
+			};
+
+			struct dma_buf *const buf = dma_buf_export(&info);
+
+			if(IS_ERR(buf))
+			{
+				dev_err(&priv->pdev->dev, "cannot dma_buf_export: %ld", PTR_ERR(buf));
+				return PTR_ERR(buf);
+			}
+
+			val.as_int = dma_buf_fd(buf, O_CLOEXEC);
+			if(val.as_int < 0)
+			{
+				dev_err(&priv->pdev->dev, "cannot dma_buf_fd: %d", val.as_int);
+				return val.as_int;
+			}
+		}
 		break;
 	default:
 		return -EINVAL;
@@ -261,6 +408,8 @@ static int bss2k_probe(
 		return -ENOMEM;
 
 	dev_set_drvdata(dev, priv);
+
+	priv->pdev = pdev;
 
 	priv->reg = pcim_iomap(pdev, 2, 256);
 	if(priv->reg == 0)
@@ -345,6 +494,9 @@ static void bss2k_remove(
 	for(i = 0; i < NUM_MAPPINGS; ++i)
 		priv->reg[REG_MAPPING + i] = 0ULL;
 
+	/* disable textmode trampoline */
+	priv->reg[REG_TEXTMODE] = 0ULL;
+
 	/// TODO cleanup
 	device_destroy(
 			bss2k_driver_data.class,
@@ -416,5 +568,6 @@ module_exit(bss2k_exit);
 
 MODULE_AUTHOR("Simon Richter <Simon.Richter@hogyros.de>");
 MODULE_DESCRIPTION("BackseatsafeSystem2k FPGA implementation");
+MODULE_IMPORT_NS(DMA_BUF);
 MODULE_LICENSE("GPL");
 MODULE_DEVICE_TABLE(pci, bss2k_ids);
