@@ -38,6 +38,8 @@ struct global
 
 	VkSampler textmode_texture_sampler;
 
+	VkDescriptorSet textmode_descriptor_set;
+
 	struct
 	{
 		struct

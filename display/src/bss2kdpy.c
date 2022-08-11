@@ -14,6 +14,7 @@
 #include "vulkan_descriptor_set_layout.h"
 #include "vulkan_descriptor_pool.h"
 #include "vulkan_command_pool.h"
+#include "vulkan_descriptor_set.h"
 #include "vulkan_command_buffer.h"
 #include "vulkan_swapchain.h"
 #include "vulkan_shader.h"
@@ -67,6 +68,9 @@ int main(int argc, char **argv)
 	if(!vulkan_command_pool_setup(&g))
 		goto fail_vulkan_command_pool;
 
+	if(!vulkan_descriptor_set_setup(&g))
+		goto fail_vulkan_descriptor_set;
+
 	if(!vulkan_command_buffer_setup(&g))
 		goto fail_vulkan_command_buffer;
 
@@ -98,6 +102,9 @@ fail_vulkan_shader:
 	vulkan_command_buffer_teardown(&g);
 
 fail_vulkan_command_buffer:
+	vulkan_descriptor_set_teardown(&g);
+
+fail_vulkan_descriptor_set:
 	vulkan_command_pool_teardown(&g);
 
 fail_vulkan_command_pool:

@@ -21,6 +21,7 @@ bool vulkan_instance_setup(struct global *g)
 	g->descriptor_set_layout = VK_NULL_HANDLE;
 	g->descriptor_pool = VK_NULL_HANDLE;
 	g->textmode_texture_sampler = VK_NULL_HANDLE;
+	g->textmode_descriptor_set = VK_NULL_HANDLE;
 	g->sem.image_available = VK_NULL_HANDLE;
 	g->sem.render_finished = VK_NULL_HANDLE;
 	g->fence.in_flight = VK_NULL_HANDLE;
