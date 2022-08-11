@@ -6,10 +6,15 @@
 
 #include "bss2kdpy.h"
 
-bool vulkan_texture_setup(struct global *g)
+bool vulkan_texture_create(
+		struct global *g,
+		uint32_t width,
+		uint32_t height,
+		VkImage *out_image,
+		VkDeviceMemory *out_memory)
 {
-	uint32_t const width = SCREEN_WIDTH;
-	uint32_t const height = SCREEN_HEIGHT;
+	VkImage image;
+	VkDeviceMemory memory;
 
 	{
 		VkImageCreateInfo const info =
@@ -39,7 +44,7 @@ bool vulkan_texture_setup(struct global *g)
 				g->device,
 				&info,
 				g->allocation_callbacks,
-				&g->textmode_texture_internal.image);
+				&image);
 		if(rc != VK_SUCCESS)
 			goto fail_createimage;
 	}
@@ -52,7 +57,7 @@ bool vulkan_texture_setup(struct global *g)
 
 		vkGetImageMemoryRequirements(
 				g->device,
-				g->textmode_texture_internal.image,
+				image,
 				&requirements);
 
 		uint32_t const allowed_for_image =
@@ -101,56 +106,79 @@ bool vulkan_texture_setup(struct global *g)
 				g->device,
 				&info,
 				g->allocation_callbacks,
-				&g->textmode_texture_internal.memory);
+				&memory);
 		if(rc != VK_SUCCESS)
 			goto fail_allocatememory;
 	}
 
 	VkResult rc = vkBindImageMemory(
 			g->device,
-			g->textmode_texture_internal.image,
-			g->textmode_texture_internal.memory,
+			image,
+			memory,
 			/* offset */ 0);
 	if(rc != VK_SUCCESS)
 		goto fail_bindimagememory;
+
+	*out_image = image;
+	*out_memory = memory;
 
 	return true;
 
 fail_bindimagememory:
 	vkFreeMemory(
 			g->device,
-			g->textmode_texture_internal.memory,
+			memory,
 			g->allocation_callbacks);
-	g->textmode_texture_internal.memory = VK_NULL_HANDLE;
 
 fail_allocatememory:
 	vkDestroyImage(
 			g->device,
-			g->textmode_texture_internal.image,
+			image,
 			g->allocation_callbacks);
-	g->textmode_texture_internal.image = VK_NULL_HANDLE;
 
 fail_createimage:
 	return false;
 }
 
-void vulkan_texture_teardown(struct global *g)
+void vulkan_texture_destroy(
+		struct global *g,
+		VkImage image,
+		VkDeviceMemory memory)
 {
-	if(g->textmode_texture_internal.memory != VK_NULL_HANDLE)
+	if(memory != VK_NULL_HANDLE)
 	{
 		vkFreeMemory(
 				g->device,
-				g->textmode_texture_internal.memory,
+				memory,
 				g->allocation_callbacks);
-		g->textmode_texture_internal.memory = VK_NULL_HANDLE;
 	}
 
-	if(g->textmode_texture_internal.image != VK_NULL_HANDLE)
 	{
+	if(image != VK_NULL_HANDLE)
 		vkDestroyImage(
 				g->device,
-				g->textmode_texture_internal.image,
+				image,
 				g->allocation_callbacks);
-		g->textmode_texture_internal.image = VK_NULL_HANDLE;
 	}
+}
+
+bool vulkan_texture_setup(struct global *g)
+{
+	return vulkan_texture_create(
+			g,
+			SCREEN_WIDTH,
+			SCREEN_HEIGHT,
+			&g->textmode_texture_internal.image,
+			&g->textmode_texture_internal.memory);
+}
+
+void vulkan_texture_teardown(struct global *g)
+{
+	vulkan_texture_destroy(
+			g,
+			g->textmode_texture_internal.image,
+			g->textmode_texture_internal.memory);
+
+	g->textmode_texture_internal.memory = VK_NULL_HANDLE;
+	g->textmode_texture_internal.image = VK_NULL_HANDLE;
 }
