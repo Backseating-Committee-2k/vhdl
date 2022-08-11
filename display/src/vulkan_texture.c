@@ -185,20 +185,16 @@ void vulkan_texture_destroy(
 				g->allocation_callbacks);
 
 	if(memory != VK_NULL_HANDLE)
-	{
 		vkFreeMemory(
 				g->device,
 				memory,
 				g->allocation_callbacks);
-	}
 
-	{
 	if(image != VK_NULL_HANDLE)
 		vkDestroyImage(
 				g->device,
 				image,
 				g->allocation_callbacks);
-	}
 }
 
 bool vulkan_texture_setup(struct global *g)
