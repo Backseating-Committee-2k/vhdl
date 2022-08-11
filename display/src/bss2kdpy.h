@@ -9,6 +9,9 @@
 #define SCREEN_WIDTH 480
 #define SCREEN_HEIGHT 360
 
+/* binding numbers, keep consistent with shaders */
+#define TEXTMODE_TEXTURE_AND_SAMPLER_BINDING 0
+
 struct global
 {
 	int argc;
@@ -29,6 +32,8 @@ struct global
 	VkSurfaceKHR surface;
 	VkPhysicalDevice physical_device;
 	VkDevice device;
+
+	VkDescriptorSetLayout descriptor_set_layout;
 
 	VkSampler textmode_texture_sampler;
 
