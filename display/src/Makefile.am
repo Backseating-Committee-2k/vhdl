@@ -19,6 +19,7 @@ bss2kdpy_SOURCES = \
 	vulkan_swapchain.c vulkan_swapchain.h \
 	vulkan_sync.c vulkan_sync.h \
 	vulkan_texture.c vulkan_texture.h \
+	vulkan_transfer.c vulkan_transfer.h \
 	x11_mainloop.c x11_mainloop.h \
 	x11_setup.c x11_setup.h \
 	x11_vulkan.c x11_vulkan.h

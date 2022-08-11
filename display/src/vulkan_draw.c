@@ -4,12 +4,18 @@
 
 #include "vulkan_draw.h"
 
+#include "vulkan_transfer.h"
+
 #include "bss2kdpy.h"
 
 #include <assert.h>
 
 bool vulkan_draw(struct global *g)
 {
+	// TODO
+	if(!vulkan_transfer(g))
+		return false;
+
 	uint32_t image_index;
 
 	vkAcquireNextImageKHR(
