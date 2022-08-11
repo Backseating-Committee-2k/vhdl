@@ -48,7 +48,8 @@ entity control is
 		mmu_address_out : out std_logic_vector(63 downto 0);
 
 		-- target address for textmode
-		textmode_target_host : out std_logic_vector(63 downto 0)
+		textmode_target_host : out std_logic_vector(63 downto 0);
+		textmode_start : out std_logic
 	);
 end entity;
 
@@ -63,6 +64,7 @@ architecture rtl of control is
 
 	-- control register
 	signal should_reset : std_logic;
+	signal should_start : std_logic;
 
 	-- status register
 	-- running bit is direct from CPU
@@ -72,6 +74,7 @@ architecture rtl of control is
 	signal mask : std_logic;
 
 	signal textmode_texture : host_address;
+	signal started : std_logic;
 
 	constant page_size_bits : integer := 21;	-- 12 (4k) or 21 (2M)
 	constant page_num_bits : integer := cpu_address_width - page_size_bits;
@@ -134,6 +137,8 @@ begin
 	mapping_error <= or_reduce(mapping_invalid);
 
 	textmode_target_host <= textmode_texture;
+	textmode_start <= should_start;
+	started <= should_start when rising_edge(clk);
 
 	-- completion interface
 	cpl_pending <= '0';
@@ -173,6 +178,7 @@ begin
 			readback_strobe <= '0';
 			mask <= '0';
 			should_reset <= '1';
+			should_start <= '0';
 			s := header1;
 		elsif(rising_edge(clk)) then
 			readback_strobe <= '0';
@@ -236,6 +242,7 @@ begin
 									null;		-- read only
 								when sel_control =>
 									should_reset <= rx_data(0);
+									should_start <= rx_data(1);
 								when sel_int_status =>
 									null;		-- read only
 								when sel_int_mask =>
@@ -310,7 +317,7 @@ begin
 							when sel_status =>
 								tx_data <= (0 => not should_reset and not cpu_halted, 1 => mapping_error, others => '0');
 							when sel_control =>
-								tx_data <= (0 => should_reset, others => '0');
+								tx_data <= (0 => should_reset, 1 => should_start, others => '0');
 							when sel_int_status =>
 								tx_data <= (0 => cpu_halted, others => '0');
 							when sel_int_mask =>

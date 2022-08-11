@@ -61,6 +61,7 @@ architecture rtl of top is
 
 	-- address of textmode texture on host
 	signal textmode_address_host : std_logic_vector(63 downto 0);
+	signal textmode_start : std_logic;
 
 	component cpu is
 		port(
@@ -363,7 +364,8 @@ begin
 			mmu_address_in => cpu_i_addr,
 			mmu_address_out => cpu_i_addr_host,
 
-			textmode_target_host => textmode_address_host
+			textmode_target_host => textmode_address_host,
+			textmode_start => textmode_start
 		);
 
 	cpu_dma_inst : entity work.avalon_mm_to_pcie_avalon_st
@@ -409,7 +411,7 @@ begin
 			clk => app_clk,
 
 			target_address => textmode_address_host,
-			start => '0',
+			start => textmode_start,
 
 			tx_ready => textmode_tx_ready,
 			tx_valid => textmode_tx_valid,
