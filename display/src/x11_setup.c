@@ -14,8 +14,8 @@
 bool x11_setup(struct global *g)
 {
 	/** @todo constants? */
-	int const tex_width = 480;
-	int const tex_height = 360;
+	int const tex_width = SCREEN_WIDTH;
+	int const tex_height = SCREEN_HEIGHT;
 
 	g->shutdown = false;
 	g->mapped = false;

@@ -6,6 +6,9 @@
 
 #include <stdbool.h>
 
+#define SCREEN_WIDTH 480
+#define SCREEN_HEIGHT 360
+
 struct global
 {
 	int argc;
