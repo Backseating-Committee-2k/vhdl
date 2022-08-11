@@ -91,6 +91,14 @@ struct global
 		VkShaderModule vert;
 	} shaders;
 
+	/* textures and their associated memory */
+	struct
+	{
+		VkImage image;
+	}
+	/* texture in GPU address space, optimized layout */
+	textmode_texture_internal;
+
 	/* swapchain render targets */
 	uint32_t swapchain_image_count;
 	struct

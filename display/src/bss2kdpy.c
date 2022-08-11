@@ -7,6 +7,7 @@
 #include "x11_mainloop.h"
 #include "vulkan_instance.h"
 #include "vulkan_device.h"
+#include "vulkan_texture.h"
 #include "vulkan_sampler.h"
 #include "vulkan_sync.h"
 #include "vulkan_command_pool.h"
@@ -41,6 +42,9 @@ int main(int argc, char **argv)
 
 	if(!vulkan_device_setup(&g))
 		goto fail_vulkan_device;
+
+	if(!vulkan_texture_setup(&g))
+		goto fail_vulkan_texture;
 
 	if(!vulkan_sampler_setup(&g))
 		goto fail_vulkan_sampler;
@@ -91,6 +95,9 @@ fail_vulkan_sync:
 	vulkan_sampler_teardown(&g);
 
 fail_vulkan_sampler:
+	vulkan_texture_teardown(&g);
+
+fail_vulkan_texture:
 	vulkan_device_teardown(&g);
 
 fail_vulkan_device:
