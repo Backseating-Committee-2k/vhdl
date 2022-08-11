@@ -170,7 +170,9 @@ static long bss2k_ioctl(
 		u64 const __user *src = (u64 const __user *)arg;
 		if(!src)
 			return -EINVAL;
-		if(copy_from_user(&val, src, sizeof val))
+		if(_IOC_SIZE(cmd) > sizeof val)
+			return -EINVAL;
+		if(copy_from_user(&val, src, _IOC_SIZE(cmd)))
 			return -EFAULT;
 	}
 
@@ -209,7 +211,9 @@ static long bss2k_ioctl(
 		u64 __user *dst = (u64 __user *)arg;
 		if(!dst)
 			return -EINVAL;
-		if(copy_to_user(dst, &val, sizeof val))
+		if(_IOC_SIZE(cmd) > sizeof val)
+			return -EINVAL;
+		if(copy_to_user(dst, &val, _IOC_SIZE(cmd)))
 			return -EFAULT;
 	}
 
