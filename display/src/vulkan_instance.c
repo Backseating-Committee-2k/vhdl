@@ -30,8 +30,10 @@ bool vulkan_instance_setup(struct global *g)
 	g->shaders.frag = VK_NULL_HANDLE;
 	g->shaders.vert = VK_NULL_HANDLE;
 	g->textmode_texture_external.image = VK_NULL_HANDLE;
+	g->textmode_texture_external.image_view = VK_NULL_HANDLE;
 	g->textmode_texture_external.memory = VK_NULL_HANDLE;
 	g->textmode_texture_internal.image = VK_NULL_HANDLE;
+	g->textmode_texture_internal.image_view = VK_NULL_HANDLE;
 	g->textmode_texture_internal.memory = VK_NULL_HANDLE;
 	g->swapchain_image_count = 0;
 	g->swapchain_images = NULL;

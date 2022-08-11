@@ -11,9 +11,11 @@ bool vulkan_texture_create(
 		uint32_t width,
 		uint32_t height,
 		VkImage *out_image,
+		VkImageView *out_image_view,
 		VkDeviceMemory *out_memory)
 {
 	VkImage image;
+	VkImageView image_view;
 	VkDeviceMemory memory;
 
 	{
@@ -119,10 +121,40 @@ bool vulkan_texture_create(
 	if(rc != VK_SUCCESS)
 		goto fail_bindimagememory;
 
+	{
+		VkImageViewCreateInfo const info =
+		{
+			.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+			.image = image,
+			.viewType = VK_IMAGE_VIEW_TYPE_2D,
+			.format = VK_FORMAT_R8G8B8A8_SRGB,
+			.subresourceRange =
+			{
+				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+				.baseMipLevel = 0,
+				.levelCount = 1,
+				.baseArrayLayer = 0,
+				.layerCount = 1
+			}
+		};
+
+		rc = vkCreateImageView(
+				g->device,
+				&info,
+				g->allocation_callbacks,
+				&image_view);
+		if(rc != VK_SUCCESS)
+			goto fail_createimageview;
+	}
+
 	*out_image = image;
+	*out_image_view = image_view;
 	*out_memory = memory;
 
 	return true;
+
+fail_createimageview:
+	/* vkBindImageView() doesn't create a resource */
 
 fail_bindimagememory:
 	vkFreeMemory(
@@ -143,8 +175,15 @@ fail_createimage:
 void vulkan_texture_destroy(
 		struct global *g,
 		VkImage image,
+		VkImageView image_view,
 		VkDeviceMemory memory)
 {
+	if(image_view != VK_NULL_HANDLE)
+		vkDestroyImageView(
+				g->device,
+				image_view,
+				g->allocation_callbacks);
+
 	if(memory != VK_NULL_HANDLE)
 	{
 		vkFreeMemory(
@@ -169,6 +208,7 @@ bool vulkan_texture_setup(struct global *g)
 			SCREEN_WIDTH,
 			SCREEN_HEIGHT,
 			&g->textmode_texture_internal.image,
+			&g->textmode_texture_internal.image_view,
 			&g->textmode_texture_internal.memory);
 }
 
@@ -177,8 +217,10 @@ void vulkan_texture_teardown(struct global *g)
 	vulkan_texture_destroy(
 			g,
 			g->textmode_texture_internal.image,
+			g->textmode_texture_internal.image_view,
 			g->textmode_texture_internal.memory);
 
+	g->textmode_texture_internal.image_view = VK_NULL_HANDLE;
 	g->textmode_texture_internal.memory = VK_NULL_HANDLE;
 	g->textmode_texture_internal.image = VK_NULL_HANDLE;
 }

@@ -95,6 +95,7 @@ struct global
 	struct
 	{
 		VkImage image;
+		VkImageView image_view;
 		VkDeviceMemory memory;
 	}
 	/* texture in FPGA address space, linear layout */

@@ -145,6 +145,7 @@ void vulkan_external_texture_teardown(struct global *g)
 	vulkan_texture_destroy(
 			g,
 			g->textmode_texture_external.image,
+			g->textmode_texture_external.image_view,
 			g->textmode_texture_external.memory);
 	g->textmode_texture_external.memory = VK_NULL_HANDLE;
 	g->textmode_texture_external.image = VK_NULL_HANDLE;
