@@ -29,6 +29,9 @@ struct global
 	VkSurfaceKHR surface;
 	VkPhysicalDevice physical_device;
 	VkDevice device;
+
+	VkSampler textmode_texture_sampler;
+
 	struct
 	{
 		struct

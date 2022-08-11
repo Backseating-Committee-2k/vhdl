@@ -18,6 +18,7 @@ bool vulkan_instance_setup(struct global *g)
 	g->surface = VK_NULL_HANDLE;
 	g->physical_device = VK_NULL_HANDLE;
 	g->device = VK_NULL_HANDLE;
+	g->textmode_texture_sampler = VK_NULL_HANDLE;
 	g->sem.image_available = VK_NULL_HANDLE;
 	g->sem.render_finished = VK_NULL_HANDLE;
 	g->fence.in_flight = VK_NULL_HANDLE;
