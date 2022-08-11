@@ -6,6 +6,7 @@
 #include <linux/poll.h>
 
 #include <linux/pci.h>
+#include <linux/pci-p2pdma.h>
 
 #include <linux/dma-buf.h>
 
@@ -229,9 +230,47 @@ static int bss2k_attach_textmode(
 	struct bss2k_priv *const priv = buf->priv;
 
 	attachment->priv = priv;
-	attachment->peer2peer = false;
+
+	if(pci_p2pdma_distance_many(priv->pdev, &attachment->dev, 1, false) < 0)
+		attachment->peer2peer = false;
+	else
+		attachment->peer2peer = true;
 
 	return 0;
+}
+
+static bool bss2k_map_textmode_p2p(
+		struct sg_table *sg,
+		struct dma_buf_attachment *attachment,
+		enum dma_data_direction direction)
+{
+	struct bss2k_priv *const priv = attachment->priv;
+
+	int err;
+
+	sg->sgl = pci_p2pmem_alloc_sgl(
+			priv->pdev,
+			&sg->orig_nents,
+			DMA_BUF_TEXTMODE_EMULATION_SIZE);
+
+	if(IS_ERR(sg->sgl))
+		goto fail_alloc_sgl;
+
+	err = pci_p2pdma_map_sg(
+			attachment->dev,
+			sg->sgl,
+			1,
+			direction);
+	if(err < 0)
+		goto fail_map_sg;
+
+	return true;
+
+fail_map_sg:
+	sg_free_table(sg);
+
+fail_alloc_sgl:
+	return false;
 }
 
 static struct sg_table *bss2k_map_textmode(
@@ -253,6 +292,15 @@ static struct sg_table *bss2k_map_textmode(
 
 	sg->nents = 0;
 	sg->orig_nents = 0;
+
+	if(!trampoline_is_set_up &&
+			attachment->peer2peer &&
+			bss2k_map_textmode_p2p(sg, attachment, direction))
+		return sg;
+
+	/* fallback to trampoline buffer */
+
+	attachment->peer2peer = false;
 
 	err = -ENOMEM;
 
@@ -305,7 +353,10 @@ void bss2k_unmap_textmode(
 	struct pci_dev *const pdev = priv->pdev;
 	struct device *const dev = &pdev->dev;
 
-	sg_free_table(sg);
+	if(attachment->peer2peer)
+		pci_p2pmem_free_sgl(pdev, sg->sgl);
+	else
+		sg_free_table(sg);
 	devm_kfree(dev, sg);
 }
 
@@ -516,6 +567,10 @@ static int bss2k_probe(
 		dev_warn(dev, "could not set up 64 bit DMA mask");
 
 	pci_set_master(pdev);
+
+	err = pci_p2pdma_add_resource(pdev, 0, 0, 0);
+	if(err < 0)
+		return err;
 
 	priv->reg = pcim_iomap(pdev, 2, 256);
 	if(priv->reg == 0)
