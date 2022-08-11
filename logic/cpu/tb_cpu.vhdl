@@ -65,6 +65,8 @@ architecture sim of tb_cpu is
 
 	type data_mem is array(16#0000# to 16#ffff#) of word;
 	signal d : data_mem;
+
+	signal i_rdreq_r, i_rdreq_rr, i_rdreq_rrr : std_logic;
 begin
 	-- reset gen
 	reset <= '1', '0' after 1 us;
@@ -114,7 +116,11 @@ begin
 
 	-- instruction bus
 	i_rddata <= i(to_integer(unsigned(i_addr))) when i_rdreq = '1' else (others => 'U');
-	i_waitrequest <= '0';
+	i_waitrequest <= not i_rdreq or not i_rdreq_r or not i_rdreq_rr or not i_rdreq_rrr;
+
+	i_rdreq_r <= i_rdreq when rising_edge(clk);
+	i_rdreq_rr <= i_rdreq_r when rising_edge(clk);
+	i_rdreq_rrr <= i_rdreq_rr when rising_edge(clk);
 
 	-- data bus
 	d_rddata <= d(to_integer(unsigned(d_addr))) when d_rdreq = '1' else (others => 'U');
