@@ -8,6 +8,7 @@ bss2kdpy_SOURCES = \
 	vulkan_command_pool.c vulkan_command_pool.h \
 	vulkan_device.c vulkan_device.h \
 	vulkan_draw.c vulkan_draw.h \
+	vulkan_external_texture.c vulkan_external_texture.h \
 	vulkan_pipeline.c vulkan_pipeline.h \
 	vulkan_renderpass.c vulkan_renderpass.h \
 	vulkan_sampler.c vulkan_sampler.h \

@@ -97,6 +97,8 @@ struct global
 		VkImage image;
 		VkDeviceMemory memory;
 	}
+	/* texture in FPGA address space, linear layout */
+	textmode_texture_external,
 	/* texture in GPU address space, optimized layout */
 	textmode_texture_internal;
 

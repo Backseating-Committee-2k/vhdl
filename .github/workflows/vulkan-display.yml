@@ -11,6 +11,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      CPPFLAGS: "-I${GITHUB_WORKSPACE}/linux"
+
     steps:
     - uses: actions/checkout@v3
 

@@ -8,11 +8,16 @@
 
 #include <string.h>
 
+#include <stdio.h>
+
 bool vulkan_device_setup(struct global *g)
 {
 	char const *const required_extension_names[] =
 	{
-		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+		VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME,
+		VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
+		VK_EXT_EXTERNAL_MEMORY_DMA_BUF_EXTENSION_NAME
 	};
 	uint32_t const required_extension_count =
 			sizeof required_extension_names /

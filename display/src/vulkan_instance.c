@@ -29,6 +29,8 @@ bool vulkan_instance_setup(struct global *g)
 	g->graphics_command_pool = VK_NULL_HANDLE;
 	g->shaders.frag = VK_NULL_HANDLE;
 	g->shaders.vert = VK_NULL_HANDLE;
+	g->textmode_texture_external.image = VK_NULL_HANDLE;
+	g->textmode_texture_external.memory = VK_NULL_HANDLE;
 	g->textmode_texture_internal.image = VK_NULL_HANDLE;
 	g->textmode_texture_internal.memory = VK_NULL_HANDLE;
 	g->swapchain_image_count = 0;
@@ -55,7 +57,9 @@ bool vulkan_instance_setup(struct global *g)
 	char const *const extensions[] =
 	{
 		VK_KHR_SURFACE_EXTENSION_NAME,
-		VK_KHR_XLIB_SURFACE_EXTENSION_NAME
+		VK_KHR_XLIB_SURFACE_EXTENSION_NAME,
+		VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
+		VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME
 	};
 
 	VkInstanceCreateInfo const info =
