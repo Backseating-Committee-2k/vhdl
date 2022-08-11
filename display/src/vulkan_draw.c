@@ -60,6 +60,19 @@ bool vulkan_draw(struct global *g)
 			goto fail_begin_command_buffer;
 	}
 
+	/* queue "bind descriptor sets" */
+	{
+		vkCmdBindDescriptorSets(
+				buffer,
+				VK_PIPELINE_BIND_POINT_GRAPHICS,
+				g->pipeline_layout,
+				/* firstSet */ 0,
+				/* descriptorSetCount */ 1,
+				&g->textmode_descriptor_set,
+				/* dynamicOffsetCount */ 0,
+				/* pDynamicOffsets */ NULL);
+	}
+
 	/* queue "begin render pass" */
 	{
 		VkClearValue const clear_values[] =

@@ -30,7 +30,7 @@ bss2kdpy_LDADD = \
 
 EXTRA_DIST = \
 	entire_viewport.vert \
-	red.frag
+	texture.frag
 
 CLEANFILES = \
 	frag.spv \
@@ -39,7 +39,7 @@ CLEANFILES = \
 .spv.$(OBJEXT):
 	$(OBJCOPY) -I binary -O $(BFDTYPE) $< $@
 
-frag.spv: red.frag
+frag.spv: texture.frag
 	$(GLSLANGVALIDATOR) -V $^
 
 vert.spv: entire_viewport.vert
