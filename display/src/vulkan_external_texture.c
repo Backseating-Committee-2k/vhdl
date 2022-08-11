@@ -129,6 +129,14 @@ bool vulkan_external_texture_setup(struct global *g)
 			return false;
 	}
 
+	rc = vkBindImageMemory(
+			g->device,
+			g->textmode_texture_external.image,
+			g->textmode_texture_external.memory,
+			/* offset */ 0);
+	if(rc != VK_SUCCESS)
+		return false;
+
 	return true;
 }
 
