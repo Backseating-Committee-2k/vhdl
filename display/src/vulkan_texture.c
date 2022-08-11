@@ -105,7 +105,23 @@ bool vulkan_texture_setup(struct global *g)
 		if(rc != VK_SUCCESS)
 			goto fail_allocatememory;
 	}
+
+	VkResult rc = vkBindImageMemory(
+			g->device,
+			g->textmode_texture_internal.image,
+			g->textmode_texture_internal.memory,
+			/* offset */ 0);
+	if(rc != VK_SUCCESS)
+		goto fail_bindimagememory;
+
 	return true;
+
+fail_bindimagememory:
+	vkFreeMemory(
+			g->device,
+			g->textmode_texture_internal.memory,
+			g->allocation_callbacks);
+	g->textmode_texture_internal.memory = VK_NULL_HANDLE;
 
 fail_allocatememory:
 	vkDestroyImage(
