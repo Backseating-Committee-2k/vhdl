@@ -59,6 +59,9 @@ struct global
 	VkSurfaceFormatKHR surface_format;
 	VkPresentModeKHR present_mode;
 
+	/* bitmask of device local memory types */
+	uint32_t device_local_memory_types;
+
 	struct
 	{
 		float max_sampler_anisotropy;

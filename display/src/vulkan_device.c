@@ -382,6 +382,25 @@ bool vulkan_device_setup(struct global *g)
 	else
 		g->queue.present.queue = g->queue.graphics.queue;
 
+	{
+		VkPhysicalDeviceMemoryProperties prop;
+		vkGetPhysicalDeviceMemoryProperties(
+				g->physical_device,
+				&prop);
+		
+		uint32_t device_local_memory_types = 0u;
+
+		for(uint32_t i = 0; i < VK_MAX_MEMORY_TYPES; ++i)
+		{
+			uint32_t const bit = ((uint32_t)1u) << i;
+			if(prop.memoryTypes[i].propertyFlags &
+					VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+				device_local_memory_types |= bit;
+		}
+
+		g->device_local_memory_types = device_local_memory_types;
+	}
+
 	return true;
 }
 
