@@ -70,6 +70,8 @@ architecture rtl of control is
 	-- running bit is direct from CPU
 	signal mapping_error : std_logic;
 
+	-- interrupt status
+	signal int_sts : std_logic_vector(31 downto 0);
 	-- interrupt mask register
 	signal int_mask : std_logic_vector(31 downto 0);
 
@@ -146,6 +148,8 @@ begin
 	mmu_address_out <=
 			mapping(to_page_num(mmu_address_in)) &			-- resolved page
 			mmu_address_in(page_size_bits - 1 downto 0);	-- offset
+
+	int_sts <= (0 => should_reset, others => '0');
 
 	process(reset, clk) is
 		variable has_data : std_logic;
@@ -320,7 +324,7 @@ begin
 							when sel_control =>
 								tx_data <= (0 => should_reset, 1 => should_start, others => '0');
 							when sel_int_status =>
-								tx_data <= (0 => cpu_halted, others => '0');
+								tx_data <= x"00000000" & int_sts;
 							when sel_int_mask =>
 								tx_data <= (others => '0');
 								tx_data(int_mask'range) <= int_mask;
