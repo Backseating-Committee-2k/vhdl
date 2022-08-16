@@ -297,7 +297,7 @@ begin
 									"0" &			-- not poisoned
 									"00" &			-- attributes
 									"00" &			-- reserved
-									"0001000000";	-- 256 DWORDs
+									"0001000000";	-- 64 DWORDs
 						tx_sop <= '1';
 						tx_eop <= '0';
 						tex_rdreq <= '1';
