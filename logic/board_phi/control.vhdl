@@ -37,7 +37,7 @@ entity control is
 		completer_id : in std_logic_vector(15 downto 0);
 
 		-- interrupt
-		int : out std_logic;
+		int : out std_logic_vector(31 downto 0);
 
 		-- CPU control interface
 		cpu_reset : out std_logic;
@@ -71,7 +71,7 @@ architecture rtl of control is
 	signal mapping_error : std_logic;
 
 	-- interrupt mask register
-	signal mask : std_logic;
+	signal mask : std_logic_vector(31 downto 0);
 
 	signal textmode_texture : host_address;
 	signal started : std_logic;
@@ -176,7 +176,7 @@ begin
 			--mapping <= (others => (others => '0'));
 			mapping_invalid <= (others => '1');
 			readback_strobe <= '0';
-			mask <= '0';
+			mask <= (others => '0');
 			should_reset <= '1';
 			should_start <= '0';
 			s := header1;
@@ -246,7 +246,8 @@ begin
 								when sel_int_status =>
 									null;		-- read only
 								when sel_int_mask =>
-									mask <= rx_data(0);
+									mask(31 downto 1) <= (others => '0');
+									mask(0) <= rx_data(0);
 								when sel_textmode =>
 									textmode_texture <= rx_data;
 								when sel_mapping =>
@@ -321,7 +322,8 @@ begin
 							when sel_int_status =>
 								tx_data <= (0 => cpu_halted, others => '0');
 							when sel_int_mask =>
-								tx_data <= (0 => mask, others => '0');
+								tx_data <= (others => '0');
+								tx_data(mask'range) <= mask;
 							when sel_textmode =>
 								tx_data <= textmode_texture;
 							when sel_mapping =>
