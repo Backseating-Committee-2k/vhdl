@@ -39,6 +39,7 @@ tb_cpu_pipe.vcd
 tb_cpu_seq.ghw
 tb_cpu_seq.log
 tb_cpu_seq.vcd
+tb_interrupt_encoder.ghw
 tb_mem_arbiter.ghw
 tb_textmode_output.log
 tb_textmode_output.vcd

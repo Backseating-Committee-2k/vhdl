@@ -1,5 +1,9 @@
 #! /bin/sh -x
 set -e
+ghdl -a --std=08 board_phi/interrupt_encoder.vhdl board_phi/tb_interrupt_encoder.vhdl
+ghdl -e --std=08 tb_interrupt_encoder
+ghdl -r --std=08 tb_interrupt_encoder --wave=tb_interrupt_encoder.ghw
+
 ghdl -a --std=08 board_phi/avalon_mm_to_pcie_avalon_st.vhdl board_phi/tb_avalon_mm_to_pcie_avalon_st.vhdl
 ghdl -e --std=08 tb_avalon_mm_to_pcie_avalon_st
 ghdl -r --std=08 tb_avalon_mm_to_pcie_avalon_st --wave=tb_avalon_mm_to_pcie_avalon_st.ghw

@@ -184,9 +184,11 @@ architecture rtl of top is
 	signal textmode_tx_start : std_logic;
 
 	-- interrupts
+	-- current status
+	signal int_sts : std_logic_vector(31 downto 0);
+	-- to PCIe block
 	signal app_int_sts : std_logic;
 	signal app_int_ack : std_logic;
-
 	signal app_msi_req : std_logic;
 	signal app_msi_num : std_logic_vector(4 downto 0);
 	signal app_msi_tc : std_logic_vector(2 downto 0);
@@ -361,6 +363,8 @@ begin
 			cpu_reset => cpu_reset,
 			cpu_halted => cpu_halted,
 
+			interrupts => int_sts,
+
 			mmu_address_in => cpu_i_addr,
 			mmu_address_out => cpu_i_addr_host,
 
@@ -443,11 +447,18 @@ begin
 	pcie_rx_mask <= '0';
 
 	-- interrupts
-	app_int_sts <= '0';
-
-	app_msi_req <= '0';
-	app_msi_num <= (others => '0');
-	app_msi_tc <= (others => '0');
+	int : entity work.interrupt_encoder
+		port map(
+			reset => not app_rstn,
+			clk => app_clk,
+			int_sts => int_sts,
+			legacy_int_sts => app_int_sts,
+			legacy_int_ack => app_int_ack,
+			msi_int_req => app_msi_req,
+			msi_int_num => app_msi_num,
+			msi_int_tc => app_msi_tc,
+			msi_int_ack => app_msi_ack
+		);
 
 	-- reset
 	npor <= pcie_nperst;
