@@ -151,6 +151,8 @@ begin
 
 	int_sts <= (0 => should_reset, others => '0');
 
+	interrupts <= int_sts and int_mask;
+
 	process(reset, clk) is
 		variable has_data : std_logic;
 		variable has_64bit_address : std_logic;
