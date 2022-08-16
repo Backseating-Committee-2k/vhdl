@@ -37,7 +37,7 @@ entity control is
 		completer_id : in std_logic_vector(15 downto 0);
 
 		-- interrupt
-		int : out std_logic_vector(31 downto 0);
+		interrupts : out std_logic_vector(31 downto 0);
 
 		-- CPU control interface
 		cpu_reset : out std_logic;
