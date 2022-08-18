@@ -32,11 +32,123 @@ The `display/` directory contains the Vulkan frontend to display the output
 generated inside the FPGA. Configure using `./configure` and build with
 `make`, as per usual; you need X11 and Vulkan headers and libraries.
 
+The `linux/` directory contains the Linux driver for the PCIe
+implementation. Compile using `make`, possibly passing the `KVERSION`
+variable to target a different kernel version than the one running.
+
 ## Core
 
 The main CPU core (`cpu`) has separate 64 bit instruction and 32 bit data
 buses that are fully synchronous and assumes that any memory interface or
 peripherals are external.
+
+## PCI Express Card
+
+To run the CPU on actual hardware, memory and peripherals are required.
+These are implemented in the PCIe example by using 16 MiB of host memory,
+and in cooperation with a driver running on the host.
+
+### PCI BAR 0: not yet implemented
+
+### PCI BAR 2: control registers
+
+This BAR is 32 bit addressable non-prefetchable memory, so accesses are
+performed exactly as the host CPU generates them. The BAR only supports
+only 64 bit wide accesses to 64 bit aligned addresses.
+
+#### Offset 0: Status Register
+
+This is the CPU status. Currently, only bit 0 is defined, which indicates
+that the CPU is currently running.
+
+#### Offset 8: Control Register
+
+This controls the emulated CPU.
+
+##### Bit 0: CPU reset
+
+While this bit is set, the CPU is held in reset.
+
+##### Bit 1: Force textmore texture update
+
+Setting this bit updates the host's copy of the textmode display. This bit
+auto-resets after the update is complete.
+
+#### Offset 16: Interrupt Status
+
+These are the host interrupt status flags.
+
+##### Bit 0: CPU Halted
+
+This is set when the emulated CPU halts, but is not in reset.
+
+##### Bit 1: Display Update
+
+This is set when the display contents have changed.
+
+#### Offset 24: Interrupt Mask
+
+This allows enabling interrupt sources. The bits are the same as for the
+Interrupt Status.
+
+#### Offset 32: Textmode Texture Address
+
+This is the host physical address of a 2 MiB buffer that should receive the
+graphical output while the emulated system is in text mode.
+
+#### Offset 64, 72, 80, 88, 96, 104, 112, 124
+
+These are eight host physical addresses of 2 MiB pages that should be used
+as the memory for the emulated CPU.
+
+### Driver
+
+The driver matches the implementation inside the FPGA, performs the
+necessary initialization and provides access to the emulated peripherals.
+
+#### Device Node `/dev/bss2k-0`
+
+This is the main interface. Open this device node in read-write mode.
+
+##### Memory Access
+
+The memory of the emulated system is accessible by read/write/llseek on the
+device node. `mmap` is not supported yet.
+
+##### CPU Reset
+
+The CPU is reset by calling the `BSS2K_IOC_RESET` ioctl. This ioctl has no
+arguments.
+
+##### CPU Start
+
+The CPU can be started by submitting the `BSS2K_IOC_START_CPU` ioctl. No
+arguments.
+
+##### Register Access
+
+The control registers can be accessed directly using
+
+ - `BSS2K_IOC_READ_STATUS`
+ - `BSS2K_IOC_READ_CONTROL`
+ - `BSS2K_IOC_READ_INTSTS`
+ - `BSS2K_IOC_READ_INTMASK`
+ - `BSS2K_IOC_WRITE_CONTROL`
+ - `BSS2K_IOC_WRITE_INTMASK`
+
+These require a pointer to a 64 bit unsigned integer that is overwritten by
+the READ ioctls and needs to be initialized for the WRITE ioctls.
+
+##### Textmode Texture Access
+
+The `BSS2K_IOC_GET_TEXTMODE_TEXTURE` returns a file descriptor that can be
+converted to a `dma_buf` object in another kernel driver, and that gives
+access to a 32 bit RGBA bitmap containing the current contents of the
+textmode display.
+
+This file descriptor can be passed to the
+*VK\_EXT\_external\_memory\_dma\_buf* Vulkan extension to get a texture
+image that can be rendered.
 
 ## Testbench
 
