@@ -417,6 +417,8 @@ static int bss2k_probe(
 		/* just suboptimal */
 		dev_warn(dev, "could not set up 64 bit DMA mask");
 
+	pci_set_master(pdev);
+
 	priv->reg = pcim_iomap(pdev, 2, 256);
 	if(priv->reg == 0)
 		return -ENODEV;
