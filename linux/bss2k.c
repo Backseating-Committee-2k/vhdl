@@ -411,6 +411,12 @@ static int bss2k_probe(
 
 	priv->pdev = pdev;
 
+	/* 64 bit addressing capable */
+	err = dma_set_mask_and_coherent(dev, DMA_BIT_MASK(64));
+	if(err < 0)
+		/* just suboptimal */
+		dev_warn(dev, "could not set up 64 bit DMA mask");
+
 	priv->reg = pcim_iomap(pdev, 2, 256);
 	if(priv->reg == 0)
 		return -ENODEV;
@@ -420,12 +426,6 @@ static int bss2k_probe(
 
 	/* disable interrupts */
 	priv->reg[REG_INT_MASK] = 0ULL;
-
-	/* 64 bit addressing capable */
-	err = dma_set_mask_and_coherent(dev, DMA_BIT_MASK(64));
-	if(err < 0)
-		/* just suboptimal */
-		dev_warn(dev, "could not set up 64 bit DMA mask");
 
 	for(i = 0; i < NUM_MAPPINGS; ++i)
 	{
