@@ -60,6 +60,9 @@ struct bss2k_priv
 
 	/* trampoline buffer for textmode (DMA descriptor) */
 	dma_addr_t trampoline_dma;
+
+	/* IRQ for graphics update */
+	int gfx_swap_irq;
 };
 
 static int bss2k_open(
@@ -300,9 +303,11 @@ static long bss2k_ioctl(
 	switch(cmd)
 	{
 	case BSS2K_IOC_RESET:
+		priv->reg[REG_INT_MASK] = 0ULL;
 		priv->reg[REG_CONTROL] |= CTL_RESET;
 		break;
 	case BSS2K_IOC_START_CPU:
+		priv->reg[REG_INT_MASK] = 1ULL;
 		priv->reg[REG_CONTROL] &= ~CTL_RESET;
 		break;
 	case BSS2K_IOC_READ_STATUS:
@@ -380,6 +385,17 @@ static struct file_operations const bss2k_fops =
 	.unlocked_ioctl = &bss2k_ioctl
 };
 
+static irqreturn_t bss2k_interrupt(int irq, void *data)
+{
+	struct pci_dev *const pdev = data;
+	struct device *const dev = &pdev->dev;
+	struct bss2k_priv *const priv = dev_get_drvdata(dev);
+
+	dev_err(&priv->pdev->dev, "interrupt!");
+
+	return IRQ_HANDLED;
+}
+
 static struct
 {
 	/* TODO clean up */
@@ -449,6 +465,22 @@ static int bss2k_probe(
 		return -ENODEV;
 	}
 
+	err = pci_alloc_irq_vectors(pdev, 1, 4, PCI_IRQ_ALL_TYPES);
+	if(err < 0)
+		goto fail_alloc_irq_vectors;
+
+	priv->gfx_swap_irq = pci_irq_vector(pdev, 0);
+
+	err = devm_request_irq(
+			dev,
+			priv->gfx_swap_irq,
+			&bss2k_interrupt,
+			IRQF_SHARED,
+			"bss2k",
+			pdev);
+	if(err < 0)
+		goto fail_request_irq;
+
 	cdev_init(&priv->cdev, &bss2k_fops);
 
 	/* TODO minor numbers */
@@ -475,6 +507,12 @@ fail_device_create:
 	cdev_del(&priv->cdev);
 
 fail_cdev_add:
+	devm_free_irq(dev, priv->gfx_swap_irq, priv);
+
+fail_request_irq:
+	pci_free_irq_vectors(pdev);
+
+fail_alloc_irq_vectors:
 	return err;
 }
 
@@ -491,6 +529,9 @@ static void bss2k_remove(
 
 	/* disable interrupts */
 	priv->reg[REG_INT_MASK] = 0ULL;
+
+	devm_free_irq(dev, priv->gfx_swap_irq, priv);
+	pci_free_irq_vectors(pdev);
 
 	/* clear mappings, for safety */
 	for(i = 0; i < NUM_MAPPINGS; ++i)
