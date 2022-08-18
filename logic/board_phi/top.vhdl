@@ -467,7 +467,7 @@ begin
 	gxb_powerdown <= '0';
 	pll_powerdown <= '0';
 	pm_auxpwr <= '0';
-	pm_data <= (others => '0');		-- todo
+	pm_data <= "0011001001";	-- todo: 5W?
 	pm_event <= '0';
 	pme_to_cr <= '0';
 
