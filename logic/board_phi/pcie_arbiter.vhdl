@@ -116,7 +116,7 @@ begin
 			if(can_decide) then
 				next_is_idle := true;
 				for agent in 1 to num_agents loop
-					if(arb_tx_req(agent) = '1') then
+					if(next_is_idle and arb_tx_req(agent) = '1') then
 						next_is_idle := false;
 						next_agent := agent;
 					end if;
