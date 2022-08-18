@@ -65,6 +65,12 @@ struct bss2k_priv
 	int gfx_swap_irq;
 };
 
+struct bss2k_file_priv
+{
+	/* device private data */
+	struct bss2k_priv *device_priv;
+};
+
 static int bss2k_open(
 		struct inode *ino,
 		struct file *filp)
@@ -75,7 +81,25 @@ static int bss2k_open(
 				struct bss2k_priv,
 				cdev);
 
-	filp->private_data = priv;
+	struct bss2k_file_priv *const file_priv =
+		kzalloc(sizeof *file_priv, GFP_KERNEL);
+	if(!file_priv)
+		return -ENOMEM;
+
+	file_priv->device_priv = priv;
+
+	filp->private_data = file_priv;
+
+	return 0;
+}
+
+static int bss2k_release(
+		struct inode *inode,
+		struct file *filp)
+{
+	struct bss2k_file_priv *const file_priv = filp->private_data;
+
+	kfree(file_priv);
 
 	return 0;
 }
@@ -86,7 +110,8 @@ static ssize_t bss2k_read(
 		size_t count,
 		loff_t *pos)
 {
-	struct bss2k_priv *const priv = filp->private_data;
+	struct bss2k_file_priv *const file_priv = filp->private_data;
+	struct bss2k_priv *const priv = file_priv->device_priv;
 
 	size_t const end = 0x1000000;		/* 16 MiB */
 	size_t const page_size = 0x200000;	/* 2 MiB */
@@ -131,7 +156,8 @@ static ssize_t bss2k_write(
 		size_t count,
 		loff_t *pos)
 {
-	struct bss2k_priv *const priv = filp->private_data;
+	struct bss2k_file_priv *const file_priv = filp->private_data;
+	struct bss2k_priv *const priv = file_priv->device_priv;
 
 	size_t const end = 0x1000000;		/* 16 MiB */
 	size_t const page_size = 0x200000;	/* 2 MiB */
@@ -281,7 +307,8 @@ static long bss2k_ioctl(
 		unsigned int cmd,
 		unsigned long arg)
 {
-	struct bss2k_priv *priv = filp->private_data;
+	struct bss2k_file_priv *const file_priv = filp->private_data;
+	struct bss2k_priv *const priv = file_priv->device_priv;
 
 	union
 	{
@@ -380,6 +407,7 @@ static struct file_operations const bss2k_fops =
 	.owner = THIS_MODULE,
 	.llseek = default_llseek,
 	.open = &bss2k_open,
+	.release = &bss2k_release,
 	.read = &bss2k_read,
 	.write = &bss2k_write,
 	.unlocked_ioctl = &bss2k_ioctl
