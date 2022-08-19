@@ -3,6 +3,7 @@
 #include <linux/cdev.h>
 
 #include <linux/interrupt.h>
+#include <linux/poll.h>
 
 #include <linux/pci.h>
 
@@ -68,12 +69,21 @@ struct bss2k_priv
 
 	/* IRQ handler bottom half */
 	struct tasklet_struct interrupt_bottomhalf;
+
+	/* wait queue */
+	struct wait_queue_head waitqueue;
+
+	/* event counter */
+	u64 swap_event_count;
 };
 
 struct bss2k_file_priv
 {
 	/* device private data */
 	struct bss2k_priv *device_priv;
+
+	/* last seen event counter */
+	u64 last_swap_event;
 };
 
 static int bss2k_open(
@@ -92,6 +102,7 @@ static int bss2k_open(
 		return -ENOMEM;
 
 	file_priv->device_priv = priv;
+	file_priv->last_swap_event = 0;
 
 	filp->private_data = file_priv;
 
@@ -407,6 +418,28 @@ static long bss2k_ioctl(
 	return 0;
 };
 
+static __poll_t bss2k_poll(
+		struct file *filp,
+		struct poll_table_struct *wait)
+{
+	struct bss2k_file_priv *const file_priv = filp->private_data;
+	struct bss2k_priv *const priv = file_priv->device_priv;
+
+	u64 swap_event_count = priv->swap_event_count;
+
+	__poll_t ret = 0;
+
+	poll_wait(filp, &priv->waitqueue, wait);
+
+	if(swap_event_count != file_priv->last_swap_event)
+	{
+		file_priv->last_swap_event = swap_event_count;
+		ret |= POLLIN;
+	}
+
+	return ret;
+}
+
 static struct file_operations const bss2k_fops =
 {
 	.owner = THIS_MODULE,
@@ -415,7 +448,8 @@ static struct file_operations const bss2k_fops =
 	.release = &bss2k_release,
 	.read = &bss2k_read,
 	.write = &bss2k_write,
-	.unlocked_ioctl = &bss2k_ioctl
+	.unlocked_ioctl = &bss2k_ioctl,
+	.poll = &bss2k_poll
 };
 
 static irqreturn_t bss2k_interrupt(int irq, void *data)
@@ -433,7 +467,9 @@ static void bss2k_interrupt_bottomhalf(unsigned long data)
 {
 	struct bss2k_priv *const priv = (struct bss2k_priv *)data;
 
-	(void)priv;
+	++priv->swap_event_count;
+
+	wake_up(&priv->waitqueue);
 }
 
 static struct
@@ -504,6 +540,9 @@ static int bss2k_probe(
 				"after configuration");
 		return -ENODEV;
 	}
+
+	init_waitqueue_head(&priv->waitqueue);
+	priv->swap_event_count = 0;
 
 	tasklet_init(
 			&priv->interrupt_bottomhalf,
