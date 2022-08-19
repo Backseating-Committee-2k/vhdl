@@ -33,7 +33,10 @@ bool vulkan_external_texture_setup(struct global *g)
 		if(bss2k_dev == -1)
 			return false;
 
-		int rc = ioctl(bss2k_dev, BSS2K_IOC_GET_TEXTMODE_TEXTURE, &mem_fd);
+		int rc = ioctl(
+				bss2k_dev,
+				BSS2K_IOC_GET_TEXTMODE_TEXTURE,
+				&mem_fd);
 		if(rc == -1)
 			return false;
 	}
