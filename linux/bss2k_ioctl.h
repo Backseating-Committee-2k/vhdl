@@ -22,5 +22,5 @@
 #define BSS2K_IOC_GET_TEXTMODE_TEXTURE	_IOR(BSS2K_MAGIC, 64, int)
 
 /* write card registers */
-#define BSS2K_IOC_WRITE_CONTROL 	_IOW(BSS2K_MAGIC, 1, unsigned long long)
+#define BSS2K_IOC_WRITE_CONTROL		_IOW(BSS2K_MAGIC, 1, unsigned long long)
 #define BSS2K_IOC_WRITE_INTMASK		_IOW(BSS2K_MAGIC, 3, unsigned long long)

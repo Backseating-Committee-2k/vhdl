@@ -35,7 +35,7 @@
 #define CTL_MASK_RESET          (1 << 32)
 
 /* interrupt registers */
-#define INT_HALTED		(1 << 0)
+#define INT_HALTED              (1 << 0)
 
 /* aperture is two megabytes */
 #define DMA_BUF_TEXTMODE_EMULATION_SIZE	0x200000
