@@ -2,6 +2,8 @@
 
 #include <linux/cdev.h>
 
+#include <linux/interrupt.h>
+
 #include <linux/pci.h>
 
 #include <linux/dma-buf.h>
@@ -63,6 +65,9 @@ struct bss2k_priv
 
 	/* IRQ for graphics update */
 	int gfx_swap_irq;
+
+	/* IRQ handler bottom half */
+	struct tasklet_struct interrupt_bottomhalf;
 };
 
 struct bss2k_file_priv
@@ -419,9 +424,16 @@ static irqreturn_t bss2k_interrupt(int irq, void *data)
 	struct device *const dev = &pdev->dev;
 	struct bss2k_priv *const priv = dev_get_drvdata(dev);
 
-	dev_err(&priv->pdev->dev, "interrupt!");
+	tasklet_schedule(&priv->interrupt_bottomhalf);
 
 	return IRQ_HANDLED;
+}
+
+static void bss2k_interrupt_bottomhalf(unsigned long data)
+{
+	struct bss2k_priv *const priv = (struct bss2k_priv *)data;
+
+	(void)priv;
 }
 
 static struct
@@ -492,6 +504,11 @@ static int bss2k_probe(
 				"after configuration");
 		return -ENODEV;
 	}
+
+	tasklet_init(
+			&priv->interrupt_bottomhalf,
+			&bss2k_interrupt_bottomhalf,
+			(unsigned long)priv);
 
 	err = pci_alloc_irq_vectors(pdev, 1, 4, PCI_IRQ_ALL_TYPES);
 	if(err < 0)
