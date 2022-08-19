@@ -209,6 +209,8 @@ bool x11_mainloop(struct global *g)
 				if(g->mapped && g->visible)
 					vulkan_draw(g);
 			}
+			if(!FD_ISSET(x11_fd, &readfds))
+				continue;
 		}
 
 		XEvent event;
