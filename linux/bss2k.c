@@ -9,6 +9,8 @@
 
 #include <linux/dma-buf.h>
 
+#include <linux/bits.h>
+
 #include "bss2k_ioctl.h"
 
 #define REG_STATUS      0
@@ -22,20 +24,20 @@
  * page number and 21 bits page offset */
 #define ADDRESS_WIDTH   24
 #define MAPPING_BITS    21
-#define MAPPING_SIZE    (1 << MAPPING_BITS)
+#define MAPPING_SIZE    (1ULL << MAPPING_BITS)
 #define NUM_MAPPINGS    (1 << (ADDRESS_WIDTH - MAPPING_BITS))
 
 /* status register */
-#define STS_RUNNING             (1 << 0)
-#define STS_MAPPING_ERROR       (1 << 1)
+#define STS_RUNNING             BIT_ULL(0)
+#define STS_MAPPING_ERROR       BIT_ULL(1)
 
 /* control register */
-#define CTL_RESET               (1 << 0)
+#define CTL_RESET               BIT_ULL(0)
 
-#define CTL_MASK_RESET          (1 << 32)
+#define CTL_MASK_RESET          BIT_ULL(32)
 
 /* interrupt registers */
-#define INT_HALTED              (1 << 0)
+#define INT_HALTED              BIT_ULL(0)
 
 /* aperture is two megabytes */
 #define DMA_BUF_TEXTMODE_EMULATION_SIZE	0x200000
