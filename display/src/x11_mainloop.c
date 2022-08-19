@@ -180,7 +180,7 @@ bool x11_mainloop(struct global *g)
 
 			struct timespec timeout =
 			{
-				.tv_sec = 1,
+				.tv_sec = 60,
 				.tv_nsec = 0
 			};
 
