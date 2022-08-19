@@ -8,9 +8,6 @@
 
 #include "bss2kdpy.h"
 
-#include <unistd.h>
-#include <fcntl.h>
-
 #include <sys/ioctl.h>
 
 #include <bss2k_ioctl.h>
@@ -29,12 +26,8 @@ bool vulkan_external_texture_setup(struct global *g)
 	int mem_fd;
 
 	{
-		int bss2k_dev = open("/dev/bss2k-0", O_RDWR);
-		if(bss2k_dev == -1)
-			return false;
-
 		int rc = ioctl(
-				bss2k_dev,
+				g->bss2k_device,
 				BSS2K_IOC_GET_TEXTMODE_TEXTURE,
 				&mem_fd);
 		if(rc == -1)

@@ -17,6 +17,8 @@ struct global
 	int argc;
 	char **argv;
 
+	int bss2k_device;
+
 	union
 	{
 		struct

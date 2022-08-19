@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include "device.h"
 #include "x11_vulkan.h"
 #include "x11_setup.h"
 #include "x11_mainloop.h"
@@ -34,6 +35,9 @@ int main(int argc, char **argv)
 		.argc = argc,
 		.argv = argv
 	};
+
+	if(!device_setup(&g))
+		goto fail_device;
 
 	if(!x11_setup(&g))
 		goto fail_x11;
@@ -138,5 +142,8 @@ fail_vulkan_instance:
 	x11_teardown(&g);
 
 fail_x11:
+	device_teardown(&g);
+
+fail_device:
 	return rc;
 }
