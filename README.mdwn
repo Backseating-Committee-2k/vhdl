@@ -63,7 +63,8 @@ that the CPU is currently running.
 
 #### Offset 8: Control Register
 
-This controls the emulated CPU.
+This controls the emulated CPU. The upper half acts as a mask on the lower
+half, so if bit n+32 is clear, bit n will be unaffected by a write.
 
 ##### Bit 0: CPU reset
 

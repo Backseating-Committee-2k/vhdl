@@ -32,6 +32,8 @@
 /* control register */
 #define CTL_RESET               (1 << 0)
 
+#define CTL_MASK_RESET          (1 << 32)
+
 /* interrupt registers */
 #define INT_HALTED		(1 << 0)
 
@@ -347,11 +349,11 @@ static long bss2k_ioctl(
 	{
 	case BSS2K_IOC_RESET:
 		priv->reg[REG_INT_MASK] = 0ULL;
-		priv->reg[REG_CONTROL] |= CTL_RESET;
+		priv->reg[REG_CONTROL] = CTL_MASK_RESET | CTL_RESET;
 		break;
 	case BSS2K_IOC_START_CPU:
 		priv->reg[REG_INT_MASK] = 1ULL;
-		priv->reg[REG_CONTROL] &= ~CTL_RESET;
+		priv->reg[REG_CONTROL] = CTL_MASK_RESET | 0;
 		break;
 	case BSS2K_IOC_READ_STATUS:
 		val.as_u64 = priv->reg[REG_STATUS];

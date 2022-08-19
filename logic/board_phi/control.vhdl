@@ -247,8 +247,12 @@ begin
 								when sel_status =>
 									null;		-- read only
 								when sel_control =>
-									should_reset <= rx_data(0);
-									should_start <= rx_data(1);
+									if(?? rx_data(32)) then
+										should_reset <= rx_data(0);
+									end if;
+									if(?? rx_data(33)) then
+										should_start <= rx_data(1);
+									end if;
 								when sel_int_status =>
 									null;		-- read only
 								when sel_int_mask =>
