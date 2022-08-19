@@ -163,7 +163,8 @@ bool x11_mainloop(struct global *g)
 	{
 		if(XPending(g->x11.display) == 0)
 		{
-			int x11_fd = ConnectionNumber(g->x11.display);
+			int const x11_fd = ConnectionNumber(g->x11.display);
+			int const bss2k_fd = g->bss2k_device;
 
 			int maxfd = -1;
 
@@ -171,8 +172,11 @@ bool x11_mainloop(struct global *g)
 
 			FD_ZERO(&readfds);
 			FD_SET(x11_fd, &readfds);
+			FD_SET(bss2k_fd, &readfds);
 			if(x11_fd > maxfd)
 				maxfd = x11_fd;
+			if(bss2k_fd > maxfd)
+				maxfd = bss2k_fd;
 
 			struct timespec timeout =
 			{
@@ -197,6 +201,13 @@ bool x11_mainloop(struct global *g)
 							g->x11.window);
 				else
 					handle_unmap_event(g, NULL);
+			}
+
+			if(FD_ISSET(bss2k_fd, &readfds))
+			{
+				/* display update */
+				if(g->mapped && g->visible)
+					vulkan_draw(g);
 			}
 		}
 
