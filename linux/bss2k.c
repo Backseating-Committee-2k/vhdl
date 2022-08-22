@@ -33,8 +33,10 @@
 
 /* control register */
 #define CTL_RESET               BIT_ULL(0)
+#define CTL_UPDATEDISPLAY       BIT_ULL(1)
 
 #define CTL_MASK_RESET          BIT_ULL(32)
+#define CTL_MASK_UPDATEDISPLAY  BIT_ULL(33)
 
 /* interrupt registers */
 #define INT_HALTED              BIT_ULL(0)
