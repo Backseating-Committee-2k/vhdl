@@ -56,7 +56,7 @@ architecture sim of tb_cpu is
 
 	signal halted : std_logic;
 
-	constant rom_size : integer := 256;
+	constant rom_size : integer := 512;
 	constant rom_start : integer := to_integer(unsigned(entry_point));
 	constant rom_end : integer := rom_start + rom_size - 1;
 
@@ -75,7 +75,7 @@ begin
 	-- sim timeout
 	process is
 	begin
-		wait for 60 us;
+		wait for 200 us;
 		report "sim timeout" severity error;
 		finish;
 	end process;
@@ -97,7 +97,7 @@ begin
 		variable a : instruction;
 		variable x : integer;
 	begin
-		file_open(fstatus, rom, "../roms/hello_world.backseat", read_mode);
+		file_open(fstatus, rom, "../roms/divide.backseat", read_mode);
 		x := i'low;
 		while not endfile(rom) loop
 			a := (others => '0');
