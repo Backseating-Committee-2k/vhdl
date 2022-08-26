@@ -117,11 +117,12 @@ begin
 
 	decoder_input <= i_rddata;
 
+	-- load/store use lane 1 for address, lane 2 for value
 	with opcode select decoder_output.op.src <=
 		( none, none ) when x"0000",	-- MOVE immediate -> register
 		( none, none ) when x"0001",	-- LOAD address -> register
 		( i_r2, none ) when x"0002",	-- MOVE register -> register
-		( i_r1, none ) when x"0003",	-- STORE register -> address
+		( none, i_r1 ) when x"0003",	-- STORE register -> address
 		( i_r2, none ) when x"0004",	-- LOAD [register] -> register
 		( i_r1, i_r2 ) when x"0005",	-- STORE register -> [register]
 		( none, none ) when x"0006",	-- HALT and catch fire
@@ -172,8 +173,8 @@ begin
 		( none, none ) when x"0033",	-- POLLTIME -> (register, register)
 		( i_r2, i_r3 ) when x"0034",	-- ADD register, register, carry -> register
 		( none, none ) when x"0035",	-- SWAPFRAMEBUFFERS
-		( i_r1, r_sp ) when x"0036",	-- CALL [register]
-		( i_r1, r_sp ) when x"0037",	-- CALL [[register]]
+		( r_sp, i_r1 ) when x"0036",	-- CALL [register]
+		( r_sp, i_r1 ) when x"0037",	-- CALL [[register]]
 		( none, none ) when x"0038",	-- INVISIBLEFRAMEBUFFERADDRESS -> register
 		( none, none ) when x"0039",	-- POLLCYCLECOUNT -> (register, register)
 		( i_r2, i_r3 ) when x"003a",	-- CMPeq register, register -> register:bool
@@ -339,7 +340,7 @@ begin
 				when x"0003" =>
 					-- ST abs
 					m_addr <= to_address(c);
-					m_value <= r_q_a;
+					m_value <= r_q_b;
 					s <= store;
 				when x"0004" =>
 					-- LD [r]
