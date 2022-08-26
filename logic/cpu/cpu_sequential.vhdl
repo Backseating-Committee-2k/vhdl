@@ -82,21 +82,29 @@ architecture rtl of cpu_sequential is
 	-- value for writeback
 	signal wb_value1, wb_value2 : word;
 
-	type reg_field is (
+	-- operand source
+	type operand is (
 		none,	-- no operand used
 		i_r1,	-- register number in insn, field 1
 		i_r2,
 		i_r3,
 		i_r4,
-		r_sp
+		r_sp	-- stack pointer
 	);
-	type read_reg is record
-		reg_a : reg_field;
-		reg_b : reg_field;
+
+	subtype source is operand;
+	subtype destination is operand range none to r_sp;
+
+	subtype lane is integer range 1 to 2;
+
+	type sources is array(lane) of source;
+
+	type operands is record
+		src : sources;
 	end record;
 
 	type decoded_insn is record
-		reg_read : read_reg;
+		op : operands;
 		reg_active_a, reg_active_b : std_logic;
 	end record;
 
@@ -109,7 +117,7 @@ begin
 
 	decoder_input <= i_rddata;
 
-	with opcode select decoder_output.reg_read <=
+	with opcode select decoder_output.op.src <=
 		( none, none ) when x"0000",	-- MOVE immediate -> register
 		( none, none ) when x"0001",	-- LOAD address -> register
 		( i_r2, none ) when x"0002",	-- MOVE register -> register
@@ -185,10 +193,10 @@ begin
 		( none, none ) when x"ffff",	-- DUMPREGISTERS
 		( none, none ) when others;
 
-	with decoder_output.reg_read.reg_a select decoder_output.reg_active_a <=
+	with decoder_output.op.src(1) select decoder_output.reg_active_a <=
 		'0' when none,
 		'1' when i_r1|i_r2|i_r3|i_r4|r_sp;
-	with decoder_output.reg_read.reg_b select decoder_output.reg_active_b <=
+	with decoder_output.op.src(2) select decoder_output.reg_active_b <=
 		'0' when none,
 		'1' when i_r1|i_r2|i_r3|i_r4|r_sp;
 
@@ -267,7 +275,7 @@ begin
 			alias reg4 : reg is i(23 downto 16);
 			alias c : word is i(31 downto 0);
 		begin
-			case decoder_output.reg_read.reg_a is
+			case decoder_output.op.src(1) is
 				when none	=> null;
 				when i_r1	=> r_address_a <= reg1;
 				when i_r2	=> r_address_a <= reg2;
@@ -275,7 +283,7 @@ begin
 				when i_r4	=> r_address_a <= reg4;
 				when r_sp	=> r_address_a <= sp;
 			end case;
-			case decoder_output.reg_read.reg_b is
+			case decoder_output.op.src(2) is
 				when none	=> null;
 				when i_r1	=> r_address_b <= reg1;
 				when i_r2	=> r_address_b <= reg2;
