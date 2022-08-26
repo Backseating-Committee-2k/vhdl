@@ -109,9 +109,11 @@ architecture rtl of cpu_sequential is
 	subtype lane is integer range 1 to 2;
 
 	type sources is array(lane) of source;
+	type destinations is array(lane) of destination;
 
 	type operands is record
 		src : sources;
+		dst : destinations;
 	end record;
 
 	type decoded_insn is record
