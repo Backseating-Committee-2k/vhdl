@@ -100,7 +100,8 @@ architecture rtl of cpu_sequential is
 		i_r2,
 		i_r3,
 		i_r4,
-		r_sp	-- stack pointer
+		r_sp,	-- stack pointer
+		i_c		-- constant in instruction
 	);
 
 	subtype source is operand;
@@ -152,10 +153,10 @@ begin
 
 	-- load/store use lane 1 for address, lane 2 for value
 	with opcode select decoder_output.op.src <=
-		( none, none ) when x"0000",	-- MOVE immediate -> register
-		( none, none ) when x"0001",	-- LOAD address -> register
+		( i_c , none ) when x"0000",	-- MOVE immediate -> register
+		( i_c , none ) when x"0001",	-- LOAD address -> register
 		( i_r2, none ) when x"0002",	-- MOVE register -> register
-		( none, i_r1 ) when x"0003",	-- STORE register -> address
+		( i_c , i_r1 ) when x"0003",	-- STORE register -> address
 		( i_r2, none ) when x"0004",	-- LOAD [register] -> register
 		( i_r1, i_r2 ) when x"0005",	-- STORE register -> [register]
 		( none, none ) when x"0006",	-- HALT and catch fire
@@ -170,37 +171,37 @@ begin
 		( i_r2, none ) when x"000f",	-- NOT register -> register
 		( i_r2, i_r3 ) when x"0010",	-- SHIFT LEFT register, register -> register
 		( i_r2, i_r3 ) when x"0011",	-- SHIFT RIGHT register, register -> register
-		( i_r2, none ) when x"0012",	-- ADD register, immediate -> register
-		( i_r2, none ) when x"0013",	-- SUB register, immediate -> register
+		( i_r2, i_c  ) when x"0012",	-- ADD register, immediate -> register
+		( i_r2, i_c  ) when x"0013",	-- SUB register, immediate -> register
 		( i_r2, i_r3 ) when x"0014",	-- CMP register, register -> register:ternary
 		( r_sp, i_r1 ) when x"0015",	-- PUSH register => STORE register, [sp++]
 		( r_sp, none ) when x"0016",	-- POP register => LOAD [--sp] -> register
-		( r_sp, none ) when x"0017",	-- CALL address => PUSH ip + 8; JMP address
+		( r_sp, i_c  ) when x"0017",	-- CALL address => PUSH ip + 8; JMP address
 		( r_sp, none ) when x"0018",	-- RETURN => POP ip
-		( none, none ) when x"0019",	-- JUMP address
-		( i_r1, none ) when x"001a",	-- JUMP [register]
-		( i_r1, none ) when x"001b",	-- JUMPif register:ternary == 0, address
-		( i_r1, none ) when x"001c",	-- JUMPif register:ternary > 0, address
-		( i_r1, none ) when x"001d",	-- JUMPif register:ternary >= 0, address
-		( i_r1, none ) when x"001e",	-- JUMPif register:ternary < 0, address
-		( i_r1, none ) when x"001f",	-- JUMPif register:ternary <= 0, address
-		( none, none ) when x"0020",	-- JUMPeq address
-		( none, none ) when x"0021",	-- JUMPne address
-		( none, none ) when x"0022",	-- JUMPgt address
-		( none, none ) when x"0023",	-- JUMPge address
-		( none, none ) when x"0024",	-- JUMPlt address
-		( none, none ) when x"0025",	-- JUMPle address
-		( i_r2, i_r1 ) when x"0026",	-- JUMPif register:ternary == 0, [register]
-		( i_r2, i_r1 ) when x"0027",	-- JUMPif register:ternary > 0, [register]
-		( i_r2, i_r1 ) when x"0028",	-- JUMPif register:ternary >= 0, [register]
-		( i_r2, i_r1 ) when x"0029",	-- JUMPif register:ternary < 0, [register]
-		( i_r2, i_r1 ) when x"002a",	-- JUMPif register:ternary <= 0, [register]
-		( i_r1, none ) when x"002b",	-- JUMPeq [register]
-		( i_r1, none ) when x"002c",	-- JUMPne [register]
-		( i_r1, none ) when x"002d",	-- JUMPgt [register]
-		( i_r1, none ) when x"002e",	-- JUMPge [register]
-		( i_r1, none ) when x"002f",	-- JUMPlt [register]
-		( i_r1, none ) when x"0030",	-- JUMPle [register]
+		( none, i_c  ) when x"0019",	-- JUMP address
+		( none, i_r1 ) when x"001a",	-- JUMP [register]
+		( i_r1, i_c  ) when x"001b",	-- JUMPif register:ternary == 0, address
+		( i_r1, i_c  ) when x"001c",	-- JUMPif register:ternary > 0, address
+		( i_r1, i_c  ) when x"001d",	-- JUMPif register:ternary >= 0, address
+		( i_r1, i_c  ) when x"001e",	-- JUMPif register:ternary < 0, address
+		( i_r1, i_c  ) when x"001f",	-- JUMPif register:ternary <= 0, address
+		( none, i_c  ) when x"0020",	-- JUMPeq address
+		( none, i_c  ) when x"0021",	-- JUMPne address
+		( none, i_c  ) when x"0022",	-- JUMPgt address
+		( none, i_c  ) when x"0023",	-- JUMPge address
+		( none, i_c  ) when x"0024",	-- JUMPlt address
+		( none, i_c  ) when x"0025",	-- JUMPle address
+		( i_r1, i_r2 ) when x"0026",	-- JUMPif register:ternary == 0, [register]
+		( i_r1, i_r2 ) when x"0027",	-- JUMPif register:ternary > 0, [register]
+		( i_r1, i_r2 ) when x"0028",	-- JUMPif register:ternary >= 0, [register]
+		( i_r1, i_r2 ) when x"0029",	-- JUMPif register:ternary < 0, [register]
+		( i_r1, i_r2 ) when x"002a",	-- JUMPif register:ternary <= 0, [register]
+		( none, i_r1 ) when x"002b",	-- JUMPeq [register]
+		( none, i_r1 ) when x"002c",	-- JUMPne [register]
+		( none, i_r1 ) when x"002d",	-- JUMPgt [register]
+		( none, i_r1 ) when x"002e",	-- JUMPge [register]
+		( none, i_r1 ) when x"002f",	-- JUMPlt [register]
+		( none, i_r1 ) when x"0030",	-- JUMPle [register]
 		( none, none ) when x"0031",	-- NOP
 		( i_r2, none ) when x"0032",	-- GETKEYSTATE register -> register
 		( none, none ) when x"0033",	-- POLLTIME -> (register, register)
@@ -217,21 +218,21 @@ begin
 		( i_r2, i_r3 ) when x"003e",	-- CMPlt register, register -> register:bool
 		( i_r2, i_r3 ) when x"003f",	-- CMPle register, register -> register:bool
 		( r_sp, none ) when x"0040",	-- POP <discard>,
-		( none, none ) when x"fff8",	-- CHECKPOINT immediate
+		( i_c , none ) when x"fff8",	-- CHECKPOINT immediate
 		( i_r1, none ) when x"fff9",	-- PRINTREGISTER
 		( none, none ) when x"fffa",	-- DEBUGBREAK
-		( i_r1, none ) when x"fffb",	-- ASSERT [register] == immediate
-		( i_r1, none ) when x"fffc",	-- ASSERT register == immediate
+		( i_r1, i_c  ) when x"fffb",	-- ASSERT [register] == immediate
+		( i_r1, i_c  ) when x"fffc",	-- ASSERT register == immediate
 		( i_r2, i_r1 ) when x"fffd",	-- ASSERT register == register
 		( none, none ) when x"fffe",	-- DUMPMEMORY
 		( none, none ) when x"ffff",	-- DUMPREGISTERS
 		( none, none ) when others;
 
 	with decoder_output.op.src(1) select decoder_output.reg_active_a <=
-		'0' when none,
+		'0' when none|i_c,
 		'1' when i_r1|i_r2|i_r3|i_r4|r_sp;
 	with decoder_output.op.src(2) select decoder_output.reg_active_b <=
-		'0' when none,
+		'0' when none|i_c,
 		'1' when i_r1|i_r2|i_r3|i_r4|r_sp;
 
 	product <= std_logic_vector(unsigned(r_q_a) * unsigned(r_q_b));
@@ -318,6 +319,7 @@ begin
 				when i_r3	=> r_address_a <= reg3;
 				when i_r4	=> r_address_a <= reg4;
 				when r_sp	=> r_address_a <= sp;
+				when i_c	=> null;
 			end case;
 			case decoder_output.op.src(2) is
 				when none	=> null;
@@ -326,6 +328,7 @@ begin
 				when i_r3	=> r_address_b <= reg3;
 				when i_r4	=> r_address_b <= reg4;
 				when r_sp	=> r_address_b <= sp;
+				when i_c	=> null;
 			end case;
 			if(?? (decoder_output.reg_active_a or decoder_output.reg_active_b)) then
 				s <= reg_read;
