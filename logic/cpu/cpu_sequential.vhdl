@@ -51,7 +51,7 @@ architecture rtl of cpu_sequential is
 	constant ip : reg := x"fe";
 	constant sp : reg := x"ff";
 
-	type state is (ifetch1, ifetch15, ifetch2, decode, decode2, execute, writeback, advance1, advance15, advance2, load, load2, store, store2, div, halt);
+	type state is (ifetch1, ifetch15, ifetch2, decode, reg_read, execute, writeback, advance1, advance15, advance2, load, load2, store, store2, div, halt);
 
 	signal s : state;
 
@@ -284,7 +284,7 @@ begin
 				when r_sp	=> r_address_b <= sp;
 			end case;
 			if(?? (decoder_output.reg_active_a or decoder_output.reg_active_b)) then
-				s <= decode2;
+				s <= reg_read;
 			else
 				s <= execute;
 			end if;
@@ -526,7 +526,7 @@ begin
 						i_addr <= to_address(r_q_a);
 						i_rdreq <= '1';
 					end if;
-				when decode2 =>
+				when reg_read =>
 					s <= execute;
 				when execute =>
 					-- defined above because long
