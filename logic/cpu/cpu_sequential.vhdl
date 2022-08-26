@@ -51,7 +51,7 @@ architecture rtl of cpu_sequential is
 	constant ip : reg := x"fe";
 	constant sp : reg := x"ff";
 
-	type state is (ifetch1, ifetch15, ifetch2, decode, decode2, execute, writeback, advance1, advance15, advance2, load, load2, store, store2, halt);
+	type state is (ifetch1, ifetch15, ifetch2, decode, decode2, execute, writeback, advance1, advance15, advance2, load, load2, store, store2, div, halt);
 
 	signal s : state;
 
@@ -85,6 +85,15 @@ begin
 	halted <= '1' when s = halt else '0';
 
 	process(reset, clk) is
+		variable dividend : unsigned(31 downto 0);
+		variable dividend_tmp : unsigned(63 downto 0);
+		variable divisor : unsigned(63 downto 0);
+		variable divider_counter : integer range 31 downto 0;
+		variable quotient : unsigned(31 downto 0);
+		variable remainder : unsigned(31 downto 0);
+		variable quotient_reg : reg;
+		variable remainder_reg : reg;
+
 		procedure done is
 		begin
 			s <= advance1;
@@ -102,6 +111,42 @@ begin
 			wb_active2 <= '1';
 			wb_reg2 <= reg2;
 			wb_value2 <= value2;
+		end procedure;
+
+		procedure divide_done is
+		begin
+			writeback1(quotient_reg, word(quotient));
+			writeback2(remainder_reg, word(remainder));
+			done;
+		end procedure;
+
+		procedure divide_step is
+		begin
+			divisor := divisor srl 1;
+			if(dividend >= divisor) then
+				quotient(divider_counter) := '1';
+				dividend_tmp := dividend - divisor;
+				dividend := dividend_tmp(dividend'range);
+			else
+				quotient(divider_counter) := '0';
+			end if;
+			if(divider_counter = 0) then
+				remainder := dividend;
+				divide_done;
+			else
+				divider_counter := divider_counter - 1;
+			end if;
+		end procedure;
+
+		procedure divide_begin(constant n, d : in word; constant q_reg, r_reg : in reg) is
+		begin
+			dividend := unsigned(n);
+			divisor := unsigned(d) & x"00000000";
+			divider_counter := 31;
+			quotient_reg := q_reg;
+			remainder_reg := r_reg;
+			s <= div;
+			divide_step;
 		end procedure;
 
 		procedure decode_insn is
@@ -298,13 +343,7 @@ begin
 					done;
 				when x"000b" =>
 					-- DIVMOD
-					tmp32 := std_logic_vector(unsigned(r_q_a) / unsigned(r_q_b));
-					writeback1(reg1, tmp32);
-					f.c <= not or_reduce(r_q_b);
-					f.z <= not or_reduce(tmp32);
-					tmp32 := std_logic_vector(unsigned(r_q_a) mod unsigned(r_q_b));
-					writeback2(reg2, tmp32);
-					done;
+					divide_begin(r_q_a, r_q_b, reg1, reg2);
 				when x"000c" =>
 					-- AND
 					tmp32 := r_q_a and r_q_b;
@@ -506,6 +545,8 @@ begin
 					if(d_waitrequest = '0') then
 						done;
 					end if;
+				when div =>
+					divide_step;
 				when halt =>
 					null;
 			end case;
