@@ -275,6 +275,7 @@ begin
 				when i_r4	=> r_address_b <= reg4;
 				when r_sp	=> r_address_b <= sp;
 			end case;
+			s <= decode2;
 		end procedure;
 
 		procedure execute_insn is
@@ -509,7 +510,6 @@ begin
 						i_buffer <= i_rddata;
 						-- defined above because long
 						decode_insn;
-						s <= decode2;
 					else
 						i_addr <= to_address(r_q_a);
 						i_rdreq <= '1';
