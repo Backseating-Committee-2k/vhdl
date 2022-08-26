@@ -97,6 +97,7 @@ architecture rtl of cpu_sequential is
 
 	type decoded_insn is record
 		reg_read : read_reg;
+		reg_active_a, reg_active_b : std_logic;
 	end record;
 
 	signal decoder_input : instruction;
@@ -183,6 +184,13 @@ begin
 		( none, none ) when x"fffe",	-- DUMPMEMORY
 		( none, none ) when x"ffff",	-- DUMPREGISTERS
 		( none, none ) when others;
+
+	with decoder_output.reg_read.reg_a select decoder_output.reg_active_a <=
+		'0' when none,
+		'1' when i_r1|i_r2|i_r3|i_r4|r_sp;
+	with decoder_output.reg_read.reg_b select decoder_output.reg_active_b <=
+		'0' when none,
+		'1' when i_r1|i_r2|i_r3|i_r4|r_sp;
 
 	process(reset, clk) is
 		variable dividend : unsigned(31 downto 0);
@@ -275,7 +283,11 @@ begin
 				when i_r4	=> r_address_b <= reg4;
 				when r_sp	=> r_address_b <= sp;
 			end case;
-			s <= decode2;
+			if(?? (decoder_output.reg_active_a or decoder_output.reg_active_b)) then
+				s <= decode2;
+			else
+				s <= execute;
+			end if;
 		end procedure;
 
 		procedure execute_insn is
