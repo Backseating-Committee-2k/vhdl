@@ -79,7 +79,6 @@ architecture rtl of control is
 	signal int_mask : std_logic_vector(31 downto 0);
 
 	signal textmode_texture : host_address;
-	signal started : std_logic;
 
 	constant page_size_bits : integer := 21;	-- 12 (4k) or 21 (2M)
 	constant page_num_bits : integer := cpu_address_width - page_size_bits;
@@ -143,7 +142,6 @@ begin
 
 	textmode_target_host <= textmode_texture;
 	textmode_start <= should_start;
-	started <= should_start when rising_edge(clk);
 
 	-- completion interface
 	cpl_pending <= '0';
