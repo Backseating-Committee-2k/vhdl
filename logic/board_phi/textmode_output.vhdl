@@ -276,6 +276,7 @@ begin
 		if(?? reset) then
 			s := idle;
 			transfer_counter <= to_unsigned(0, transfer_counter'length);
+			qword_counter <= to_unsigned(0, qword_counter'length);
 			ready <= '1';
 			defaults;
 		elsif(rising_edge(clk)) then
