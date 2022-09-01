@@ -99,6 +99,10 @@ architecture rtl of textmode_output is
 	constant rows : row := to_unsigned(25, 5);
 	constant columns : col := to_unsigned(80, 7);
 
+	signal start_r, start_strobe : std_logic;
+
+	signal ready : std_logic;
+
 	signal font_running, font_running_r : std_logic;
 	signal font_active : std_logic;
 	signal font_done : std_logic;
@@ -129,6 +133,9 @@ architecture rtl of textmode_output is
 begin
 	writing_char_ram <= d_wrreq and
 			not or_reduce(d_addr(address'high downto 11));
+
+	start_r <= start when rising_edge(clk);
+	start_strobe <= start and not start_r and ready;
 
 	v <= font_active;
 
@@ -207,7 +214,7 @@ begin
 	v_rr <= v_r when rising_edge(clk);
 
 	-- TODO clean up
-	font_running <= '1' when ?? start else
+	font_running <= '1' when ?? start_strobe else
 					'0' when ?? font_done else
 					font_running_r;
 	font_running_r <= '0' when ?? reset else
@@ -269,9 +276,13 @@ begin
 		if(?? reset) then
 			s := idle;
 			transfer_counter <= to_unsigned(0, transfer_counter'length);
+			ready <= '1';
 			defaults;
 		elsif(rising_edge(clk)) then
 			defaults;
+			if(?? start_strobe) then
+				ready <= '0';
+			end if;
 			case s is
 				when idle =>
 					done <= '1';
@@ -340,6 +351,7 @@ begin
 								s := waiting;
 							else
 								s := idle;
+								ready <= '1';
 							end if;
 							tex_rdreq <= '0';
 							tx_eop <= '1';
