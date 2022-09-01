@@ -19,6 +19,8 @@ entity avalon_mm_to_pcie_avalon_st is
 		req_addr : in std_logic_vector(63 downto 0);
 		req_rdreq : in std_logic;
 		req_rddata : out std_logic_vector(word_width - 1 downto 0);
+		req_wrreq : in std_logic;
+		req_wrdata : in std_logic_vector(word_width - 1 downto 0);
 		req_waitrequest : out std_logic;
 
 		-- completer side (PCIe Avalon-ST)
@@ -76,20 +78,26 @@ architecture syn of avalon_mm_to_pcie_avalon_st is
 	-- endian converted
 	signal rddata_be : std_logic_vector(63 downto 0);
 
+	signal is_write : std_logic;
+	signal wrdata : std_logic_vector(63 downto 0);
+	signal wrdata_le : std_logic_vector(63 downto 0);
+
 	signal busy : std_logic;
 
 	signal rd_waitrequest : std_logic;
 
 	signal set_busy : std_logic;
 	signal reset_busy_rd : std_logic;
+	signal reset_busy_wr : std_logic;
 begin
 	busy <= '1' when ?? set_busy else
 			'0' when ?? reset_busy_rd else
+			'0' when ?? reset_busy_wr else
 			unaffected;
 
 	-- pulse waitrequest low to acknowledge a write, otherwise
 	-- use the value from read mechanism
-	req_waitrequest <= rd_waitrequest;
+	req_waitrequest <= rd_waitrequest and not reset_busy_wr;
 
 	is_64bit <= or_reduce(addr(63 downto 32));
 
@@ -102,10 +110,19 @@ begin
 			cmp_rx_data(55 downto 48) &
 			cmp_rx_data(63 downto 56);
 
+	wrdata_le <= wrdata(7 downto 0) &
+			wrdata(15 downto 8) &
+			wrdata(23 downto 16) &
+			wrdata(31 downto 24) &
+			wrdata(39 downto 32) &
+			wrdata(47 downto 40) &
+			wrdata(55 downto 48) &
+			wrdata(63 downto 56);
+
 	cmp_cpl_pending <= busy;
 
 	request_generator : process(reset, clk) is
-		type state is (idle, header1, header2);
+		type state is (idle, header1, header2, data);
 		variable s : state;
 	begin
 		if(?? reset) then
@@ -119,12 +136,20 @@ begin
 			cmp_tx_eop <= 'U';
 			cmp_tx_err <= '0';
 			set_busy <= '0';
+			reset_busy_wr <= '0';
 			case s is
 				when idle =>
 					if(?? (req_rdreq and not busy)) then
 						s := header1;
+						is_write <= '0';
 						addr <= req_addr;
 						cmp_tx_req <= '1';
+					elsif(?? (req_wrreq and not busy)) then
+						s := header1;
+						is_write <= '1';
+						addr <= req_addr;
+						wrdata <= (others => '0');
+						wrdata(req_wrdata'range) <= req_wrdata;
 					end if;
 				when header1 =>
 					if(?? (cmp_tx_ready and cmp_tx_start)) then
@@ -134,7 +159,7 @@ begin
 								   x"F" &			-- last DWORD BE
 								   x"F" &			-- first DWORD BE
 								   "0" &			-- reserved
-								   "0" &			-- no data attached
+								   is_write &		-- data attached?
 								   is_64bit &		-- 64 bit address
 								   "00000" &		-- type: memory access
 								   "0" &			-- reserved
@@ -160,6 +185,20 @@ begin
 						else
 							cmp_tx_data <= x"00000000" & addr(31 downto 2) & "00";
 						end if;
+						cmp_tx_sop <= '0';
+						if(?? is_write) then
+							cmp_tx_eop <= '0';
+							reset_busy_wr <= '1';
+							s := data;
+						else
+							cmp_tx_eop <= '1';
+							s := idle;
+						end if;
+					end if;
+				when data =>
+					if(?? cmp_tx_ready) then
+						cmp_tx_valid <= '1';
+						cmp_tx_data <= wrdata_le;
 						cmp_tx_sop <= '0';
 						cmp_tx_eop <= '1';
 						s := idle;
