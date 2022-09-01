@@ -78,12 +78,18 @@ architecture syn of avalon_mm_to_pcie_avalon_st is
 
 	signal busy : std_logic;
 
+	signal rd_waitrequest : std_logic;
+
 	signal set_busy : std_logic;
-	signal reset_busy : std_logic;
+	signal reset_busy_rd : std_logic;
 begin
 	busy <= '1' when ?? set_busy else
-			'0' when ?? reset_busy else
+			'0' when ?? reset_busy_rd else
 			unaffected;
+
+	-- pulse waitrequest low to acknowledge a write, otherwise
+	-- use the value from read mechanism
+	req_waitrequest <= rd_waitrequest;
 
 	is_64bit <= or_reduce(addr(63 downto 32));
 
@@ -184,13 +190,13 @@ begin
 	begin
 		if(?? reset) then
 			s := idle;
-			reset_busy <= '1';
+			reset_busy_rd <= '1';
 			req_rddata <= (others => 'U');
-			req_waitrequest <= '1';
+			rd_waitrequest <= '1';
 		elsif(rising_edge(clk)) then
-			reset_busy <= '0';
+			reset_busy_rd <= '0';
 			req_rddata <= (others => 'U');
-			req_waitrequest <= '1';
+			rd_waitrequest <= '1';
 			if(?? cmp_rx_valid) then
 				if(?? cmp_rx_sop) then
 					rx_has_data := cmp_rx_data(30);
@@ -232,8 +238,8 @@ begin
 							end if;
 						when data =>
 							req_rddata <= rddata_be(req_rddata'range);
-							req_waitrequest <= '0';
-							reset_busy <= '1';
+							rd_waitrequest <= '0';
+							reset_busy_rd <= '1';
 							s := idle;
 					end case;
 				end if;
