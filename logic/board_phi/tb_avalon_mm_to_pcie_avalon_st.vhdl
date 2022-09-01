@@ -16,6 +16,8 @@ architecture sim of tb_avalon_mm_to_pcie_avalon_st is
 	signal req_addr : std_logic_vector(63 downto 0);
 	signal req_rdreq : std_logic;
 	signal req_rddata : std_logic_vector(63 downto 0);
+	signal req_wrreq : std_logic;
+	signal req_wrdata : std_logic_vector(63 downto 0);
 	signal req_waitrequest : std_logic;
 
 	signal cmp_rx_ready : std_logic;
@@ -59,6 +61,8 @@ begin
 		cmp_tx_ready <= '1';
 		req_addr <= (others => 'U');
 		req_rdreq <= '0';
+		req_wrreq <= '0';
+		req_wrdata <= (others => 'U');
 		wait until ?? (not reset);
 		wait until rising_edge(clk);
 		req_addr <= x"0123456789abcdef";
@@ -82,6 +86,8 @@ begin
 			req_addr => req_addr,
 			req_rdreq => req_rdreq,
 			req_rddata => req_rddata,
+			req_wrreq => req_wrreq,
+			req_wrdata => req_wrdata,
 			req_waitrequest => req_waitrequest,
 			cmp_rx_ready => cmp_rx_ready,
 			cmp_rx_valid => cmp_rx_valid,

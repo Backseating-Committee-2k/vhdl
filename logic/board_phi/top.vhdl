@@ -396,6 +396,8 @@ begin
 			req_addr => cpu_i_addr_host,
 			req_rdreq => cpu_i_rdreq,
 			req_rddata => cpu_i_rddata,
+			req_wrreq => '0',
+			req_wrdata => (others => 'U'),
 			req_waitrequest => cpu_i_waitrequest,
 
 			-- completer side (PCIe Avalon-ST)
