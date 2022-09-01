@@ -370,8 +370,8 @@ begin
 
 			interrupts => int_sts,
 
-			mmu_address_in => cpu_i_addr,
-			mmu_address_out => cpu_i_addr_host,
+			mmu_address_in_a => cpu_i_addr,
+			mmu_address_out_a => cpu_i_addr_host,
 
 			textmode_target_host => textmode_address_host,
 			textmode_start => textmode_start,
