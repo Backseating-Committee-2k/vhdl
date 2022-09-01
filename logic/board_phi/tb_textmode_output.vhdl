@@ -55,7 +55,8 @@ begin
 		d_addr <= x"000000";
 		d_wrreq <= '1';
 		d_wrdata <= x"00000048";
-		wait until rising_edge(clk) and not (?? d_waitrequest);
+		--wait until rising_edge(clk) and not (?? d_waitrequest);
+		wait until rising_edge(clk);
 		d_wrreq <= '0';
 		wait until rising_edge(clk);
 		wait until rising_edge(clk);

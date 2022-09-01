@@ -195,7 +195,7 @@ begin
 	c_r <= c when rising_edge(clk);
 	v_r <= v when rising_edge(clk);
 
-	d_waitrequest <= '0';
+	d_waitrequest <= '1';
 
 	rom_addr <= ram_data & std_logic_vector(l);
 
