@@ -80,6 +80,8 @@ architecture rtl of control is
 
 	signal textmode_texture : host_address;
 
+	signal textmode_done_r, reset_textmode_start : std_logic;
+
 	constant page_size_bits : integer := 21;	-- 12 (4k) or 21 (2M)
 	constant page_num_bits : integer := cpu_address_width - page_size_bits;
 	constant page_count : integer := 2 ** page_num_bits;
@@ -143,6 +145,9 @@ begin
 	textmode_target_host <= textmode_texture;
 	textmode_start <= should_start;
 
+	textmode_done_r <= textmode_done when rising_edge(clk);
+	reset_textmode_start <= textmode_done and not textmode_done_r;
+
 	-- completion interface
 	cpl_pending <= '0';
 
@@ -198,6 +203,9 @@ begin
 			should_start <= '0';
 			s := header1;
 		elsif(rising_edge(clk)) then
+			if ?? reset_textmode_start then
+				should_start <= '0';
+			end if;
 			readback_strobe <= '0';
 			if(?? rx_valid) then
 				if(?? rx_sop) then
