@@ -45,8 +45,8 @@ entity control is
 		cpu_assertion_failed : in std_logic;
 
 		-- memory translation
-		mmu_address_in : in std_logic_vector(23 downto 0);
-		mmu_address_out : out std_logic_vector(63 downto 0);
+		mmu_address_in_a : in std_logic_vector(23 downto 0);
+		mmu_address_out_a : out std_logic_vector(63 downto 0);
 
 		-- target address for textmode
 		textmode_target_host : out std_logic_vector(63 downto 0);
@@ -148,9 +148,9 @@ begin
 	-- completion interface
 	cpl_pending <= '0';
 
-	mmu_address_out <=
-			mapping(to_page_num(mmu_address_in)) &			-- resolved page
-			mmu_address_in(page_size_bits - 1 downto 0);	-- offset
+	mmu_address_out_a <=
+			mapping(to_page_num(mmu_address_in_a)) &			-- resolved page
+			mmu_address_in_a(page_size_bits - 1 downto 0);	-- offset
 
 	status <= (
 			0 => not should_reset and not cpu_halted,
