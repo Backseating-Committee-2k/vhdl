@@ -296,7 +296,7 @@ begin
 					end if;
 				when waiting =>
 					done <= '0';
-					if(?? tx_start) then
+					if ?? (tx_start and tx_ready) then
 						s := header;
 						tx_valid <= '1';
 						tx_data <= device_id &		-- requester id
@@ -322,7 +322,7 @@ begin
 					end if;
 				when header =>
 					done <= '0';
-					if true then
+					if ?? tx_ready then
 						if(transfer_counter = transfer_count - 1) then
 							transfer_counter <= to_unsigned(0, transfer_counter'length);
 						else
