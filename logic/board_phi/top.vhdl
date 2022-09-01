@@ -1,5 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.ALL;
+use ieee.std_logic_misc.ALL;
 
 use work.bss2k.ALL;
 
@@ -462,7 +463,8 @@ begin
 		port map(
 			reset => not app_rstn,
 			clk => app_clk,
-			int_sts => int_sts,
+			int_sts(31 downto 1) => (others => '0'),
+			int_sts(0) => or_reduce(int_sts),
 			legacy_int_sts => app_int_sts,
 			legacy_int_ack => app_int_ack,
 			msi_int_req => app_msi_req,
