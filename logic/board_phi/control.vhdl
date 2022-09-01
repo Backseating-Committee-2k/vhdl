@@ -47,6 +47,8 @@ entity control is
 		-- memory translation
 		mmu_address_in_a : in std_logic_vector(23 downto 0);
 		mmu_address_out_a : out std_logic_vector(63 downto 0);
+		mmu_address_in_b : in std_logic_vector(23 downto 0);
+		mmu_address_out_b : out std_logic_vector(63 downto 0);
 
 		-- target address for textmode
 		textmode_target_host : out std_logic_vector(63 downto 0);
@@ -154,6 +156,9 @@ begin
 	mmu_address_out_a <=
 			mapping(to_page_num(mmu_address_in_a)) &			-- resolved page
 			mmu_address_in_a(page_size_bits - 1 downto 0);	-- offset
+	mmu_address_out_b <=
+			mapping(to_page_num(mmu_address_in_b)) &			-- resolved page
+			mmu_address_in_b(page_size_bits - 1 downto 0);	-- offset
 
 	status <= (
 			0 => not should_reset and not cpu_halted,
