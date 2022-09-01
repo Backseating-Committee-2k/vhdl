@@ -17,6 +17,7 @@ entity textmode_output is
 		-- target address
 		target_address : in std_logic_vector(63 downto 0);
 		start : in std_logic;
+		done : out std_logic;
 
 		-- PCIe interface
 
@@ -262,6 +263,7 @@ begin
 			tx_req <= '0';
 			tx_valid <= '0';
 			tex_rdreq <= '0';
+			done <= '0';
 		end procedure;
 	begin
 		if(?? reset) then
@@ -272,6 +274,7 @@ begin
 			defaults;
 			case s is
 				when idle =>
+					done <= '1';
 					if(?? font_done) then
 						transfer_counter <= to_unsigned(0, transfer_counter'length);
 					end if;
@@ -280,6 +283,7 @@ begin
 						tx_req <= '1';
 					end if;
 				when waiting =>
+					done <= '0';
 					if(?? tx_start) then
 						s := header;
 						tx_valid <= '1';
@@ -305,6 +309,7 @@ begin
 						tx_req <= '1';
 					end if;
 				when header =>
+					done <= '0';
 					if(transfer_counter = transfer_count - 1) then
 						transfer_counter <= to_unsigned(0, transfer_counter'length);
 					else
@@ -324,6 +329,7 @@ begin
 					tx_sop <= '0';
 					tx_eop <= '0';
 				when data =>
+					done <= '0';
 					if(?? tx_ready) then
 						tx_valid <= '1';
 						tx_data <= tex_data;

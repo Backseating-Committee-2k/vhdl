@@ -50,7 +50,8 @@ entity control is
 
 		-- target address for textmode
 		textmode_target_host : out std_logic_vector(63 downto 0);
-		textmode_start : out std_logic
+		textmode_start : out std_logic;
+		textmode_done : in std_logic
 	);
 end entity;
 
@@ -157,7 +158,11 @@ begin
 			2 => cpu_assertion_failed,
 			others => '0'
 		);
-	int_sts <= (0 => should_reset, others => '0');
+	int_sts <= (
+			0 => should_reset,
+			1 => textmode_done,
+			others => '0'
+		);
 
 	interrupts <= int_sts and int_mask;
 
