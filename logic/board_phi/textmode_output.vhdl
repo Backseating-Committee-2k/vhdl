@@ -322,24 +322,26 @@ begin
 					end if;
 				when header =>
 					done <= '0';
-					if(transfer_counter = transfer_count - 1) then
-						transfer_counter <= to_unsigned(0, transfer_counter'length);
-					else
-						transfer_counter <= transfer_counter + 1;
+					if true then
+						if(transfer_counter = transfer_count - 1) then
+							transfer_counter <= to_unsigned(0, transfer_counter'length);
+						else
+							transfer_counter <= transfer_counter + 1;
+						end if;
+						tx_valid <= '1';
+						s := data;
+						tex_rdreq <= '1';
+						qword_counter <= to_unsigned(0, qword_counter'length);
+						if(?? is_64bit) then
+							tx_data <= current_address(31 downto 2) & "00" &
+										current_address(63 downto 32);
+						else
+							tx_data <= x"00000000" &
+										current_address(31 downto 2) & "00";
+						end if;
+						tx_sop <= '0';
+						tx_eop <= '0';
 					end if;
-					tx_valid <= '1';
-					s := data;
-					tex_rdreq <= '1';
-					qword_counter <= to_unsigned(0, qword_counter'length);
-					if(?? is_64bit) then
-						tx_data <= current_address(31 downto 2) & "00" &
-									current_address(63 downto 32);
-					else
-						tx_data <= x"00000000" &
-									current_address(31 downto 2) & "00";
-					end if;
-					tx_sop <= '0';
-					tx_eop <= '0';
 				when data =>
 					done <= '0';
 					if(?? tx_ready) then
