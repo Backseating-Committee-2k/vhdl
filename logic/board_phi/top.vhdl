@@ -150,27 +150,27 @@ architecture rtl of top is
 	signal control_tx_req : std_logic;
 	signal control_tx_start : std_logic;
 
-	-- PCIe internal interface for CPU DMA access
+	-- PCIe internal interface for CPU instruction DMA access
 	-- rx side
-	signal cpu_rx_ready : std_logic;
-	signal cpu_rx_valid : std_logic;
-	signal cpu_rx_data : std_logic_vector(63 downto 0);
-	signal cpu_rx_sop : std_logic;
-	signal cpu_rx_eop : std_logic;
-	signal cpu_rx_err : std_logic;
-	signal cpu_rx_bardec : std_logic_vector(7 downto 0);
+	signal cpu_i_rx_ready : std_logic;
+	signal cpu_i_rx_valid : std_logic;
+	signal cpu_i_rx_data : std_logic_vector(63 downto 0);
+	signal cpu_i_rx_sop : std_logic;
+	signal cpu_i_rx_eop : std_logic;
+	signal cpu_i_rx_err : std_logic;
+	signal cpu_i_rx_bardec : std_logic_vector(7 downto 0);
 	-- tx side
-	signal cpu_tx_ready : std_logic;
-	signal cpu_tx_valid : std_logic;
-	signal cpu_tx_data : std_logic_vector(63 downto 0);
-	signal cpu_tx_sop : std_logic;
-	signal cpu_tx_eop : std_logic;
-	signal cpu_tx_err : std_logic;
+	signal cpu_i_tx_ready : std_logic;
+	signal cpu_i_tx_valid : std_logic;
+	signal cpu_i_tx_data : std_logic_vector(63 downto 0);
+	signal cpu_i_tx_sop : std_logic;
+	signal cpu_i_tx_eop : std_logic;
+	signal cpu_i_tx_err : std_logic;
 	-- power management
-	signal cpu_cpl_pending : std_logic;
+	signal cpu_i_cpl_pending : std_logic;
 	-- arbiter interface
-	signal cpu_tx_req : std_logic;
-	signal cpu_tx_start : std_logic;
+	signal cpu_i_tx_req : std_logic;
+	signal cpu_i_tx_start : std_logic;
 
 	-- PCIe internal interface for textmode output
 	-- tx side
@@ -264,7 +264,7 @@ begin
 			d_waitrequest => cpu_d_waitrequest
 		);
 
-	pcie_rx_ready <= control_rx_ready and cpu_rx_ready;
+	pcie_rx_ready <= control_rx_ready and cpu_i_rx_ready;
 
 	control_rx_valid <= pcie_rx_valid;
 	control_rx_data <= pcie_rx_data;
@@ -273,12 +273,12 @@ begin
 	control_rx_err <= pcie_rx_err;
 	control_rx_bardec <= pcie_rx_bardec;
 
-	cpu_rx_valid <= pcie_rx_valid;
-	cpu_rx_data <= pcie_rx_data;
-	cpu_rx_sop <= pcie_rx_sop;
-	cpu_rx_eop <= pcie_rx_eop;
-	cpu_rx_err <= pcie_rx_err;
-	cpu_rx_bardec <= pcie_rx_bardec;
+	cpu_i_rx_valid <= pcie_rx_valid;
+	cpu_i_rx_data <= pcie_rx_data;
+	cpu_i_rx_sop <= pcie_rx_sop;
+	cpu_i_rx_eop <= pcie_rx_eop;
+	cpu_i_rx_err <= pcie_rx_err;
+	cpu_i_rx_bardec <= pcie_rx_bardec;
 
 	arbiter : entity work.pcie_arbiter
 		generic map(
@@ -304,35 +304,35 @@ begin
 
 			-- request sending data
 			arb_tx_req(1) => control_tx_req,
-			arb_tx_req(2) => cpu_tx_req,
+			arb_tx_req(2) => cpu_i_tx_req,
 			arb_tx_req(3) => textmode_tx_req,
 
 			-- start strobe (high one cycle before bus free)
 			arb_tx_start(1) => control_tx_start,
-			arb_tx_start(2) => cpu_tx_start,
+			arb_tx_start(2) => cpu_i_tx_start,
 			arb_tx_start(3) => textmode_tx_start,
 
 			arb_tx_ready(1) => control_tx_ready,
-			arb_tx_ready(2) => cpu_tx_ready,
+			arb_tx_ready(2) => cpu_i_tx_ready,
 			arb_tx_ready(3) => textmode_tx_ready,
 			arb_tx_valid(1) => control_tx_valid,
-			arb_tx_valid(2) => cpu_tx_valid,
+			arb_tx_valid(2) => cpu_i_tx_valid,
 			arb_tx_valid(3) => textmode_tx_valid,
 			arb_tx_data(1) => control_tx_data,
-			arb_tx_data(2) => cpu_tx_data,
+			arb_tx_data(2) => cpu_i_tx_data,
 			arb_tx_data(3) => textmode_tx_data,
 			arb_tx_sop(1) => control_tx_sop,
-			arb_tx_sop(2) => cpu_tx_sop,
+			arb_tx_sop(2) => cpu_i_tx_sop,
 			arb_tx_sop(3) => textmode_tx_sop,
 			arb_tx_eop(1) => control_tx_eop,
-			arb_tx_eop(2) => cpu_tx_eop,
+			arb_tx_eop(2) => cpu_i_tx_eop,
 			arb_tx_eop(3) => textmode_tx_eop,
 			arb_tx_err(1) => control_tx_err,
-			arb_tx_err(2) => cpu_tx_err,
+			arb_tx_err(2) => cpu_i_tx_err,
 			arb_tx_err(3) => textmode_tx_err,
 
 			arb_cpl_pending(1) => control_cpl_pending,
-			arb_cpl_pending(2) => cpu_cpl_pending,
+			arb_cpl_pending(2) => cpu_i_cpl_pending,
 			arb_cpl_pending(3) => textmode_cpl_pending
 		);
 
@@ -378,7 +378,7 @@ begin
 			textmode_done => textmode_done
 		);
 
-	cpu_dma_inst : entity work.avalon_mm_to_pcie_avalon_st
+	cpu_dma_inst_i : entity work.avalon_mm_to_pcie_avalon_st
 		port map(
 			reset => not app_rstn,
 
@@ -391,26 +391,26 @@ begin
 			req_waitrequest => cpu_i_waitrequest,
 
 			-- completer side (PCIe Avalon-ST)
-			cmp_rx_ready => cpu_rx_ready,
-			cmp_rx_valid => cpu_rx_valid,
-			cmp_rx_data => cpu_rx_data,
-			cmp_rx_sop => cpu_rx_sop,
-			cmp_rx_eop => cpu_rx_eop,
-			cmp_rx_err => cpu_rx_err,
+			cmp_rx_ready => cpu_i_rx_ready,
+			cmp_rx_valid => cpu_i_rx_valid,
+			cmp_rx_data => cpu_i_rx_data,
+			cmp_rx_sop => cpu_i_rx_sop,
+			cmp_rx_eop => cpu_i_rx_eop,
+			cmp_rx_err => cpu_i_rx_err,
 
-			cmp_rx_bardec => cpu_rx_bardec,
+			cmp_rx_bardec => cpu_i_rx_bardec,
 
-			cmp_tx_ready => cpu_tx_ready,
-			cmp_tx_valid => cpu_tx_valid,
-			cmp_tx_data => cpu_tx_data,
-			cmp_tx_sop => cpu_tx_sop,
-			cmp_tx_eop => cpu_tx_eop,
-			cmp_tx_err => cpu_tx_err,
+			cmp_tx_ready => cpu_i_tx_ready,
+			cmp_tx_valid => cpu_i_tx_valid,
+			cmp_tx_data => cpu_i_tx_data,
+			cmp_tx_sop => cpu_i_tx_sop,
+			cmp_tx_eop => cpu_i_tx_eop,
+			cmp_tx_err => cpu_i_tx_err,
 
-			cmp_tx_req => cpu_tx_req,
-			cmp_tx_start => cpu_tx_start,
+			cmp_tx_req => cpu_i_tx_req,
+			cmp_tx_start => cpu_i_tx_start,
 
-			cmp_cpl_pending => cpu_cpl_pending,
+			cmp_cpl_pending => cpu_i_cpl_pending,
 
 			device_id => cfg_busdev & "000"
 		);
