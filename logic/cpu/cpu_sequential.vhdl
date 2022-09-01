@@ -54,6 +54,16 @@ architecture rtl of cpu_sequential is
 
 	type state is (ifetch1, ifetch15, ifetch2, decode, reg_read, execute, writeback, advance1, advance15, advance2, load, load2, store, store2, mul, div, halt);
 
+	signal ms_counter, cycle_counter : unsigned(63 downto 0);
+
+	-- app_clk is 125 MHz
+	constant cycle_time : time := 8 ns;
+	constant ms_time : time := 1 ms;
+
+	constant cycles_per_ms : integer := ms_time / cycle_time;
+
+	signal cycle_per_ms_counter : integer range cycles_per_ms - 1 downto 0;
+
 	signal s : state;
 
 	signal r_address_a, r_address_b : reg := (others => '0');
@@ -120,6 +130,23 @@ begin
 	halted <= '1' when s = halt else '0';
 
 	decoder_input <= i_rddata;
+
+	cycle_counter <= to_unsigned(0, cycle_counter'length) when ?? reset else
+		cycle_counter + 1 when rising_edge(clk);
+
+	process(reset, clk) is
+	begin
+		if ?? reset then
+			cycle_per_ms_counter <= 0;
+		elsif rising_edge(clk) then
+			if cycle_per_ms_counter = cycles_per_ms - 1 then
+				cycle_per_ms_counter <= 0;
+				ms_counter <= ms_counter + 1;
+			else
+				cycle_per_ms_counter <= cycle_per_ms_counter + 1;
+			end if;
+		end if;
+	end process;
 
 	-- load/store use lane 1 for address, lane 2 for value
 	with opcode select decoder_output.op.src <=
@@ -492,6 +519,16 @@ begin
 					m_addr <= to_address(tmp32);
 					m_reg <= ip;
 					s <= load;
+				when x"0033" =>
+					-- POLL_TIME
+					writeback1(reg1, std_logic_vector(ms_counter(63 downto 32)));
+					writeback2(reg2, std_logic_vector(ms_counter(31 downto 0)));
+					done;
+				when x"0039" =>
+					-- POLL_CYCLECOUNT
+					writeback1(reg1, std_logic_vector(cycle_counter(63 downto 32)));
+					writeback2(reg2, std_logic_vector(cycle_counter(31 downto 0)));
+					done;
 				when x"fffc" =>
 					-- ASSERT register == immediate
 					if r_q_a /= c then
