@@ -51,6 +51,8 @@ architecture rtl of top is
 	signal cpu_d_wrreq : std_logic;
 	signal cpu_d_waitrequest : std_logic;
 
+	signal cpu_d_waitrequest_textmode : std_logic;
+
 	-- debug port
 	signal debug_clk_int : std_logic;
 	signal debug_data_valid_int : std_logic;
@@ -245,6 +247,8 @@ begin
 	cpu_clk <= app_clk;
 
 	cpu_d_rddata <= (others => '0');
+
+	cpu_d_waitrequest <= cpu_d_waitrequest_textmode;
 
 	c : cpu
 		port map(
@@ -442,7 +446,7 @@ begin
 			d_addr => cpu_d_addr,
 			d_wrreq => cpu_d_wrreq,
 			d_wrdata => cpu_d_wrdata,
-			d_waitrequest => cpu_d_waitrequest
+			d_waitrequest => cpu_d_waitrequest_textmode
 		);
 
 	-- clocks
