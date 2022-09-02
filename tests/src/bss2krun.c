@@ -179,7 +179,11 @@ enum result run_program(int prog_fd, int dev_fd)
 
 		/* TODO: magic value */
 		if(!(status & (uint64_t)1))
+		{
+			if(status & (uint64_t)4)
+				return FAIL;
 			return PASS;
+		}
 	}
 }
 
