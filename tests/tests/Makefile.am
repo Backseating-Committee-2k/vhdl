@@ -7,6 +7,7 @@ TESTS = \
 	base/endless_loop.backseat \
 	base/assert_pass.backseat \
 	base/assert_fail.backseat \
+	insn/add_reg_imm.backseat \
 	insn/copy_reg_imm.backseat
 
 XFAIL_TESTS = \
@@ -18,6 +19,7 @@ EXTRA_DIST = \
 	base/endless_loop.bsm \
 	base/assert_pass.bsm \
 	base/assert_fail.bsm \
+	insn/add_reg_imm.bsm \
 	insn/copy_reg_imm.bsm
 
 CLEANFILES = $(TESTS)

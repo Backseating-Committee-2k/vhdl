@@ -1,0 +1,6 @@
+// Test addition of register and immediate
+
+	COPY 12345, R0
+	ADD R0, 54321, R1
+	ASSERT R1, 66666
+	HALT
