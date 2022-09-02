@@ -282,7 +282,7 @@ begin
 		variable page : page_num;
 
 		-- fixme
-		constant status : std_logic_vector(2 downto 0) := "000";
+		constant status_ok : std_logic_vector(2 downto 0) := "000";
 	begin
 		if(?? reset) then
 			s := idle;
@@ -303,7 +303,7 @@ begin
 				when header1 =>
 					if(?? (tx_ready and tx_start)) then
 						tx_valid <= '1';
-						tx_data <= completer_id & status & '0' & x"008" & '0' & "10" & completion & '0' & readback_tc & "0000" & '0' & '0' & readback_attr & "00" & "0000000010";
+						tx_data <= completer_id & status_ok & '0' & x"008" & '0' & "10" & completion & '0' & readback_tc & "0000" & '0' & '0' & readback_attr & "00" & "0000000010";
 						tx_sop <= '1';
 						tx_eop <= '0';
 						tx_err <= '0';
