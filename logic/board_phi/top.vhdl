@@ -35,6 +35,7 @@ architecture rtl of top is
 
 	-- status
 	signal cpu_halted : std_logic;
+	signal cpu_assertion_failed : std_logic;
 
 	-- instruction bus (Avalon-MM)
 	signal cpu_i_addr : address;
@@ -73,6 +74,7 @@ architecture rtl of top is
 
 			-- status
 			halted : out std_logic;
+			assertion_failed : out std_logic;
 
 			-- instruction bus (Avalon-MM)
 			i_addr : out address;
@@ -248,6 +250,7 @@ begin
 			reset => cpu_reset,
 			clk => cpu_clk,
 			halted => cpu_halted,
+			assertion_failed => cpu_assertion_failed,
 			i_addr => cpu_i_addr,
 			i_rddata => cpu_i_rddata,
 			i_rdreq => cpu_i_rdreq,
@@ -362,6 +365,7 @@ begin
 
 			cpu_reset => cpu_reset,
 			cpu_halted => cpu_halted,
+			cpu_assertion_failed => cpu_assertion_failed,
 
 			interrupts => int_sts,
 

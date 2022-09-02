@@ -28,7 +28,8 @@ entity cpu_sequential is
 		d_waitrequest : in std_logic;
 
 		-- status
-		halted : out std_logic
+		halted : out std_logic;
+		assertion_failed : out std_logic
 	);
 end entity;
 
@@ -489,6 +490,22 @@ begin
 					m_addr <= to_address(tmp32);
 					m_reg <= ip;
 					s <= load;
+				when x"fffc" =>
+					-- ASSERT register == immediate
+					if r_q_a /= c then
+						assertion_failed <= '1';
+						s <= halt;
+					else
+						done;
+					end if;
+				when x"fffd" =>
+					-- ASSERT register == register
+					if r_q_a /= r_q_b then
+						assertion_failed <= '1';
+						s <= halt;
+					else
+						done;
+					end if;
 				when others =>
 					report "invalid opcode encountered" severity error;
 					s <= halt;
@@ -510,6 +527,7 @@ begin
 			r_address_b <= (others => '0');
 			r_wren_a <= '0';
 			r_wren_b <= '0';
+			assertion_failed <= '0';
 		elsif(rising_edge(clk)) then
 			i_rdreq <= '0';
 			d_rdreq <= '0';

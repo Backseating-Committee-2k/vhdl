@@ -42,6 +42,7 @@ entity control is
 		-- CPU control interface
 		cpu_reset : out std_logic;
 		cpu_halted : in std_logic;
+		cpu_assertion_failed : in std_logic;
 
 		-- memory translation
 		mmu_address_in : in std_logic_vector(23 downto 0);
@@ -153,6 +154,7 @@ begin
 	status <= (
 			0 => not should_reset and not cpu_halted,
 			1 => mapping_error,
+			2 => cpu_assertion_failed,
 			others => '0'
 		);
 	int_sts <= (0 => should_reset, others => '0');
