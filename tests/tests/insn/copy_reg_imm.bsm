@@ -1,0 +1,8 @@
+// This tests whether immediates can be loaded
+//
+// This uses ASSERT reg, reg to avoid comparing the data path against itself
+
+	COPY 12345, R1
+	COPY 12345, R2
+	ASSERT R1, R2
+	HALT
