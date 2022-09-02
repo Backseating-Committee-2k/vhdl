@@ -1,0 +1,3 @@
+*.o
+.deps/
+bss2krun

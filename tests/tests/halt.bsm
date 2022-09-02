@@ -1,0 +1,5 @@
+// Test whether the HALT instruction works
+//
+// This program should halt immediately, with no error.
+
+	HALT

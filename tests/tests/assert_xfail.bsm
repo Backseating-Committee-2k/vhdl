@@ -1,0 +1,7 @@
+// Test whether the ASSERT instruction works
+//
+// This assertion should fail, and the CPU stop with an error.
+
+	COPY 0, R1
+	ASSERT R1, 1
+	HALT

@@ -1,0 +1,5 @@
+// Test whether the RUNNING status flag works
+//
+// This program goes into an infinite loop, and should time out.
+
+	COPY ENTRY_POINT, IP
