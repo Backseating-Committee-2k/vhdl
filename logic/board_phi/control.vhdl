@@ -67,6 +67,7 @@ architecture rtl of control is
 	signal should_start : std_logic;
 
 	-- status register
+	signal status : std_logic_vector(63 downto 0);
 	-- running bit is direct from CPU
 	signal mapping_error : std_logic;
 
@@ -149,6 +150,11 @@ begin
 			mapping(to_page_num(mmu_address_in)) &			-- resolved page
 			mmu_address_in(page_size_bits - 1 downto 0);	-- offset
 
+	status <= (
+			0 => not should_reset and not cpu_halted,
+			1 => mapping_error,
+			others => '0'
+		);
 	int_sts <= (0 => should_reset, others => '0');
 
 	interrupts <= int_sts and int_mask;
@@ -326,7 +332,7 @@ begin
 						tx_valid <= '1';
 						case readback_sel is
 							when sel_status =>
-								tx_data <= (0 => not should_reset and not cpu_halted, 1 => mapping_error, others => '0');
+								tx_data <= status;
 							when sel_control =>
 								tx_data <= (0 => should_reset, 1 => should_start, others => '0');
 							when sel_int_status =>
