@@ -3,20 +3,20 @@ TEST_EXTENSIONS = .backseat
 BACKSEAT_LOG_DRIVER = ../src/bss2krun
 
 TESTS = \
-	halt.backseat \
-	timeout.backseat \
-	assert_pass.backseat \
-	assert_xfail.backseat
+	base/halt_insn.backseat \
+	base/endless_loop.backseat \
+	base/assert_pass.backseat \
+	base/assert_fail.backseat
 
 XFAIL_TESTS = \
-	timeout.backseat \
-	assert_xfail.backseat
+	base/endless_loop.backseat \
+	base/assert_fail.backseat
 
 EXTRA_DIST = \
-	halt.bsm \
-	timeout.bsm \
-	assert_pass.bsm \
-	assert_xfail.bsm
+	base/halt_insn.bsm \
+	base/endless_loop.bsm \
+	base/assert_pass.bsm \
+	base/assert_fail.bsm
 
 CLEANFILES = \
 	$(TESTS)
