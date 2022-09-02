@@ -356,7 +356,7 @@ static long bss2k_ioctl(
 		priv->reg[REG_CONTROL] = CTL_MASK_RESET | CTL_RESET;
 		break;
 	case BSS2K_IOC_START_CPU:
-		priv->reg[REG_INT_MASK] = 1ULL;
+		priv->reg[REG_INT_MASK] = 3ULL;
 		priv->reg[REG_CONTROL] = CTL_MASK_RESET | 0;
 		break;
 	case BSS2K_IOC_READ_STATUS:
