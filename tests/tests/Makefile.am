@@ -23,3 +23,5 @@ CLEANFILES = \
 
 .bsm.backseat:
 	$(UPHOLSTERER2K) $< >$@.tmp && mv $@.tmp $@ || { $(RM) $@ $@.tmp; exit 1; }
+
+.SECONDARY: $(TESTS)
