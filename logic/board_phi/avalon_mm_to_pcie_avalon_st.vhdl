@@ -44,7 +44,10 @@ entity avalon_mm_to_pcie_avalon_st is
 end entity;
 
 architecture syn of avalon_mm_to_pcie_avalon_st is
-	signal addr : std_logic_vector(63 downto 0);
+	constant address_width : natural := 64;
+	subtype address is std_logic_vector(address_width - 1 downto 0);
+
+	signal addr : address;
 	signal is_64bit : std_logic;
 
 	signal busy : std_logic;
