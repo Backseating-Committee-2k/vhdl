@@ -1,0 +1,15 @@
+// Test multiplication
+//
+// This only exists in reg x reg -> (reg,reg) form
+
+	COPY 12345, R0
+	COPY 54321, R1
+	MULT R0, R1, R2, R3
+	ASSERT R2, 0
+	ASSERT R3, 670592745
+
+	MULT R0, R3, R4, R5
+	ASSERT R4, 1927
+	ASSERT R5, 2065457633
+
+	HALT
