@@ -5,6 +5,9 @@ use ieee.std_logic_misc.ALL;
 use ieee.numeric_std.ALL;
 
 entity avalon_mm_to_pcie_avalon_st is
+	generic(
+		word_width : natural
+	);
 	port(
 		-- async reset
 		reset : in std_logic;
@@ -15,7 +18,7 @@ entity avalon_mm_to_pcie_avalon_st is
 		-- requester side (Avalon-MM)
 		req_addr : in std_logic_vector(63 downto 0);
 		req_rdreq : in std_logic;
-		req_rddata : out std_logic_vector(63 downto 0);
+		req_rddata : out std_logic_vector(word_width - 1 downto 0);
 		req_waitrequest : out std_logic;
 
 		-- completer side (PCIe Avalon-ST)
@@ -48,7 +51,7 @@ architecture syn of avalon_mm_to_pcie_avalon_st is
 	constant address_width : natural := 64;
 	subtype address is std_logic_vector(address_width - 1 downto 0);
 
-	constant word_width : natural := 64;
+	-- word_width is generic parameter
 	subtype word is std_logic_vector(word_width - 1 downto 0);
 
 	-- PCIe byte count
