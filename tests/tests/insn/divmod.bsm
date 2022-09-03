@@ -1,0 +1,8 @@
+// Test Division
+
+	COPY 54321, R0
+	COPY 12345, R1
+	DIVMOD R0, R1, R2, R3
+	ASSERT R2, 4
+	ASSERT R3, 4941
+	HALT
