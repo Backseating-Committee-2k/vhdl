@@ -70,6 +70,9 @@ architecture syn of avalon_mm_to_pcie_avalon_st is
 	signal addr : address;
 	signal is_64bit : std_logic;
 
+	-- endian converted
+	signal rddata_be : std_logic_vector(63 downto 0);
+
 	signal busy : std_logic;
 
 	signal set_busy : std_logic;
@@ -80,6 +83,15 @@ begin
 			unaffected;
 
 	is_64bit <= or_reduce(addr(63 downto 32));
+
+	rddata_be <= cmp_rx_data(7 downto 0) &
+			cmp_rx_data(15 downto 8) &
+			cmp_rx_data(23 downto 16) &
+			cmp_rx_data(31 downto 24) &
+			cmp_rx_data(39 downto 32) &
+			cmp_rx_data(47 downto 40) &
+			cmp_rx_data(55 downto 48) &
+			cmp_rx_data(63 downto 56);
 
 	cmp_cpl_pending <= busy;
 
@@ -216,14 +228,7 @@ begin
 								s := idle;
 							end if;
 						when data =>
-							req_rddata <= cmp_rx_data(7 downto 0) &
-											cmp_rx_data(15 downto 8) &
-											cmp_rx_data(23 downto 16) &
-											cmp_rx_data(31 downto 24) &
-											cmp_rx_data(39 downto 32) &
-											cmp_rx_data(47 downto 40) &
-											cmp_rx_data(55 downto 48) &
-											cmp_rx_data(63 downto 56);
+							req_rddata <= rddata_be(req_rddata'range);
 							req_waitrequest <= '0';
 							reset_busy <= '1';
 							s := idle;
