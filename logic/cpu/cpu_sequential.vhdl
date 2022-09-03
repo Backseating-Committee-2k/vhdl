@@ -52,7 +52,7 @@ architecture rtl of cpu_sequential is
 	constant ip : reg := x"fe";
 	constant sp : reg := x"ff";
 
-	type state is (ifetch1, ifetch15, ifetch2, decode, reg_read, execute, writeback, advance1, advance15, advance2, load, load2, store, store2, div, halt);
+	type state is (ifetch1, ifetch15, ifetch2, decode, reg_read, execute, writeback, advance1, advance15, advance2, load, load2, store, store2, mul, div, halt);
 
 	signal s : state;
 
@@ -113,6 +113,9 @@ architecture rtl of cpu_sequential is
 	signal decoder_output : decoded_insn;
 
 	alias opcode : std_logic_vector(15 downto 0) is decoder_input(63 downto 48);
+
+	signal product : std_logic_vector(63 downto 0);
+	signal product_reg_u, product_reg_l : reg;
 begin
 	halted <= '1' when s = halt else '0';
 
@@ -201,6 +204,8 @@ begin
 	with decoder_output.op.src(2) select decoder_output.reg_active_b <=
 		'0' when none,
 		'1' when i_r1|i_r2|i_r3|i_r4|r_sp;
+
+	product <= std_logic_vector(unsigned(r_q_a) * unsigned(r_q_b));
 
 	process(reset, clk) is
 		variable dividend : unsigned(31 downto 0);
@@ -379,12 +384,9 @@ begin
 					done;
 				when x"000a" =>
 					-- MUL
-					tmp64 := std_logic_vector(unsigned(r_q_a) * unsigned(r_q_b));
-					writeback1(reg1, tmp64(63 downto 32));
-					writeback2(reg2, tmp64(31 downto 0));
-					f.c <= '0';
-					f.z <= not or_reduce(tmp64);
-					done;
+					product_reg_u <= reg1;
+					product_reg_l <= reg2;
+					s <= mul;
 				when x"000b" =>
 					-- DIVMOD
 					divide_begin(r_q_a, r_q_b, reg1, reg2);
@@ -605,6 +607,12 @@ begin
 					if(d_waitrequest = '0') then
 						done;
 					end if;
+				when mul =>
+					writeback1(product_reg_u, product(63 downto 32));
+					writeback2(product_reg_l, product(31 downto 0));
+					f.c <= '0';
+					f.z <= not or_reduce(product);
+					done;
 				when div =>
 					divide_step;
 				when halt =>
