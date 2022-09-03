@@ -2,6 +2,7 @@ library ieee;
 
 use ieee.std_logic_1164.ALL;
 use ieee.std_logic_misc.ALL;
+use ieee.numeric_std.ALL;
 
 entity avalon_mm_to_pcie_avalon_st is
 	port(
@@ -46,6 +47,25 @@ end entity;
 architecture syn of avalon_mm_to_pcie_avalon_st is
 	constant address_width : natural := 64;
 	subtype address is std_logic_vector(address_width - 1 downto 0);
+
+	constant word_width : natural := 64;
+	subtype word is std_logic_vector(word_width - 1 downto 0);
+
+	-- PCIe byte count
+	subtype byte_count is std_logic_vector(11 downto 0);
+	constant count : byte_count :=
+			byte_count(
+				to_unsigned(
+					word_width / 8,			-- in 8 bit bytes
+					byte_count'length));
+
+	-- PCIe length field
+	subtype length_field is std_logic_vector(9 downto 0);
+	constant length : length_field :=
+			length_field(
+				to_unsigned(
+					word_width / 32,		-- in 32 bit DWORDs
+					length_field'length));
 
 	signal addr : address;
 	signal is_64bit : std_logic;
@@ -103,7 +123,7 @@ begin
 								   "0" &			-- not poisoned
 								   "00" &			-- attributes
 								   "00" &			-- reserved
-								   "0000000010";	-- length in DWORDs
+								   length;		-- length in DWORDs
 						cmp_tx_sop <= '1';
 						cmp_tx_eop <= '0';
 						set_busy <= '1';
@@ -173,9 +193,9 @@ begin
 							rx_tc = "000" and
 							rx_ep = '0' and
 							rx_attr = "00" and
-							rx_length = "0000000010" and
+							rx_length = length and
 							rx_status = "000" and
-							rx_byte_count = x"008") then
+							rx_byte_count = count) then
 						s := header2;
 					end if;
 				else
