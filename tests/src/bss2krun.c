@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <bss2k_ioctl.h>
 
 #include <sys/types.h>
