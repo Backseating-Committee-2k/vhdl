@@ -16,8 +16,10 @@ if test -z "${UPHOLSTERER2K}"; then
 fi
 
 # Checks for libraries.
+AC_CHECK_LIB([tinfo], [tiparm])
 
 # Checks for header files.
+AC_CHECK_HEADERS([term.h curses.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 

@@ -4,6 +4,11 @@
 
 #include <bss2k_ioctl.h>
 
+#if HAVE_CURSES_H && HAVE_TERM_H && HAVE_LIBTINFO
+#include <curses.h>
+#include <term.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/select.h>
@@ -15,6 +20,7 @@
 #include <string.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -277,6 +283,29 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
+	char *normal = NULL;
+	char *bold = NULL;
+	char *red = NULL;
+	char *yellow = NULL;
+	char *green = NULL;
+
+#if HAVE_CURSES_H && HAVE_TERM_H && HAVE_LIBTINFO
+	if(options.color_tests)
+	{
+		int err_setupterm;
+		/*int const rc_setupterm = */ setupterm(NULL, STDOUT_FILENO, &err_setupterm);
+
+		if(cur_term)
+		{
+			normal = strdup(tiparm(exit_attribute_mode));
+			bold = strdup(tiparm(enter_bold_mode));
+			red = strdup(tiparm(set_a_foreground, COLOR_RED));
+			yellow = strdup(tiparm(set_a_foreground, COLOR_YELLOW));
+			green = strdup(tiparm(set_a_foreground, COLOR_GREEN));
+		}
+	}
+#endif
+
 	enum result result = PASS;
 
 	char const *message = NULL;
@@ -341,12 +370,31 @@ int main(int argc, char **argv)
 	case ERROR:	result_str = "ERROR";	break;
 	}
 
+	char const *result_attr;
+	char const *result_color;
+
+	switch(result)
+	{
+	case PASS:	result_attr = normal;	result_color = green;	break;
+	case XFAIL:	result_attr = bold;	result_color = green;	break;
+	case SKIP:	result_attr = normal;	result_color = yellow;	break;
+	case FAIL:	result_attr = normal;	result_color = red;	break;
+	case XPASS:	result_attr = bold;	result_color = red;	break;
+	default:
+	case ERROR:	result_attr = bold;	result_color = red;	break;
+	}
+
+	if(!result_color)
+		result_color = "";
+	if(!result_attr)
+		result_attr = "";
+
 	bool const print_message = !! message;
 
 	if(print_message)
-		printf("%s: %s (%s)\n", result_str, options.test_name, message);
+		printf("%s%s%s: %s (%s)%s\n", result_attr, result_color, result_str, options.test_name, message, normal);
 	else
-		printf("%s: %s\n", result_str, options.test_name);
+		printf("%s%s%s: %s%s\n", result_attr, result_color, result_str, options.test_name, normal);
 
 	if(print_message)
 		dprintf(log_fd, "%s: %s (%s)\n", result_str, options.test_name, message);
@@ -360,6 +408,12 @@ int main(int argc, char **argv)
 			":copy-in-global-log: no\n",
 			result_str,
 			result_str);
+
+	free(green);
+	free(yellow);
+	free(red);
+	free(bold);
+	free(normal);
 
 	close(trs_fd);
 	close(log_fd);
