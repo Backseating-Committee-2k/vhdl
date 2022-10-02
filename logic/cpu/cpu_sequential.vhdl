@@ -15,16 +15,16 @@ entity cpu_sequential is
 
 		-- instruction bus (Avalon-MM)
 		i_addr : out address;
-		i_rddata : in instruction;
 		i_rdreq : out std_logic;
+		i_rddata : in instruction;
 		i_waitrequest : in std_logic;
 
 		-- data bus (Avalon-MM)
 		d_addr : out address;
-		d_rddata : in word;
 		d_rdreq : out std_logic;
-		d_wrdata : out word;
+		d_rddata : in word;
 		d_wrreq : out std_logic;
+		d_wrdata : out word;
 		d_waitrequest : in std_logic;
 
 		-- status
