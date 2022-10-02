@@ -15,9 +15,9 @@ architecture sim of tb_avalon_mm_to_pcie_avalon_st is
 
 	signal req_addr : std_logic_vector(63 downto 0);
 	signal req_rdreq : std_logic;
-	signal req_rddata : std_logic_vector(63 downto 0);
+	signal req_rddata : std_logic_vector(31 downto 0);
 	signal req_wrreq : std_logic;
-	signal req_wrdata : std_logic_vector(63 downto 0);
+	signal req_wrdata : std_logic_vector(31 downto 0);
 	signal req_waitrequest : std_logic;
 
 	signal cmp_rx_ready : std_logic;
@@ -78,7 +78,7 @@ begin
 	-- dut
 	dut : entity work.avalon_mm_to_pcie_avalon_st
 		generic map(
-			word_width => 64
+			word_width => 32
 		)
 		port map(
 			reset => reset,
