@@ -67,7 +67,34 @@ begin
 		wait until rising_edge(clk);
 		req_addr <= x"0123456789abcdec";
 		req_rdreq <= '1';
+		wait until ?? (not req_waitrequest);
+		req_addr <= (others => 'U');
+		req_rdreq <= '0';
 		wait until rising_edge(clk);
+		wait;
+	end process;
+
+	-- PCIe responder
+	process
+	begin
+		cmp_rx_valid <= '0';
+		wait until ?? (not reset);
+		wait until rising_edge(clk) and (?? cmp_tx_valid);
+		wait until rising_edge(clk) and (?? cmp_tx_valid);
+		wait until rising_edge(clk);
+		cmp_rx_valid <= '1';
+		cmp_rx_data <= x"000000044a000001";
+		cmp_rx_sop <= '1';
+		cmp_rx_eop <= '0';
+		wait until rising_edge(clk);
+		cmp_rx_data <= x"000000001234006c";
+		cmp_rx_sop <= '0';
+		wait until rising_edge(clk);
+		cmp_rx_data <= x"2244668800000000";
+		cmp_rx_eop <= '1';
+		wait until rising_edge(clk);
+		cmp_rx_valid <= '0';
+
 		wait;
 	end process;
 
