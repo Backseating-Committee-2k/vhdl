@@ -93,6 +93,8 @@ begin
 			selected <= 1;
 			next_is_idle := true;
 			next_agent := 1;
+			arb_tx_start <= (others => '0');
+			merged_tx_req <= '0';
 		elsif(rising_edge(clk)) then
 			at_eop :=
 					not idle and

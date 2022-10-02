@@ -128,7 +128,10 @@ begin
 	begin
 		if(?? reset) then
 			s := idle;
+			cmp_tx_req <= '0';
+			cmp_tx_valid <= '0';
 			set_busy <= '0';
+			reset_busy_wr <= '0';
 		elsif(rising_edge(clk)) then
 			cmp_tx_req <= '0';
 			cmp_tx_valid <= '0';
