@@ -110,7 +110,8 @@ begin
 	-- dut
 	dut : entity work.avalon_mm_to_pcie_avalon_st
 		generic map(
-			word_width => 32
+			word_width => 32,
+			tag => x"00"
 		)
 		port map(
 			reset => reset,

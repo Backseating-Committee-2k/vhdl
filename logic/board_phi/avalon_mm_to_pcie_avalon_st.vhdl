@@ -6,7 +6,8 @@ use ieee.numeric_std.ALL;
 
 entity avalon_mm_to_pcie_avalon_st is
 	generic(
-		word_width : natural
+		word_width : natural;
+		tag : std_logic_vector(7 downto 0)
 	);
 	port(
 		-- async reset
@@ -155,7 +156,7 @@ begin
 					if(?? (cmp_tx_ready and cmp_tx_start)) then
 						cmp_tx_valid <= '1';
 						cmp_tx_data <= device_id &	-- requester id
-								   x"00" &			-- tag
+								   tag &			-- tag
 								   x"F" &			-- last DWORD BE
 								   x"F" &			-- first DWORD BE
 								   "0" &			-- reserved
@@ -269,7 +270,7 @@ begin
 
 							if(not (?? cmp_rx_eop) and
 									rx_req_id = device_id and
-									rx_tag = x"00" and
+									rx_tag = tag and
 									rx_lower_address = addr(6 downto 0)) then
 								s := data;
 							else

@@ -426,7 +426,8 @@ begin
 
 	cpu_dma_inst_i : entity work.avalon_mm_to_pcie_avalon_st
 		generic map(
-			word_width => 64
+			word_width => 64,
+			tag => x"00"
 		)
 		port map(
 			reset => not app_rstn,
@@ -468,7 +469,8 @@ begin
 
 	cpu_dma_inst_d : entity work.avalon_mm_to_pcie_avalon_st
 		generic map(
-			word_width => 32
+			word_width => 32,
+			tag => x"01"
 		)
 		port map(
 			reset => not app_rstn,
