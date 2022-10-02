@@ -153,7 +153,9 @@ begin
 						is_write <= '1';
 						addr <= req_addr;
 						wrdata <= (others => '0');
-						wrdata(req_wrdata'range) <= req_wrdata;
+						for i in 0 to wrdata'length / req_wrdata'length - 1 loop
+							wrdata(req_wrdata'high + i * req_wrdata'length downto req_wrdata'low + i * req_wrdata'length) <= req_wrdata;
+						end loop;
 					end if;
 				when header1 =>
 					if(?? (cmp_tx_ready and cmp_tx_start)) then
