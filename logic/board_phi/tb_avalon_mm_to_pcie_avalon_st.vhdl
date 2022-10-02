@@ -71,6 +71,11 @@ begin
 		req_addr <= (others => 'U');
 		req_rdreq <= '0';
 		wait until rising_edge(clk);
+		req_addr <= x"0123456789abcdec";
+		req_wrreq <= '1';
+		req_wrdata <= x"87654321";
+		wait until ?? (not req_waitrequest);
+		req_wrreq <= '0';
 		wait;
 	end process;
 
