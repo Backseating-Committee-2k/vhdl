@@ -65,7 +65,7 @@ begin
 		req_wrdata <= (others => 'U');
 		wait until ?? (not reset);
 		wait until rising_edge(clk);
-		req_addr <= x"0123456789abcdef";
+		req_addr <= x"0123456789abcdec";
 		req_rdreq <= '1';
 		wait until rising_edge(clk);
 		wait;
