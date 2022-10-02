@@ -1,0 +1,18 @@
+// Test Move* instructions with memory operand
+
+	COPY 12345, R0
+
+	COPY R0, *4
+
+	COPY R0, *0x200000
+	COPY 0, R0
+	COPY *0x200000, R0
+	ASSERT R0, 12345
+
+	COPY 0x200004, R1
+	COPY R0, *R1
+	COPY 0, R0
+	COPY *R1, R0
+	ASSERT R0, 12345
+
+	HALT
