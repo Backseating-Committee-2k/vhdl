@@ -123,7 +123,7 @@ begin
 	cmp_cpl_pending <= busy;
 
 	request_generator : process(reset, clk) is
-		type state is (idle, header1, header2, data);
+		type state is (idle, header1, header2, data, wait_read);
 		variable s : state;
 	begin
 		if(?? reset) then
@@ -198,7 +198,7 @@ begin
 							s := data;
 						else
 							cmp_tx_eop <= '1';
-							s := idle;
+							s := wait_read;
 						end if;
 					end if;
 				when data =>
@@ -207,6 +207,10 @@ begin
 						cmp_tx_data <= wrdata_le;
 						cmp_tx_sop <= '0';
 						cmp_tx_eop <= '1';
+						s := idle;
+					end if;
+				when wait_read =>
+					if ?? reset_busy_rd then
 						s := idle;
 					end if;
 			end case;
