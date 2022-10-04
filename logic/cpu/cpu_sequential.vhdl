@@ -625,11 +625,12 @@ begin
 				when load =>
 					d_addr <= m_addr;
 					d_rdreq <= '1';
-					if(d_waitrequest = '0') then
-						s <= load2;
-					end if;
+					s <= load2;
 				when load2 =>
-					if(d_waitrequest = '0') then
+					if ?? d_waitrequest then
+						d_addr <= m_addr;
+						d_rdreq <= '1';
+					else
 						writeback1(m_reg, d_rddata);
 						done;
 					end if;
@@ -637,11 +638,13 @@ begin
 					d_addr <= m_addr;
 					d_wrdata <= m_value;
 					d_wrreq <= '1';
-					if(d_waitrequest = '0') then
-						s <= store2;
-					end if;
+					s <= store2;
 				when store2 =>
-					if(d_waitrequest = '0') then
+					if ?? d_waitrequest then
+						d_addr <= m_addr;
+						d_wrdata <= m_value;
+						d_wrreq <= '1';
+					else
 						done;
 					end if;
 				when mul =>
