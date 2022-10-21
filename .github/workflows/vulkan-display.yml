@@ -2,20 +2,20 @@ name: Vulkan Display Frontend
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "*" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "*" ]
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
 
-    env:
-      CPPFLAGS: "-I${GITHUB_WORKSPACE}/linux"
-
     steps:
     - uses: actions/checkout@v3
+
+    - name: Set CPPFLAGS
+      run: echo "CPPFLAGS=-I${GITHUB_WORKSPACE}/linux" >>${GITHUB_ENV}
 
     - name: Install Dependencies
       run: sudo apt-get install autoconf automake autoconf-archive libvulkan-dev libx11-dev libxext-dev glslang-tools
