@@ -1,9 +1,16 @@
+noinst_PROGRAMS = embed
+
+embed_SOURCES = \
+	embed.c
+
 bin_PROGRAMS = bss2kdpy
 
 bss2kdpy_SOURCES = \
 	bss2kdpy.c bss2kdpy.h \
 	device.c device.h \
+	frag.inc \
 	util.h \
+	vert.inc \
 	vulkan_instance.c vulkan_instance.h \
 	vulkan_command_buffer.c vulkan_command_buffer.h \
 	vulkan_command_pool.c vulkan_command_pool.h \
@@ -25,20 +32,20 @@ bss2kdpy_SOURCES = \
 	x11_setup.c x11_setup.h \
 	x11_vulkan.c x11_vulkan.h
 
-bss2kdpy_LDADD = \
-	frag.$(OBJEXT) \
-	vert.$(OBJEXT)
+BUILT_SOURCES = \
+	frag.inc \
+	vert.inc
 
 EXTRA_DIST = \
 	entire_viewport.vert \
 	texture.frag
 
 CLEANFILES = \
-	frag.spv \
-	vert.spv
+	frag.inc frag.spv \
+	vert.inc vert.spv
 
-.spv.$(OBJEXT):
-	$(OBJCOPY) -I binary -O $(BFDTYPE) $< $@
+%.inc: embed$(EXEEXT) %.spv
+	./$^ $@
 
 frag.spv: texture.frag
 	$(GLSLANGVALIDATOR) -V $^ -o $@

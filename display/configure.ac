@@ -19,23 +19,6 @@ if test -z "${GLSLANGVALIDATOR}"; then
 	AC_MSG_ERROR([glslangValidator is required to compile SPIR-V])
 fi
 
-AC_CHECK_TOOL(
-	[OBJDUMP],
-	[objdump])
-
-AC_MSG_CHECKING([BFD type of compiler output])
-AC_TRY_COMPILE(
-	[],
-	[],
-	[BFDTYPE=`${OBJDUMP} -f conftest.$ac_objext | sed -ne 's/.*format //p'`])
-AC_MSG_RESULT([${BFDTYPE}])
-
-AC_SUBST([BFDTYPE])
-
-AC_CHECK_TOOL(
-	[OBJCOPY],
-	[objcopy])
-
 # Checks for libraries.
 AC_CHECK_LIB(
 	[X11],

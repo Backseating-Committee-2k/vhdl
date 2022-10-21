@@ -9,13 +9,13 @@
 static VkResult create_shader(
 		struct global *g,
 		unsigned char const *code_begin,
-		unsigned char const *code_end,
+		size_t code_size,
 		VkShaderModule *out_shader)
 {
 	VkShaderModuleCreateInfo const info =
 	{
 		.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-		.codeSize = code_end - code_begin,
+		.codeSize = code_size,
 		.pCode = (uint32_t *)code_begin
 	};
 
@@ -28,24 +28,28 @@ static VkResult create_shader(
 
 bool vulkan_shader_setup(struct global *g)
 {
-	extern unsigned char const _binary_frag_spv_start[];
-	extern unsigned char const _binary_frag_spv_end[];
+	unsigned char const frag_spv[] =
+	{
+#include "frag.inc"
+	};
 
 	VkResult rc = create_shader(
 			g,
-			_binary_frag_spv_start,
-			_binary_frag_spv_end,
+			frag_spv,
+			sizeof frag_spv,
 			&g->shaders.frag);
 	if(rc != VK_SUCCESS)
 		goto fail;
 
-	extern unsigned char const _binary_vert_spv_start[];
-	extern unsigned char const _binary_vert_spv_end[];
+	unsigned char const vert_spv[] =
+	{
+#include "vert.inc"
+	};
 
 	rc = create_shader(
 			g,
-			_binary_vert_spv_start,
-			_binary_vert_spv_end,
+			vert_spv,
+			sizeof vert_spv,
 			&g->shaders.vert);
 	if(rc != VK_SUCCESS)
 		goto fail;
