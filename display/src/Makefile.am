@@ -41,7 +41,7 @@ CLEANFILES = \
 	$(OBJCOPY) -I binary -O $(BFDTYPE) $< $@
 
 frag.spv: texture.frag
-	$(GLSLANGVALIDATOR) -V $^
+	$(GLSLANGVALIDATOR) -V $^ -o $@
 
 vert.spv: entire_viewport.vert
-	$(GLSLANGVALIDATOR) -V $^
+	$(GLSLANGVALIDATOR) -V $^ -o $@
