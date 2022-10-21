@@ -18,24 +18,16 @@ jobs:
       run: echo "CPPFLAGS=-I${GITHUB_WORKSPACE}/linux" >>${GITHUB_ENV}
 
     - name: Install Dependencies
-      run: sudo apt-get install autoconf automake autoconf-archive libvulkan-dev libx11-dev libxext-dev glslang-tools
+      run: sudo apt-get install meson ninja-build libvulkan-dev libx11-dev libxext-dev glslang-tools
 
-    - name: Generate Autoconf Scripts
-      run: ./autogen.sh
+    - name: Create Build Directory
+      run: mkdir -p Build
       working-directory: display
 
     - name: Configure
-      run: ./configure
-      working-directory: display
+      run: meson ..
+      working-directory: display/Build
 
     - name: Build
-      run: make
-      working-directory: display
-
-    - name: Run Tests
-      run: make check
-      working-directory: display
-
-    - name: Run Release Tests
-      run: make distcheck
-      working-directory: display
+      run: ninja
+      working-directory: display/Build

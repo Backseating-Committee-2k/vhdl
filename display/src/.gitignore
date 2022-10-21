@@ -1,8 +1,0 @@
-*.o
-.deps/
-bss2kdpy
-embed
-frag.inc
-frag.spv
-vert.inc
-vert.spv
