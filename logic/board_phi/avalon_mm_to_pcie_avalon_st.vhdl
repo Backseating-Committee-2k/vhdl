@@ -78,6 +78,8 @@ architecture syn of avalon_mm_to_pcie_avalon_st is
 				to_unsigned(
 					word_width / 32,		-- in 32 bit DWORDs
 					length_field'length));
+	constant one_dword : length_field :=
+			length_field(to_unsigned(1, length_field'length));
 
 	signal addr : address;
 	signal is_64bit : std_logic;
@@ -288,7 +290,15 @@ begin
 									rx_lower_address /= addr(6 downto 0)) then
 								-- not for us
 								s := idle;
-							elsif(not (?? cmp_rx_eop)) then
+							elsif(length = one_dword and (?? cmp_rx_eop)) then
+								-- special case: a single DWORD is returned
+								-- in the second cycle, not padded, but only if
+								-- bit 2 of the address is set.
+								req_rddata <= rddata_be(req_rddata'range);
+								rd_waitrequest <= '0';
+								reset_busy_rd <= '1';
+								s := idle;
+							elsif(length /= one_dword or not (?? cmp_rx_eop)) then
 								-- expect data in the next cycle
 								s := data;
 							else
