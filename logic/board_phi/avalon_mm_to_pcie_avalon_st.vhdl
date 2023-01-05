@@ -51,9 +51,15 @@ entity avalon_mm_to_pcie_avalon_st is
 end entity;
 
 architecture syn of avalon_mm_to_pcie_avalon_st is
+	-- address bus
 	constant address_width : natural := 64;
 	subtype address is std_logic_vector(address_width - 1 downto 0);
 
+	-- PCIe side
+	constant pcie_word_width : natural := 64;	-- CycloneIV
+	subtype pcie_word is std_logic_vector(pcie_word_width - 1 downto 0);
+
+	-- Avalon-MM side
 	-- word_width is generic parameter
 	subtype word is std_logic_vector(word_width - 1 downto 0);
 
@@ -80,8 +86,8 @@ architecture syn of avalon_mm_to_pcie_avalon_st is
 	signal rddata_be : std_logic_vector(63 downto 0);
 
 	signal is_write : std_logic;
-	signal wrdata : std_logic_vector(63 downto 0);
-	signal wrdata_le : std_logic_vector(63 downto 0);
+	signal wrdata : pcie_word;
+	signal wrdata_le : pcie_word;
 
 	signal busy : std_logic;
 
