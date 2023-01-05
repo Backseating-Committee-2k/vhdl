@@ -283,12 +283,16 @@ begin
 							rx_tag := cmp_rx_data(15 downto 8);
 							rx_lower_address := cmp_rx_data(6 downto 0);
 
-							if(not (?? cmp_rx_eop) and
-									rx_req_id = device_id and
-									rx_tag = tag and
-									rx_lower_address = addr(6 downto 0)) then
+							if(rx_req_id /= device_id or
+									rx_tag /= tag or
+									rx_lower_address /= addr(6 downto 0)) then
+								-- not for us
+								s := idle;
+							elsif(not (?? cmp_rx_eop)) then
+								-- expect data in the next cycle
 								s := data;
 							else
+								-- TODO: handle error
 								s := idle;
 							end if;
 						when data =>
