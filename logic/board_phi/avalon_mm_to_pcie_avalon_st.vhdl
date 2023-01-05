@@ -51,6 +51,16 @@ entity avalon_mm_to_pcie_avalon_st is
 end entity;
 
 architecture syn of avalon_mm_to_pcie_avalon_st is
+	function log2(constant val : in natural) return natural is
+	begin
+		case val is
+			when 1 => return 0;
+			when 2 => return 1;
+			when 4 => return 2;
+			when others => report "unsupported" severity failure;
+		end case;
+	end function;
+
 	-- address bus
 	constant address_width : natural := 64;
 	subtype address is std_logic_vector(address_width - 1 downto 0);
@@ -62,6 +72,10 @@ architecture syn of avalon_mm_to_pcie_avalon_st is
 	-- Avalon-MM side
 	-- word_width is generic parameter
 	subtype word is std_logic_vector(word_width - 1 downto 0);
+
+	constant lane_bits : natural := log2(pcie_word_width / word_width);
+	subtype lane is std_logic_vector(2 downto 3 - lane_bits);
+	subtype lane_num is integer range 0 to 2 ** lane_bits - 1;
 
 	-- PCIe byte count
 	subtype byte_count is std_logic_vector(11 downto 0);
@@ -83,6 +97,7 @@ architecture syn of avalon_mm_to_pcie_avalon_st is
 
 	signal addr : address;
 	signal is_64bit : std_logic;
+	signal used_lane : lane;
 
 	-- endian converted
 	signal rddata_be : std_logic_vector(63 downto 0);
@@ -109,6 +124,7 @@ begin
 	req_waitrequest <= rd_waitrequest and not reset_busy_wr;
 
 	is_64bit <= or_reduce(addr(63 downto 32));
+	used_lane <= addr(lane'range);
 
 	rddata_be <= cmp_rx_data(7 downto 0) &
 			cmp_rx_data(15 downto 8) &
@@ -133,6 +149,8 @@ begin
 	request_generator : process(reset, clk) is
 		type state is (idle, header1, header2, data, wait_read);
 		variable s : state;
+
+		variable used_lane_num : lane_num;
 	begin
 		if(?? reset) then
 			s := idle;
@@ -161,9 +179,8 @@ begin
 						is_write <= '1';
 						addr <= req_addr;
 						wrdata <= (others => '0');
-						for i in 0 to wrdata'length / req_wrdata'length - 1 loop
-							wrdata(req_wrdata'high + i * req_wrdata'length downto req_wrdata'low + i * req_wrdata'length) <= req_wrdata;
-						end loop;
+						used_lane_num := to_integer(unsigned(used_lane));
+						wrdata(req_wrdata'high + used_lane_num * req_wrdata'length downto req_wrdata'low + used_lane_num * req_wrdata'length) <= req_wrdata;
 					end if;
 				when header1 =>
 					if(?? (cmp_tx_ready and cmp_tx_start)) then
