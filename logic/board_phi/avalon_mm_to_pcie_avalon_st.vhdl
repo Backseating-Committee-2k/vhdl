@@ -61,6 +61,8 @@ architecture syn of avalon_mm_to_pcie_avalon_st is
 		end case;
 	end function;
 
+	constant bits_per_byte : natural := 8;
+
 	-- address bus
 	constant address_width : natural := 64;
 	subtype address is std_logic_vector(address_width - 1 downto 0);
@@ -72,6 +74,8 @@ architecture syn of avalon_mm_to_pcie_avalon_st is
 	-- Avalon-MM side
 	-- word_width is generic parameter
 	subtype word is std_logic_vector(word_width - 1 downto 0);
+	constant word_width_bytes : natural := word_width / bits_per_byte;
+	constant req_be : std_logic_vector(word_width_bytes - 1 downto 0) := (others => '1');
 
 	constant lane_bits : natural := log2(pcie_word_width / word_width);
 	subtype lane is std_logic_vector(2 downto 3 - lane_bits);
@@ -105,6 +109,7 @@ architecture syn of avalon_mm_to_pcie_avalon_st is
 	signal is_write : std_logic;
 	signal wrdata : pcie_word;
 	signal wrdata_le : pcie_word;
+	signal byte_enable : std_logic_vector(7 downto 0);
 
 	signal busy : std_logic;
 
@@ -174,21 +179,26 @@ begin
 						is_write <= '0';
 						addr <= req_addr;
 						cmp_tx_req <= '1';
+						byte_enable <= (others => '0');
+						byte_enable(req_be'range) <= req_be;
 					elsif(?? (req_wrreq and not busy)) then
 						s := header1;
 						is_write <= '1';
 						addr <= req_addr;
 						wrdata <= (others => '0');
+						byte_enable <= (others => '0');
+
 						used_lane_num := to_integer(unsigned(used_lane));
 						wrdata(req_wrdata'high + used_lane_num * req_wrdata'length downto req_wrdata'low + used_lane_num * req_wrdata'length) <= req_wrdata;
+						byte_enable(req_be'range) <= req_be;
 					end if;
 				when header1 =>
 					if(?? (cmp_tx_ready and cmp_tx_start)) then
 						cmp_tx_valid <= '1';
 						cmp_tx_data <= device_id &	-- requester id
 								   tag &			-- tag
-								   x"F" &			-- last DWORD BE
-								   x"F" &			-- first DWORD BE
+								   byte_enable(7 downto 4) &	-- last DWORD BE
+								   byte_enable(3 downto 0) &	-- first DWORD BE
 								   "0" &			-- reserved
 								   is_write &		-- data attached?
 								   is_64bit &		-- 64 bit address
