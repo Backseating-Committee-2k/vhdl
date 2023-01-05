@@ -26,8 +26,7 @@ package bss2k is
 
 	-- size calculations
 	constant terminal_buffer_size : integer :=
-		(terminal_width * terminal_height + 2) * word_size / byte_size;
-		--                               ~~~~ WTF
+		(terminal_width * terminal_height) * word_size / byte_size;
 	constant framebuffer_size : integer :=
 		(framebuffer_width * framebuffer_height) * 4;	-- RGBA
 
@@ -35,8 +34,12 @@ package bss2k is
 
 	-- address calculations
 	constant terminal_buffer_start : address := x"000000";
-	constant first_framebuffer_start : address :=
+	constant terminal_cursor_pointer : address :=
 		address(unsigned(terminal_buffer_start) + terminal_buffer_size);
+	constant terminal_cursor_mode : address :=
+		address(unsigned(terminal_cursor_pointer) + word_size / byte_size);
+	constant first_framebuffer_start : address :=
+		address(unsigned(terminal_cursor_mode) + word_size / byte_size);
 	constant second_framebuffer_start : address :=
 		address(unsigned(first_framebuffer_start) + framebuffer_size);
 	constant stack_start : address :=
