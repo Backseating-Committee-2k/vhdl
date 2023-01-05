@@ -26,7 +26,7 @@ package bss2k is
 
 	-- size calculations
 	constant terminal_buffer_size : integer :=
-		(terminal_width * terminal_height) * word_size / byte_size;
+		(terminal_width * terminal_height);
 	constant framebuffer_size : integer :=
 		(framebuffer_width * framebuffer_height) * 4;	-- RGBA
 

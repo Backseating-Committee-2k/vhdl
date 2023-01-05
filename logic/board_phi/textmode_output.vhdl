@@ -184,7 +184,7 @@ begin
 			data => d_wrdata(7 downto 0),
 			rdaddress => ram_addr,
 			q => ram_data,
-			wraddress => d_addr(12 downto 2),
+			wraddress => d_addr(10 downto 0),
 			wren => writing_char_ram
 		);
 

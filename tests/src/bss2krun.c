@@ -106,7 +106,7 @@ enum result run_program(int prog_fd, int dev_fd)
 		return ERROR;
 
 	/* TODO: magic value */
-	off_t const start_address = 0x1d3748;
+	off_t const start_address = 0x1d1fd8;
 
 	off_t const address = lseek(dev_fd, start_address, SEEK_SET);
 
