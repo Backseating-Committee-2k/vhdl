@@ -1,0 +1,31 @@
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  timeout: 3h
+  image: quartus:16.1.0.196
+  tags:
+    - quartus
+  script:
+    - cd logic
+    - ./build.sh -r
+  artifacts:
+    paths:
+      - logic/output_files/*.sof
+      - logic/output_files/*.svf
+    untracked: false
+    expire_in: 30 days
+
+test:
+  stage: test
+  timeout: 60s
+  image: testenv-pcie:latest
+  tags:
+    - altera-blaster
+    - cycloneiv
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - openocd -f ~/.config/openocd/openocd.cfg -c 'init; svf logic/output_files/bss2k.svf progress; exit'
